@@ -34,7 +34,7 @@ const AboutSection = () => {
               variants={fadeInLeft}
             >
               <p className="text-[18px] font-semibold text-color-text-dark max-sm:text-lg">
-                {'ABOUT CREDIT 4 BUSINESS'}
+                {'ABOUT CAPITAL 4 BUSINESS'}
                 <span className="mb-1 ml-2 inline-block h-[1.5px] w-7 bg-red-500"></span>
               </p>
               <p className="my-2 font-Playfair font-bold leading-normal tracking-normal text-[#02002E] max-sm:text-2xl md:text-[22px] lg:text-[40px]">
@@ -42,12 +42,12 @@ const AboutSection = () => {
                 {'businesses'}
               </p>
               <p className="mt-4 font-light text-[#929292] max-sm:text-[13px] md:text-[13px] lg:text-[17px]">
-                {'Credit 4 business is a door to access business funding in a'}
+                {'Capital 4 business is a door to access business funding in a'}
                 {
                   'friendly way. We are here mainly to support the small businesses'
                 }
                 {
-                  'deprived of funds by providing quick unsecured finance to meet'
+                  'deprived of funds by providing quick unsecured finance to meet '
                 }
                 {'their business ambitions.'}
               </p>

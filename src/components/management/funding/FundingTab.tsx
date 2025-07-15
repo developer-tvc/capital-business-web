@@ -31,7 +31,7 @@ const FundingTab = ({ tabs, activeTab, setActiveTab }) => {
           <li key={tab.id} className="me-2 flex-shrink-0" role="presentation">
             <button
               ref={activeTab === tab.id ? activeTabRef : null}
-              className={`inline-block rounded-t-lg py-4 hover:border-gray-300 max-sm:p-2 tab-btn ${
+              className={`tab-btn inline-block rounded-t-lg py-4 hover:border-gray-300 max-sm:p-2 ${
                 currentHighestStage < tab.id &&
                 'cursor-not-allowed text-[#929292]'
               } ${activeTab === tab.id && 'text-[#1A439A]'} `}

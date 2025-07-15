@@ -137,21 +137,28 @@ const Partner = ({
       icon: () => {
         return (
           <>
-           <svg xmlns="http://www.w3.org/2000/svg" width={24} height={24} viewBox="0 0 24 24">
-	<path fill="currentColor" d="M7.394 20.025q-.688-.025-1.309-.357q-.62-.331-1.172-.97q-.904-1.027-1.408-2.526Q3 14.673 3 13.058q0-1.883.701-3.535t1.926-2.877t2.867-1.935T12 4t3.506.714t2.857 1.934t1.926 2.87T21 13.04q0 1.617-.52 3.109t-1.438 2.566q-.584.661-1.196.985q-.611.324-1.296.324q-.354 0-.688-.084q-.335-.083-.67-.25l-1.4-.7q-.415-.208-.877-.312q-.463-.104-.934-.104q-.49 0-.943.104t-.85.312l-1.38.7q-.36.192-.697.275q-.338.084-.717.059m.031-1q.225 0 .463-.05t.462-.175l1.4-.7q.525-.275 1.088-.4t1.137-.125t1.15.125t1.1.4l1.425.7q.225.125.45.175t.45.05q.475 0 .91-.25q.434-.25.86-.75q.8-.95 1.24-2.275t.44-2.744q0-3.35-2.325-5.678T12 5T6.325 7.35T4 13.05q0 1.425.472 2.775T5.75 18.1q.425.5.825.713t.85.212M12 14.5q.633 0 1.066-.434q.434-.433.434-1.066q0-.22-.066-.429q-.067-.21-.18-.39L15.1 9.794q.39.37.671.8t.425.925q.068.189.202.325q.135.137.323.137q.27 0 .403-.226q.134-.226.047-.501q-.558-1.679-1.98-2.716Q13.767 7.5 12 7.5q-1.773 0-3.203 1.038q-1.43 1.037-1.987 2.716q-.087.275.056.5t.394.227q.188 0 .313-.137t.193-.325q.446-1.363 1.614-2.191T12 8.5q.612 0 1.201.18t1.113.505l-1.852 2.398q-.108-.039-.231-.061T12 11.5q-.633 0-1.066.434q-.434.433-.434 1.066t.434 1.066T12 14.5"></path>
-</svg>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width={24}
+              height={24}
+              viewBox="0 0 24 24"
+            >
+              <path
+                fill="currentColor"
+                d="M7.394 20.025q-.688-.025-1.309-.357q-.62-.331-1.172-.97q-.904-1.027-1.408-2.526Q3 14.673 3 13.058q0-1.883.701-3.535t1.926-2.877t2.867-1.935T12 4t3.506.714t2.857 1.934t1.926 2.87T21 13.04q0 1.617-.52 3.109t-1.438 2.566q-.584.661-1.196.985q-.611.324-1.296.324q-.354 0-.688-.084q-.335-.083-.67-.25l-1.4-.7q-.415-.208-.877-.312q-.463-.104-.934-.104q-.49 0-.943.104t-.85.312l-1.38.7q-.36.192-.697.275q-.338.084-.717.059m.031-1q.225 0 .463-.05t.462-.175l1.4-.7q.525-.275 1.088-.4t1.137-.125t1.15.125t1.1.4l1.425.7q.225.125.45.175t.45.05q.475 0 .91-.25q.434-.25.86-.75q.8-.95 1.24-2.275t.44-2.744q0-3.35-2.325-5.678T12 5T6.325 7.35T4 13.05q0 1.425.472 2.775T5.75 18.1q.425.5.825.713t.85.212M12 14.5q.633 0 1.066-.434q.434-.433.434-1.066q0-.22-.066-.429q-.067-.21-.18-.39L15.1 9.794q.39.37.671.8t.425.925q.068.189.202.325q.135.137.323.137q.27 0 .403-.226q.134-.226.047-.501q-.558-1.679-1.98-2.716Q13.767 7.5 12 7.5q-1.773 0-3.203 1.038q-1.43 1.037-1.987 2.716q-.087.275.056.5t.394.227q.188 0 .313-.137t.193-.325q.446-1.363 1.614-2.191T12 8.5q.612 0 1.201.18t1.113.505l-1.852 2.398q-.108-.039-.231-.061T12 11.5q-.633 0-1.066.434q-.434.433-.434 1.066t.434 1.066T12 14.5"
+              ></path>
+            </svg>
           </>
         );
       }
     },
-   {
-  type: 'date',
-  placeholder: "Credit Score Updated Date",
-  name: `${partnerType}[${currentDirectorIndex}].credit_score_updated_at`,
-  max: formatDate(new Date(Date.now() - 60 * 24 * 60 * 60 * 1000)) // 60 days ago
-}
-,
-    
+    {
+      type: 'date',
+      placeholder: 'Credit Score Updated Date',
+      name: `${partnerType}[${currentDirectorIndex}].credit_score_updated_at`,
+      max: formatDate(new Date(Date.now() - 60 * 24 * 60 * 60 * 1000)) // 60 days ago
+    },
+
     {
       name: `${partnerType}[${currentDirectorIndex}].risk_score`,
       type: 'number',
@@ -160,17 +167,25 @@ const Partner = ({
       icon: () => {
         return (
           <>
-               <svg xmlns="http://www.w3.org/2000/svg" width={24} height={24} viewBox="0 0 24 24">
-	<path fill="currentColor" d="M7.394 20.025q-.688-.025-1.309-.357q-.62-.331-1.172-.97q-.904-1.027-1.408-2.526Q3 14.673 3 13.058q0-1.883.701-3.535t1.926-2.877t2.867-1.935T12 4t3.506.714t2.857 1.934t1.926 2.87T21 13.04q0 1.617-.52 3.109t-1.438 2.566q-.584.661-1.196.985q-.611.324-1.296.324q-.354 0-.688-.084q-.335-.083-.67-.25l-1.4-.7q-.415-.208-.877-.312q-.463-.104-.934-.104q-.49 0-.943.104t-.85.312l-1.38.7q-.36.192-.697.275q-.338.084-.717.059m.031-1q.225 0 .463-.05t.462-.175l1.4-.7q.525-.275 1.088-.4t1.137-.125t1.15.125t1.1.4l1.425.7q.225.125.45.175t.45.05q.475 0 .91-.25q.434-.25.86-.75q.8-.95 1.24-2.275t.44-2.744q0-3.35-2.325-5.678T12 5T6.325 7.35T4 13.05q0 1.425.472 2.775T5.75 18.1q.425.5.825.713t.85.212M12 14.5q.633 0 1.066-.434q.434-.433.434-1.066q0-.22-.066-.429q-.067-.21-.18-.39L15.1 9.794q.39.37.671.8t.425.925q.068.189.202.325q.135.137.323.137q.27 0 .403-.226q.134-.226.047-.501q-.558-1.679-1.98-2.716Q13.767 7.5 12 7.5q-1.773 0-3.203 1.038q-1.43 1.037-1.987 2.716q-.087.275.056.5t.394.227q.188 0 .313-.137t.193-.325q.446-1.363 1.614-2.191T12 8.5q.612 0 1.201.18t1.113.505l-1.852 2.398q-.108-.039-.231-.061T12 11.5q-.633 0-1.066.434q-.434.433-.434 1.066t.434 1.066T12 14.5"></path>
-</svg>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width={24}
+              height={24}
+              viewBox="0 0 24 24"
+            >
+              <path
+                fill="currentColor"
+                d="M7.394 20.025q-.688-.025-1.309-.357q-.62-.331-1.172-.97q-.904-1.027-1.408-2.526Q3 14.673 3 13.058q0-1.883.701-3.535t1.926-2.877t2.867-1.935T12 4t3.506.714t2.857 1.934t1.926 2.87T21 13.04q0 1.617-.52 3.109t-1.438 2.566q-.584.661-1.196.985q-.611.324-1.296.324q-.354 0-.688-.084q-.335-.083-.67-.25l-1.4-.7q-.415-.208-.877-.312q-.463-.104-.934-.104q-.49 0-.943.104t-.85.312l-1.38.7q-.36.192-.697.275q-.338.084-.717.059m.031-1q.225 0 .463-.05t.462-.175l1.4-.7q.525-.275 1.088-.4t1.137-.125t1.15.125t1.1.4l1.425.7q.225.125.45.175t.45.05q.475 0 .91-.25q.434-.25.86-.75q.8-.95 1.24-2.275t.44-2.744q0-3.35-2.325-5.678T12 5T6.325 7.35T4 13.05q0 1.425.472 2.775T5.75 18.1q.425.5.825.713t.85.212M12 14.5q.633 0 1.066-.434q.434-.433.434-1.066q0-.22-.066-.429q-.067-.21-.18-.39L15.1 9.794q.39.37.671.8t.425.925q.068.189.202.325q.135.137.323.137q.27 0 .403-.226q.134-.226.047-.501q-.558-1.679-1.98-2.716Q13.767 7.5 12 7.5q-1.773 0-3.203 1.038q-1.43 1.037-1.987 2.716q-.087.275.056.5t.394.227q.188 0 .313-.137t.193-.325q.446-1.363 1.614-2.191T12 8.5q.612 0 1.201.18t1.113.505l-1.852 2.398q-.108-.039-.231-.061T12 11.5q-.633 0-1.066.434q-.434.433-.434 1.066t.434 1.066T12 14.5"
+              ></path>
+            </svg>
           </>
         );
       }
     },
     {
       type: 'date',
-      
-      placeholder: "Risk Score Updated Date",
+
+      placeholder: 'Risk Score Updated Date',
       name: `${partnerType}[${currentDirectorIndex}].risk_score_updated_at`,
       // excludeDateIntervals: [
       //   { start: currentDate, end: new Date(8640000000000000) }
@@ -185,9 +200,8 @@ const Partner = ({
       },
       labelClass: ` -top-3 absolute cursor-text text-sm text-gray-500  start-8 mt-1 
          bg-inherit mx-1 px-1 peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-500
-          peer-placeholder-shown:top-2 peer-focus:-top-3 peer-focus:text-gray-600 peer-focus:text-sm transition-all `,
-    },
-    
+          peer-placeholder-shown:top-2 peer-focus:-top-3 peer-focus:text-gray-600 peer-focus:text-sm transition-all `
+    }
   ];
 
   fieldRenderer.updateConstant([
@@ -201,20 +215,20 @@ const Partner = ({
   const { getValues } = useFormContext();
   const payload = getValues();
 
+  payload?.[partnerType]?.forEach(partner => {
+    if (partner.credit_score_updated_at)
+      partner.credit_score_updated_at = formatDate(
+        partner.credit_score_updated_at
+      );
 
-payload?.[partnerType]?.forEach((partner) => {
-  if (partner.credit_score_updated_at)
-    partner.credit_score_updated_at = formatDate(partner.credit_score_updated_at);
+    if (partner.risk_score_updated_at)
+      partner.risk_score_updated_at = formatDate(partner.risk_score_updated_at);
 
-  if (partner.risk_score_updated_at)
-    partner.risk_score_updated_at = formatDate(partner.risk_score_updated_at);
-
-  partner?.stay?.forEach((stay) => {
-    if (stay.start_date) stay.start_date = formatDate(stay.start_date);
-    if (stay.end_date) stay.end_date = formatDate(stay.end_date);
+    partner?.stay?.forEach(stay => {
+      if (stay.start_date) stay.start_date = formatDate(stay.start_date);
+      if (stay.end_date) stay.end_date = formatDate(stay.end_date);
+    });
   });
-});
-
 
   return (
     <div key={currentDirectorIndex}>
@@ -250,10 +264,9 @@ payload?.[partnerType]?.forEach((partner) => {
               `${partnerType}[${currentDirectorIndex}].email`
             ])}
           </div>
-    
         </div>
-        {[Roles.Manager, Roles.Admin,Roles.UnderWriter].includes(role) &&( 
-          <div className='grid gap-4 py-3 max-sm:grid-cols-1 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-3'>
+        {[Roles.Manager, Roles.Admin, Roles.UnderWriter].includes(role) && (
+          <div className="grid gap-4 py-3 max-sm:grid-cols-1 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-3">
             <div className="relative">
               {' '}
               {fieldRenderer.renderField([
@@ -278,7 +291,8 @@ payload?.[partnerType]?.forEach((partner) => {
                 `${partnerType}[${currentDirectorIndex}].risk_score_updated_at`
               ])}
             </div>
-          </div>)}
+          </div>
+        )}
         <DateRangeSelector
           currentDirectorIndex={currentDirectorIndex}
           fieldRenderer={fieldRenderer}

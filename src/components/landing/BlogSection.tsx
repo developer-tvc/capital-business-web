@@ -90,7 +90,7 @@ const BlogSection = () => {
                 </p>
                 <p className="mt-4 py-8 font-light text-[#929292] max-sm:py-4 max-sm:text-base lg:text-[18px]">
                   {
-                    'Credit4Business aims to cater to the various business needs of'
+                    'Capital4Business aims to cater to the various business needs of'
                   }
                   {
                     'small businesses. Here are some of the funding needs met by'

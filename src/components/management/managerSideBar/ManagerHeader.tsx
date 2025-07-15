@@ -155,7 +155,7 @@ const ManagerHeader = ({ onSearch, fetchManagerDetails }) => {
                 <p className="my-1 pl-4 text-[15px] font-medium">
                   {'Manager Form'}
                   <div className="text-[10.5px] text-[#656565]">
-                    {'Get 40 Credit for each referral with Credit4business'}
+                    {'Get 40 Credit for each referral with Capital4business'}
                   </div>
                 </p>
                 <button

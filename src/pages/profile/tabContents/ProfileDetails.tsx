@@ -102,7 +102,7 @@ const ProfileDetails = () => {
   }, [isFileUploaded]);
 
   return (
-    <div className="flex flex-col overflow-y-scroll pr-8 scrollbar-hide">
+    <div className="scrollbar-hide flex flex-col overflow-y-scroll pr-8">
       <div className="bg-white">
         {(isLaptop || isTablet) && (
           <div className="px-4 py-5 sm:px-6">
@@ -223,7 +223,7 @@ const ProfileDetails = () => {
           </div>
         )}
 
-        <div className="border-t border-gray-200 px-4 py-5 sm:p-0 overflow-y-auto max-h-[50vh] scrollbar-hide">
+        <div className="scrollbar-hide max-h-[50vh] overflow-y-auto border-t border-gray-200 px-4 py-5 sm:p-0">
           <dl className="sm:divide-y sm:divide-gray-200">
             {/* Row 1 */}
             <div className="py-3 sm:grid sm:grid-cols-2 sm:gap-4 sm:px-6 sm:py-3">

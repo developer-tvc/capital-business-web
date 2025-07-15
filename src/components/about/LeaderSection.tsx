@@ -79,7 +79,7 @@ const LeaderSection = () => {
                   </div>
                   <p className="mt-4 py-4 text-[#444444] max-sm:text-[12px] md:text-[12px] lg:text-[16px]">
                     {
-                      'Credit 4 business is a door to access business funding in a'
+                      'Capital 4 business is a door to access business funding in a'
                     }
                     {'friendly way. We are here mainly to support the small'}
                     {
@@ -138,7 +138,7 @@ const LeaderSection = () => {
                           <br />
                           <a className="lg:text-[26px]">{'Call '}</a>
                           <a className="font-semibold lg:text-[26px]">
-                            {'020 8004 9787'}
+                            {'020 3691 9423'}
                           </a>
                         </p>
                       </span>

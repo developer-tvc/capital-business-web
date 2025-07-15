@@ -18,7 +18,7 @@ const BusinessCashSection = () => {
             <div className="grid">
               <div className="max-sm:order-2">
                 <p className="text-[18px] font-semibold text-color-text-dark max-sm:text-lg">
-                  {'ABOUT CREDIT 4 BUSINESS'}
+                  {'ABOUT CAPITAL 4 BUSINESS'}
                   <span className="mb-1 ml-2 inline-block h-[1.5px] w-7 bg-red-500"></span>
                 </p>
                 <p className="tracki my-2 font-Playfair font-bold leading-normal text-[#02002E] max-sm:text-2xl md:text-[22px] lg:text-[40px]">

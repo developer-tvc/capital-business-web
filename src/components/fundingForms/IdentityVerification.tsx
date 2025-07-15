@@ -57,7 +57,7 @@ const IdentityVerification: React.FC<LoanFromCommonProps> = ({
   const [kycError, setKycError] = useState(null);
   const [showCustomerIdentityDocument, setShowCustomerIdentityDocument] =
     useState(false);
-    const [identityUpdateToggle, setIdentityUpdateToggle] = useState(false);
+  const [identityUpdateToggle, setIdentityUpdateToggle] = useState(false);
 
   const [trustIdStatus, setTrustIdStatus] = useState<
     Partial<TrustIdStatusInterface[]>
@@ -403,7 +403,10 @@ const IdentityVerification: React.FC<LoanFromCommonProps> = ({
               <div className="mt-4">
                 <Header title="Customer identity Details" />
 
-                <CustomerIdentityDocument userId={loanId} setIdentityUpdateToggle={setIdentityUpdateToggle} />
+                <CustomerIdentityDocument
+                  userId={loanId}
+                  setIdentityUpdateToggle={setIdentityUpdateToggle}
+                />
               </div>
             )}
           </div>

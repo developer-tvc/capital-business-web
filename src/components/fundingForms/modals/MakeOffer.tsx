@@ -24,8 +24,8 @@ const MakeOffer: React.FC<MakeOfferProps> = ({ isOpen, onClose, loanId }) => {
   const [currentLoanAmount, setCurrentLoanAmount] = useState<string | null>(
     null
   );
-  const [merchantFactor,setMerchantFactor] = useState()
-  
+  const [merchantFactor, setMerchantFactor] = useState();
+
   const [currentLoanWeeks, setCurrentLoanWeeks] = useState<string | null>(null);
 
   const fieldRenderer = new FieldRenderer(
@@ -42,8 +42,7 @@ const MakeOffer: React.FC<MakeOfferProps> = ({ isOpen, onClose, loanId }) => {
   const { showToast } = useToast();
   const { role } = useSelector(authSelector);
 
-
-  const fetchAffordabilityData = async (loanId) => {
+  const fetchAffordabilityData = async loanId => {
     try {
       const response = await fetchAffordabilityApi(loanId);
       if (response.status_code >= 200 && response.status_code < 300) {
@@ -59,7 +58,7 @@ const MakeOffer: React.FC<MakeOfferProps> = ({ isOpen, onClose, loanId }) => {
     }
   };
 
-  useEffect(() => { 
+  useEffect(() => {
     // Trigger only for Admin and Manager roles
     if ([Roles.Admin, Roles.Manager].includes(role) && loanId) {
       fetchAffordabilityData(loanId);
@@ -108,7 +107,7 @@ const MakeOffer: React.FC<MakeOfferProps> = ({ isOpen, onClose, loanId }) => {
       const payload = {
         offer_amount: data.offer_amount,
         offer_number_of_weeks: data.offer_number_of_weeks,
-        offer_merchant_factor: data.offer_merchant_factor,
+        offer_merchant_factor: data.offer_merchant_factor
       };
       const loanOfferApiResponse = await loanOfferApi(payload, loanId);
       if (loanOfferApiResponse?.status_code === 200) {
@@ -187,7 +186,7 @@ const MakeOffer: React.FC<MakeOfferProps> = ({ isOpen, onClose, loanId }) => {
                       </div>
                     </div>
                     <div className="mt-2">
-                    <p className="pb-4 text-sm text-gray-500">
+                      <p className="pb-4 text-sm text-gray-500">
                         {'Current Merchant Factor : '}
                         {merchantFactor}
                       </p>

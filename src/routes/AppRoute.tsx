@@ -323,9 +323,10 @@ const AppRoute = () => {
           <Route path="/instant-pay-pending" element={<InstantPayPending />} />
           <Route path="/instant-pay-failed" element={<InstantPayFailed />} />
           <Route path="/direct-debit-failed" element={<DirectDebitFailed />} />
-          <Route path="/direct-debit-success" element={<DirectDebitSuccess />} />
-
-
+          <Route
+            path="/direct-debit-success"
+            element={<DirectDebitSuccess />}
+          />
         </>
       )}
       {/* <Route path="*" element={landingPage} /> */}

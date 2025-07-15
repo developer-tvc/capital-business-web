@@ -37,7 +37,7 @@ const FinanceSection = () => {
                   {'RENOWNED AND TRUSTED IN THE UNITED KINGDOM'}
                 </p>
                 <p className="tracki my-2 font-Playfair font-bold text-[#02002E] max-sm:text-2xl md:text-[20px] lg:text-[40px]">
-                  {'Credit4business Finance is accessible '}
+                  {'Capital4business Finance is accessible '}
                   <br />
                   {'throughout "The United Kingdom"'}
                 </p>

@@ -25,7 +25,7 @@ export const FeatureSection = () => {
           className="m-auto mb-20 text-center max-sm:mb-2 md:w-1/2"
         >
           <p className="mb-4 font-Playfair text-3xl font-bold text-[#02002E] max-sm:text-2xl lg:text-[34px]">
-            <a>{'Why choose Credit'}</a>
+            <a>{'Why choose Capital'}</a>
             <a className="text-[#F02E23]">{'4'}</a>
             <a>{'business'}</a>
           </p>

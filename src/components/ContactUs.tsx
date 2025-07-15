@@ -211,7 +211,7 @@ const ContactUs = () => {
                         </div>
                       </div>
 
-                      <ul className="mb-4 flex flex-wrap justify-between max-sm:justify-start">
+                      <ul className="mb-4 flex flex-wrap gap-12 max-sm:justify-start">
                         <li className="my-4 max-sm:my-1">
                           <a
                             href="#"
@@ -231,12 +231,12 @@ const ContactUs = () => {
                             <span className="ml-3 grid">
                               {'PHONE'}
                               <a className="text-[13px] font-normal text-[#1A439A]">
-                                {'020 8004 9787'}
+                                {'020 3691 9423'}
                               </a>
                             </span>
                           </a>
                         </li>
-                        <li className="my-4 max-sm:my-1">
+                        {/* <li className="my-4 max-sm:my-1">
                           <a
                             href="#"
                             aria-label="LINKEDIN"
@@ -259,7 +259,7 @@ const ContactUs = () => {
                               </a>
                             </span>
                           </a>
-                        </li>
+                        </li> */}
                         <li className="my-4 max-sm:my-1">
                           <a
                             href="#"
@@ -279,7 +279,7 @@ const ContactUs = () => {
                             <span className="ml-3 grid">
                               {'EMAIL'}
                               <a className="text-[13px] font-normal text-[#1A439A]">
-                                {'info@credit4business.co.uk'}
+                                {'info@capital4business.co.uk'}
                               </a>
                             </span>
                           </a>

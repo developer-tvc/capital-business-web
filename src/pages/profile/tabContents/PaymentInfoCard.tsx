@@ -15,7 +15,13 @@ const buttonClasses = {
   text-sm px-5 py-1.5 me-2 mb-2 bg-blue-600 hover:bg-blue-700 focus:outline-none max-sm:text-[12px]`
 };
 
-const PaymentInfoCard = ({ payments = [], loanId, setLoader, loanIds,hideBorder  }) => {
+const PaymentInfoCard = ({
+  payments = [],
+  loanId,
+  setLoader,
+  loanIds,
+  hideBorder
+}) => {
   const { showToast } = useToast();
   const [amount, setAmount] = useState();
   const { role } = useSelector(authSelector);
@@ -63,7 +69,10 @@ const PaymentInfoCard = ({ payments = [], loanId, setLoader, loanIds,hideBorder 
       {payments.length > 0 &&
         payments.map(paymentData => {
           return (
-            <div key={paymentData.title} className={`mb-8 ${hideBorder ? '' : 'border'} bg-white`}>
+            <div
+              key={paymentData.title}
+              className={`mb-8 ${hideBorder ? '' : 'border'} bg-white`}
+            >
               <div className="py-3">
                 {![Roles.Customer, Roles.Leads].includes(role as Roles) && (
                   <div className="mx-3">

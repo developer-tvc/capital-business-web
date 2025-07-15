@@ -11,13 +11,21 @@ import { dynamicPaymentScheduleSchema } from '../../../utils/Schema';
 import FieldRenderer from '../../commonInputs/FieldRenderer';
 import Loader from '../../Loader';
 import DateController from '../../commonInputs/Date';
-import { isFriday, isMonday, isSaturday, isSunday, isThursday, isTuesday, isWednesday } from 'date-fns';
+import {
+  isFriday,
+  isMonday,
+  isSaturday,
+  isSunday,
+  isThursday,
+  isTuesday,
+  isWednesday
+} from 'date-fns';
 
 const AddPaymentSchedule = ({
   toggleModal,
   methods,
   pendingAmount,
-  editingSchedule,
+  editingSchedule
 }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -107,15 +115,15 @@ const AddPaymentSchedule = ({
   const { watch } = dynamicPlanMethods;
   const watchDynamicPlanFields = watch();
 
-   const dayFunctionMap = {
-      monday: isMonday,
-      tuesday: isTuesday,
-      wednesday: isWednesday,
-      thursday: isThursday,
-      friday: isFriday,
-      saturday: isSaturday,
-      sunday: isSunday
-    };
+  const dayFunctionMap = {
+    monday: isMonday,
+    tuesday: isTuesday,
+    wednesday: isWednesday,
+    thursday: isThursday,
+    friday: isFriday,
+    saturday: isSaturday,
+    sunday: isSunday
+  };
   const filterDates = date => {
     const dayFunction =
       dayFunctionMap[watchDynamicPlanFields.day_of_debit?.toLowerCase()];

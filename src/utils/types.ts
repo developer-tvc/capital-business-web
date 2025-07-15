@@ -169,7 +169,7 @@ export interface GuarantorTypeSubSchemaType {
   email?: string;
   owns_other_property?: 'Yes' | 'No';
   stay_validated?: boolean;
-   company_name?: string;
+  company_name?: string;
   stay?: {
     pincode?: string;
     address?: string;
@@ -197,8 +197,6 @@ export type GuaranteedPropertyType = {
     address: string;
   }[];
 };
-
-
 
 export type CorporateGuarantorDirectorType = {
   id?: number;

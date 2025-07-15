@@ -240,9 +240,7 @@ const PaymentDetails: React.FC<{ loanId: string }> = ({ loanId }) => {
                         <PaymentHistory
                           paymentHistory={loan.funding_payment_history}
                           isDropdownOpen
-                          paymentMissHistory={
-                            loan?.gocardless_missed_emi_dates
-                          }
+                          paymentMissHistory={loan?.gocardless_missed_emi_dates}
                         />
                       </div>
                     </div>

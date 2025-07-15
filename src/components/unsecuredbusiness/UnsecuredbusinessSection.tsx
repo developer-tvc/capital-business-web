@@ -20,14 +20,16 @@ const UnsecuredbusinessSection = () => {
             <div className="grid">
               <div className="max-sm:order-2">
                 <p className="text-[18px] font-semibold text-color-text-dark max-sm:text-lg">
-                  {'ABOUT CREDIT 4 BUSINESS'}
+                  {'ABOUT CAPITAL 4 BUSINESS'}
                   <span className="mb-1 ml-2 inline-block h-[1.5px] w-7 bg-red-500"></span>
                 </p>
                 <p className="tracki my-2 font-Playfair font-bold leading-normal text-[#02002E] max-sm:text-2xl md:text-[22px] lg:text-[40px]">
                   {'Business Funding'}
                 </p>
                 <p className="mt-4 font-light leading-10 text-[#929292] max-sm:text-[13px] md:text-[13px] lg:text-[17px]">
-                  {'At Credit 4 Business, we provide fast and flexible funding'}
+                  {
+                    'At Capital 4 Business, we provide fast and flexible funding'
+                  }
                   {'solutions to help small businesses thrive. Our Business'}
                   {
                     'Funding option is designed to offer quick access to unsecured'

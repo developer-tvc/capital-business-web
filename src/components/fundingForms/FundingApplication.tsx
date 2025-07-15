@@ -535,7 +535,7 @@ const CustomerFundingApplication: React.FC = ({
                     {'Previous'}
                   </button>
                 </div>
-                {[5, 6, 7,10].includes(activeStage) && (
+                {[5, 6, 7, 10].includes(activeStage) && (
                   <div>
                     <button
                       type="button"
@@ -546,7 +546,6 @@ const CustomerFundingApplication: React.FC = ({
                           6: { complete_documents: true },
                           7: { complete_guarantor: true },
                           10: { complete_additional_details: true }
-
                         };
 
                         if (updates[activeStage]) {

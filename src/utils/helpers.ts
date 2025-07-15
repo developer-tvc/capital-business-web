@@ -72,7 +72,7 @@ export const getStayDateWithExcludeDateIntervals = directors => {
   return dateRanges;
 };
 
-export const convertDateString = (dateString) => {
+export const convertDateString = dateString => {
   if (!dateString) return 'N/A';
   return moment(dateString).isValid()
     ? moment(dateString).format('YYYY-MM-DD')

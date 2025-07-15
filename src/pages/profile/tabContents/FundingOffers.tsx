@@ -206,83 +206,85 @@ const FundingOffers: React.FC<{ loanId?: string }> = ({ loanId }) => {
             : undefined
         }
       />
-    <div className="container mx-auto p-4 h-screen overflow-y-auto">
-      <div className="p-4">
-        {offers.length > 0 ? (
-          <div className="grid cursor-pointer gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {offers.map((offer, index) => (
-              <div
-                key={index}
-                className={`relative rounded-lg border border-gray-400 bg-white p-6 shadow-lg ${offer.is_expired ? 'opacity-50' : 'transform transition duration-300 hover:scale-105 hover:shadow-xl'}`}
-                onClick={() => handleCardClick(offer)}
-              >
-                <div className="mb-4">
-                  <div className="text-xl font-bold text-blue-600">
-                    {formatDate(offer.offer_date)}
+      <div className="container mx-auto h-screen overflow-y-auto p-4">
+        <div className="p-4">
+          {offers.length > 0 ? (
+            <div className="grid cursor-pointer gap-6 md:grid-cols-2 lg:grid-cols-3">
+              {offers.map((offer, index) => (
+                <div
+                  key={index}
+                  className={`relative rounded-lg border border-gray-400 bg-white p-6 shadow-lg ${offer.is_expired ? 'opacity-50' : 'transform transition duration-300 hover:scale-105 hover:shadow-xl'}`}
+                  onClick={() => handleCardClick(offer)}
+                >
+                  <div className="mb-4">
+                    <div className="text-xl font-bold text-blue-600">
+                      {formatDate(offer.offer_date)}
+                    </div>
                   </div>
-                </div>
-                <div className="flex flex-col gap-4">
-                  <div className="flex items-baseline justify-between">
-                    <span className="font-semibold text-gray-800">
-                      {'Offer Amount:'}
-                    </span>
-                    <span className="text-lg font-medium text-gray-900">
-                      {'£'}
-                      {offer.offer_amount}
-                    </span>
-                  </div>
-                  <div className="flex items-baseline justify-between">
-                    <span className="font-semibold text-gray-800">
-                      {'Offer Weeks:'}
-                    </span>
-                    <span className="text-lg font-medium text-gray-900">
-                      {offer.offer_number_of_weeks} {'weeks'}
-                    </span>
-                    {offer.is_expired && (
-                      <span className="absolute right-2 top-2 rounded-full bg-red-500 px-2 py-1 text-xs font-bold text-white">
-                        {'Expired'}
+                  <div className="flex flex-col gap-4">
+                    <div className="flex items-baseline justify-between">
+                      <span className="font-semibold text-gray-800">
+                        {'Offer Amount:'}
                       </span>
-                    )}
-                  </div>
-                  <div className="flex items-baseline justify-between">
-                    <span className="font-semibold text-gray-800">
-                      {'Weekly Repayment Amount:'}
-                    </span>
-                    <span className="text-lg font-medium text-gray-900">
-                      {'£'}
-                      {offer.offer_weekly_payment_amount}
-                    </span>
-                  </div>
-                  <div className="flex items-baseline justify-between">
-                    <span className="font-semibold text-gray-800">
-                      {'Status:'}
-                    </span>
-                    <span
-                      className={`font-medium ${offer.offer_accepted ? 'text-green-500' : offer.offer_rejected ? 'text-red-500' : 'text-gray-500'}`}
-                    >
-                      {offer.offer_accepted
-                        ? 'Accepted'
-                        : offer.offer_rejected
-                          ? 'Rejected'
-                          : 'No Action'}
-                    </span>
+                      <span className="text-lg font-medium text-gray-900">
+                        {'£'}
+                        {offer.offer_amount}
+                      </span>
+                    </div>
+                    <div className="flex items-baseline justify-between">
+                      <span className="font-semibold text-gray-800">
+                        {'Offer Weeks:'}
+                      </span>
+                      <span className="text-lg font-medium text-gray-900">
+                        {offer.offer_number_of_weeks} {'weeks'}
+                      </span>
+                      {offer.is_expired && (
+                        <span className="absolute right-2 top-2 rounded-full bg-red-500 px-2 py-1 text-xs font-bold text-white">
+                          {'Expired'}
+                        </span>
+                      )}
+                    </div>
+                    <div className="flex items-baseline justify-between">
+                      <span className="font-semibold text-gray-800">
+                        {'Weekly Repayment Amount:'}
+                      </span>
+                      <span className="text-lg font-medium text-gray-900">
+                        {'£'}
+                        {offer.offer_weekly_payment_amount}
+                      </span>
+                    </div>
+                    <div className="flex items-baseline justify-between">
+                      <span className="font-semibold text-gray-800">
+                        {'Status:'}
+                      </span>
+                      <span
+                        className={`font-medium ${offer.offer_accepted ? 'text-green-500' : offer.offer_rejected ? 'text-red-500' : 'text-gray-500'}`}
+                      >
+                        {offer.offer_accepted
+                          ? 'Accepted'
+                          : offer.offer_rejected
+                            ? 'Rejected'
+                            : 'No Action'}
+                      </span>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div className="text-center text-gray-600">{'No data available'}</div>
-        )}
-      </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center text-gray-600">
+              {'No data available'}
+            </div>
+          )}
+        </div>
 
-      {modalOpen && <DetailedOffer />}
-      <MakeOffer
-        isOpen={isMakeOfferConfirmModal}
-        onClose={() => setIsMakeOfferConfirmModal(false)}
-        loanId={fundingId}
-      />
-    </div>
+        {modalOpen && <DetailedOffer />}
+        <MakeOffer
+          isOpen={isMakeOfferConfirmModal}
+          onClose={() => setIsMakeOfferConfirmModal(false)}
+          loanId={fundingId}
+        />
+      </div>
     </>
   );
 };

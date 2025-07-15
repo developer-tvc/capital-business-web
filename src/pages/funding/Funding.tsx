@@ -86,7 +86,7 @@ const FundingPage = () => {
             handleBackClick();
             navigate('/funding');
           }}
-           menus={fundingMenu()}
+          menus={fundingMenu()}
         >
           <Outlet />
         </DetailsPageLayout>

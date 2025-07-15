@@ -77,7 +77,7 @@ const Referalform = ({ closeModal }) => {
               <p className="my-1 pl-2 text-[15px] font-medium">
                 {'Referral Form'}
                 <div className="text-[10.5px] text-[#656565]">
-                  {'Get 40 Credit for each referral with Credit4business'}
+                  {'Get 40 Credit for each referral with Capital4business'}
                 </div>
               </p>
               <button

@@ -108,7 +108,7 @@ const bulkuploadLoanUrl = `${manageLoanBaseUrl}/import_loan_data/`;
 const paymentScheduleUrl = `${baseUrl}/payment_schedule/`;
 const customerIdentityUrl = `${baseUrl}/customer_identity_document/`;
 const customersListUrl = `${baseUrl}/list_customers_id/`;
-const customerSummaryUrl =`${baseUrl}/summary/`;
+const customerSummaryUrl = `${baseUrl}/summary/`;
 
 const loanGetApi = (loanId: string) => {
   return Get({
@@ -249,7 +249,7 @@ const corporateGuarantorPropertyPostAPI = (payload, loanId: string) => {
 };
 const corporateGuarantorPropertyGetAPI = (loanId: string) => {
   return Get({
-     url: `${corporateGuarantorPropertyAPIUrl}${loanId}/`,
+    url: `${corporateGuarantorPropertyAPIUrl}${loanId}/`,
     request: {}
   });
 };
@@ -1139,17 +1139,15 @@ const customerIdentityPostApi = (payload, loanId: string) => {
   return Post({ url: `${customerIdentityUrl}${loanId}/`, request: payload });
 };
 
-const customersGetList =(loanId: string) => {
-  return Get ({url: `${customersListUrl}${loanId}/`,
-  request:{}})
-}
+const customersGetList = (loanId: string) => {
+  return Get({ url: `${customersListUrl}${loanId}/`, request: {} });
+};
 const loanSummaryByCustomer = (loanId: string) => {
   return Get({
     url: `${customerSummaryUrl}?customer_id=${loanId}`,
-    request: {},
+    request: {}
   });
 };
-
 
 export {
   addNewMandateSubscription,

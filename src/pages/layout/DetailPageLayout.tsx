@@ -27,7 +27,7 @@ const DetailsPageLayout: React.FC<SidebarLayoutProps> = ({
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const toggleModal = () => setIsModalOpen(prev => !prev);
-console.log('menus',menus);
+  console.log('menus', menus);
 
   return (
     <>

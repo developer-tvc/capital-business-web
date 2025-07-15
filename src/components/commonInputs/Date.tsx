@@ -65,7 +65,8 @@ const DateController: React.FC<{ metaData: DateControllerProps }> = ({
                 <span className="absolute bottom-3 left-1 px-1 text-[#737373]">
                   {icon()}
                 </span>
-              )}  {label}
+              )}{' '}
+              {label}
               <DatePicker
                 {...field}
                 selected={field.value}
@@ -100,7 +101,6 @@ const DateController: React.FC<{ metaData: DateControllerProps }> = ({
                 }}
                 filterDate={filterDates}
               />
-
               <label htmlFor={name} className={`${labelClass} `}>
                 {placeholder}
                 {isRequired && <span className="text-red-500">{' *'}</span>}

@@ -73,61 +73,56 @@ const CorporateGuarantor: React.FC<LoanFromCommonProps> = ({
   );
   const [dateRanges, setDateRanges] = useState();
 
-const fetchDataFromApi = async (loanId: string) => {
-  try {
-    const [guarantorApiResponse, propertyApiResponse] = await Promise.all([
-      corporateGuarantorGetAPI(loanId),
-      corporateGuarantorPropertyGetAPI(loanId)
-    ]);
+  const fetchDataFromApi = async (loanId: string) => {
+    try {
+      const [guarantorApiResponse, propertyApiResponse] = await Promise.all([
+        corporateGuarantorGetAPI(loanId),
+        corporateGuarantorPropertyGetAPI(loanId)
+      ]);
 
-    if (guarantorApiResponse?.status_code === 200) {
-      const guarantorData = guarantorApiResponse.data;
-      console.log('guarantorData', guarantorData);
+      if (guarantorApiResponse?.status_code === 200) {
+        const guarantorData = guarantorApiResponse.data;
+        console.log('guarantorData', guarantorData);
 
-      let guaranteed_property = {
-        owns_other_property: 'No',
-        owned_property_count: 0,
-        owned_property: []
-      };
-
-      if (
-        propertyApiResponse?.status_code === 200 &&
-        Array.isArray(propertyApiResponse.data) &&
-        propertyApiResponse.data.length > 0
-      ) {
-        const propArray = propertyApiResponse.data;
-
-        guaranteed_property = {
-          owns_other_property: propArray[0]?.owns_other_property || 'No',
-          owned_property_count: propArray.length,
-          owned_property: propArray.map(entry => ({
-            owner_name: entry.owner_name || '',
-            owner_email: entry.owner_email || '',
-            address: entry.owned_property?.[0]?.address || '',
-            pincode: entry.owned_property?.[0]?.pincode || ''
-          }))
+        let guaranteed_property = {
+          owns_other_property: 'No',
+          owned_property_count: 0,
+          owned_property: []
         };
+
+        if (
+          propertyApiResponse?.status_code === 200 &&
+          Array.isArray(propertyApiResponse.data) &&
+          propertyApiResponse.data.length > 0
+        ) {
+          const propArray = propertyApiResponse.data;
+
+          guaranteed_property = {
+            owns_other_property: propArray[0]?.owns_other_property || 'No',
+            owned_property_count: propArray.length,
+            owned_property: propArray.map(entry => ({
+              owner_name: entry.owner_name || '',
+              owner_email: entry.owner_email || '',
+              address: entry.owned_property?.[0]?.address || '',
+              pincode: entry.owned_property?.[0]?.pincode || ''
+            }))
+          };
+        }
+
+        reset({
+          corporate_guarantors: guarantorData,
+          guaranteed_property
+        });
+      } else {
+        showToast(guarantorApiResponse.status_message, {
+          type: NotificationType.Error
+        });
       }
-
-      reset({
-        corporate_guarantors: guarantorData,
-        guaranteed_property
-      });
-
-    } else {
-      showToast(guarantorApiResponse.status_message, {
-        type: NotificationType.Error
-      });
+    } catch (error) {
+      console.log('Exception', error);
+      showToast('Something went wrong!', { type: NotificationType.Error });
     }
-  } catch (error) {
-    console.log('Exception', error);
-    showToast('Something went wrong!', { type: NotificationType.Error });
-  }
-};
-
-
-
-
+  };
 
   useEffect(() => {
     if (authenticated && loanId) {

@@ -38,8 +38,6 @@ export const badgeClassesHead = [
   }
 ];
 
-
-
 type ProfileField = {
   label: string;
   value: string | undefined;
@@ -179,7 +177,6 @@ const Contract: React.FC<LoanFromCommonProps> = ({
     setOpenContract2(isOpening);
 
     if (isOpening) {
-
       const fetchData = async () => {
         await Promise.all([fetchDebitApi(loanId), fetchContractApi(loanId)]);
       };
@@ -275,12 +272,13 @@ const Contract: React.FC<LoanFromCommonProps> = ({
           showToast(sendContractEmailApiResponse.status_message, {
             type: NotificationType.Success
           });
-          if (!(isContractSend || isSigned)) {// send not resend
-            sendDirectDebitLinkApi({},loanId || loan.id);
+          if (!(isContractSend || isSigned)) {
+            // send not resend
+            sendDirectDebitLinkApi({}, loanId || loan.id);
             updateFilledForms(loanId, {
               complete_contract: true
             }); // update filled forms
-          } 
+          }
           setIsContractSend(true);
         } else {
           showToast(sendContractEmailApiResponse.status_message, {
@@ -329,7 +327,7 @@ const Contract: React.FC<LoanFromCommonProps> = ({
     );
   };
 
-  const getValueOrFallback = (value) => (value?.trim() ? value : 'N/A');
+  const getValueOrFallback = value => (value?.trim() ? value : 'N/A');
 
   return (
     <>
@@ -421,7 +419,7 @@ const Contract: React.FC<LoanFromCommonProps> = ({
         {[Roles.Admin, Roles.Manager].includes(role) && isContractSend && (
           <>
             {isSigned && openContract && <ViewContract />}
-            
+
             <div className="flex flex-col pb-8">
               <div
                 className={`items-center rounded-lg border border-[#D4D4D4] px-2 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 ${
@@ -461,68 +459,96 @@ const Contract: React.FC<LoanFromCommonProps> = ({
                 <div className="mt-4">
                   {contractApiStatus === 'fulfilled' ? (
                     <>
-                     <ProfileComparison
-                      oldProfileData={[
-                        {
-                          label: 'Name',
-                          value: getValueOrFallback(contractApiData?.loan_data?.first_name),
-                        },
-                        {
-                          label: 'Last Name',
-                          value: getValueOrFallback(contractApiData?.loan_data?.last_name),
-                        },
-                        {
-                          label: 'Company Name',
-                          value: getValueOrFallback(contractApiData?.loan_data?.company_name),
-                        },
-                        {
-                          label: 'Email',
-                          value: getValueOrFallback(contractApiData?.loan_data?.email),
-                        },
-                        {
-                          label: 'Bank Name',
-                          value: getValueOrFallback(contractApiData?.loan_data?.bank_name),
-                        },
-                        {
-                          label: 'Account Number',
-                          value: getValueOrFallback(contractApiData?.loan_data?.account_number),
-                        },
-                        {
-                          label: 'Sort Code',
-                          value: getValueOrFallback(contractApiData?.loan_data?.sort_code),
-                        },
-                      ]}
-                      newProfileData={[
-                        {
-                          label: 'Name',
-                          value: getValueOrFallback(contractApiData?.gocardless_data?.first_name),
-                        },
-                        {
-                          label: 'Last Name',
-                          value: getValueOrFallback(contractApiData?.gocardless_data?.last_name),
-                        },
-                        {
-                          label: 'Company Name',
-                          value: getValueOrFallback(contractApiData?.gocardless_data?.company_name),
-                        },
-                        {
-                          label: 'Email',
-                          value: getValueOrFallback(contractApiData?.gocardless_data?.email),
-                        },
-                        {
-                          label: 'Bank Name',
-                          value: getValueOrFallback(contractApiData?.gocardless_data?.bank_name),
-                        },
-                        {
-                          label: 'Account Number',
-                          value: getValueOrFallback(contractApiData?.gocardless_data?.account_number),
-                        },
-                        {
-                          label: 'Sort Code',
-                          value: getValueOrFallback(contractApiData?.gocardless_data?.sort_code),
-                        },
-                      ]}
-                    />
+                      <ProfileComparison
+                        oldProfileData={[
+                          {
+                            label: 'Name',
+                            value: getValueOrFallback(
+                              contractApiData?.loan_data?.first_name
+                            )
+                          },
+                          {
+                            label: 'Last Name',
+                            value: getValueOrFallback(
+                              contractApiData?.loan_data?.last_name
+                            )
+                          },
+                          {
+                            label: 'Company Name',
+                            value: getValueOrFallback(
+                              contractApiData?.loan_data?.company_name
+                            )
+                          },
+                          {
+                            label: 'Email',
+                            value: getValueOrFallback(
+                              contractApiData?.loan_data?.email
+                            )
+                          },
+                          {
+                            label: 'Bank Name',
+                            value: getValueOrFallback(
+                              contractApiData?.loan_data?.bank_name
+                            )
+                          },
+                          {
+                            label: 'Account Number',
+                            value: getValueOrFallback(
+                              contractApiData?.loan_data?.account_number
+                            )
+                          },
+                          {
+                            label: 'Sort Code',
+                            value: getValueOrFallback(
+                              contractApiData?.loan_data?.sort_code
+                            )
+                          }
+                        ]}
+                        newProfileData={[
+                          {
+                            label: 'Name',
+                            value: getValueOrFallback(
+                              contractApiData?.gocardless_data?.first_name
+                            )
+                          },
+                          {
+                            label: 'Last Name',
+                            value: getValueOrFallback(
+                              contractApiData?.gocardless_data?.last_name
+                            )
+                          },
+                          {
+                            label: 'Company Name',
+                            value: getValueOrFallback(
+                              contractApiData?.gocardless_data?.company_name
+                            )
+                          },
+                          {
+                            label: 'Email',
+                            value: getValueOrFallback(
+                              contractApiData?.gocardless_data?.email
+                            )
+                          },
+                          {
+                            label: 'Bank Name',
+                            value: getValueOrFallback(
+                              contractApiData?.gocardless_data?.bank_name
+                            )
+                          },
+                          {
+                            label: 'Account Number',
+                            value: getValueOrFallback(
+                              contractApiData?.gocardless_data?.account_number
+                            )
+                          },
+                          {
+                            label: 'Sort Code',
+                            value: getValueOrFallback(
+                              contractApiData?.gocardless_data?.sort_code
+                            )
+                          }
+                        ]}
+                      />
                     </>
                   ) : (
                     <div className="text-sm italic text-gray-500">
@@ -539,9 +565,14 @@ const Contract: React.FC<LoanFromCommonProps> = ({
                           ? 'text-[#1A439A]'
                           : 'text-[#BABABA]'
                       } cursor-pointer text-[14px] font-semibold uppercase max-sm:text-[10px]`}
-                      onClick={() => sendDirectDebitLinkApi({
-                        "resend": true
-                    },loanId || loan.id)}
+                      onClick={() =>
+                        sendDirectDebitLinkApi(
+                          {
+                            resend: true
+                          },
+                          loanId || loan.id
+                        )
+                      }
                     >
                       RESEND
                     </button>

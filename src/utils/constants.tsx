@@ -134,7 +134,7 @@ export const LoanWizardStages = [
     label: 'GoCardless',
     width: 'w-[65px]'
   },
-     {
+  {
     id: 10,
     key: 'corporateGuarantor',
     label: 'Additional Details',
@@ -146,7 +146,7 @@ export const LoanWizardStages = [
     label: 'Affordability',
     width: 'w-[80px]'
   },
- 
+
   {
     id: 12,
     key: 'repaymentSchedule',
@@ -165,8 +165,7 @@ export const LoanWizardStages = [
     key: 'contract',
     label: 'Contract',
     width: 'w-[60px]'
-  },
-
+  }
 ];
 
 export const CustomertabsStages = [
@@ -495,14 +494,14 @@ export const loanFormPersonalInformation: FundingFormFieldType[] = [
       
     Terms and Conditions 
 
-      and authorize Credit4bussiness to contact me.`,
+      and authorize Capital4business to contact me.`,
     type: 'checkbox'
   },
   {
     name: 'agree_communication_authorization',
     isRequired: true,
     label:
-      'I agree to receive communications and authorize Credit4bussiness to contact me through SMS, Mail and Whatsapp.',
+      'I agree to receive communications and authorize Capital4business to contact me through SMS, Mail and Whatsapp.',
     type: 'checkbox'
   },
   {
@@ -2254,7 +2253,7 @@ export const loanFormMarketingPreferences: FundingFormFieldType[] = [
   },
   {
     name: 'third_party_sharing',
-    label: `I consent to Credit4business Funding sharing my data with affiliated
+    label: `I consent to Capital4business Funding sharing my data with affiliated
     third-party companies for the purposes of goods and services that
     may be of interest to me:`,
     type: 'multiCheckbox',
@@ -2789,11 +2788,19 @@ export const fundingMenu = () => {
 
   return [
     { name: 'Funding Form', link: 'funding-form', icon: AiOutlineFundView },
-    { name: 'Application Status', link: 'application-status', icon: MdCheckCircleOutline },
+    {
+      name: 'Application Status',
+      link: 'application-status',
+      icon: MdCheckCircleOutline
+    },
     { name: 'Unit Profile', link: 'unit-profile', icon: RiCommunityLine },
     ...(role !== Roles.FieldAgent
       ? [
-          { name: 'Funding Offers', link: 'funding-offer', icon: MdOutlineLocalOffer },
+          {
+            name: 'Funding Offers',
+            link: 'funding-offer',
+            icon: MdOutlineLocalOffer
+          },
           { name: 'Mandates', link: 'mandate', icon: LuClipboardList },
           { name: 'Pap', link: 'pap', icon: GrDocumentPpt },
           { name: 'Cash Payment Receipt', link: 'cash-receipt', icon: IoMdCash }
@@ -2890,7 +2897,6 @@ export const CustomerMenu = [
   { name: 'Edit Approval', link: `edit-approval`, icon: MdEditCalendar },
   { name: 'Notification', link: `notification`, icon: TbBell },
   { name: 'Contract', link: `contract`, icon: IoMdLock }
-
 ];
 
 //Da = Disbursement Advice
@@ -3057,7 +3063,7 @@ export const paymentScheduleFields = [
     type: 'date',
     name: 'start_date',
     placeholder: 'Day of Debit'
-  },
+  }
 ];
 
 export const subscriptionPlanFields = [
@@ -3341,7 +3347,7 @@ export const fundingOffer: FundingFormFieldType[] = [
       );
     },
     min: 0
-  },
+  }
 ];
 
 export const affordabilityGeneral = [
@@ -3774,14 +3780,12 @@ export const loanFormBankDetails: FundingFormFieldType[] = [
   }
 ];
 
-
 export const customerIdentityDocumentFormFields: FundingFormFieldType[] = [
-  
   {
     name: 'liveness_check',
     type: 'dropdown',
-    isRequired:true,
-    options:['Passed','Live','Alert','Failed'],
+    isRequired: true,
+    options: ['Passed', 'Live', 'Alert', 'Failed'],
     placeholder: 'Liveness Check',
     icon: () => {
       return <MdOutlineFactCheck className="h-4 w-4 rtl:rotate-[270deg]" />;
@@ -3790,8 +3794,8 @@ export const customerIdentityDocumentFormFields: FundingFormFieldType[] = [
   {
     name: 'face_match',
     type: 'dropdown',
-    isRequired:true,
-    options:['Passed','Live','Alert','Failed'],
+    isRequired: true,
+    options: ['Passed', 'Live', 'Alert', 'Failed'],
     placeholder: 'Face Match',
     icon: () => {
       return <MdAssignmentInd className="h-4 w-4 rtl:rotate-[270deg]" />;
@@ -3799,9 +3803,9 @@ export const customerIdentityDocumentFormFields: FundingFormFieldType[] = [
   },
   {
     name: 'kyc_aml_check',
-    isRequired:true,
+    isRequired: true,
     type: 'dropdown',
-    options:['Passed','Live','Alert','Failed'],
+    options: ['Passed', 'Live', 'Alert', 'Failed'],
     placeholder: 'KYC/AML Check',
     icon: () => {
       return <MdOutlineFactCheck className="h-4 w-4 rtl:rotate-[270deg]" />;
@@ -3809,9 +3813,9 @@ export const customerIdentityDocumentFormFields: FundingFormFieldType[] = [
   },
   {
     name: 'document_Verification',
-    isRequired:true,
+    isRequired: true,
     type: 'dropdown',
-    options:['Passed','Live','Alert','Failed'],
+    options: ['Passed', 'Live', 'Alert', 'Failed'],
     placeholder: 'Document Verification',
     icon: () => {
       return <FaMapMarkedAlt className="h-4 w-4 rtl:rotate-[270deg]" />;
@@ -3819,7 +3823,7 @@ export const customerIdentityDocumentFormFields: FundingFormFieldType[] = [
   },
   {
     name: 'customer_id',
-    isRequired:true,
+    isRequired: true,
     type: 'dropdown',
     placeholder: 'Customer',
     icon: () => {

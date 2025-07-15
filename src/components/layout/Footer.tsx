@@ -9,15 +9,15 @@ import { Useful, whatWeDo } from '../../utils/data';
 const Footer = () => {
   const footerIcons = [
     {
-      name: '86-90 Paulstreet, London, EC2A 4NE.',
+      name: 'Unit-2 Bow Court, Fletchworth Gate, Canley, Coventry, Warwickshire, CV5 6SP',
       icon: <MdLocationOn />
     },
     {
-      name: 'info@credit4business.co.uk',
+      name: 'info@capital4business.co.uk',
       icon: <MdEmail />
     },
     {
-      name: '020 8004 9787',
+      name: '020 3691 9423',
       icon: <MdCall />
     }
   ];
@@ -126,9 +126,9 @@ const Footer = () => {
               <span className="text-[16px] font-semibold text-[#b6bbc0] max-lg:text-[8px] max-sm:text-center max-sm:text-[12px]">
                 {' '}
                 {
-                  'trading as Credit4Business, is registered in England and Wales'
+                  'trading as Capital4Business, is registered in England and Wales'
                 }
-                {'under company number: 09833718. Credit4Business is a direct'}
+                {'under company number: 10765922. Capital4Business is a direct'}
                 {'finance provider.'}
               </span>
             </div>

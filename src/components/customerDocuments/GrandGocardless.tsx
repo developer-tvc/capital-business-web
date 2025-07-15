@@ -267,7 +267,7 @@ const GrandGocardless = ({
                     requisitionLink &&
                     window.open(requisitionLink, '_blank')
                   }
-                  className=" flex w-2/6 flex-col gap-2 border-r border-[#1A439A] bg-[#DDE3F0] px-4 py-4"
+                  className="flex w-2/6 flex-col gap-2 border-r border-[#1A439A] bg-[#DDE3F0] px-4 py-4"
                 >
                   <span>Step 2 </span>
                   <span className="flex items-center">

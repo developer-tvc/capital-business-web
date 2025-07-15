@@ -18,7 +18,7 @@ const ShareLinkSection = () => {
 
             <div className="text-[12px] font-medium text-[#929292]">
               {'Get 40 Credit for each'}
-              <div className="">{'referral with Credit4business'}</div>
+              <div className="">{'referral with Capital4business'}</div>
             </div>
           </div>
           <div>

@@ -15,7 +15,7 @@ const MobileAppPromotion: React.FC<{ onClose: () => void }> = ({ onClose }) => {
     >
       <div className="relative z-10 flex flex-col items-center justify-center text-center text-white">
         <div className="flex w-full justify-between border-b px-2 py-4">
-          <img src={logo} alt="Credit4Business Logo" className="h-10" />
+          <img src={logo} alt="Capital4Business Logo" className="h-10" />
           <button className="text-white" onClick={onClose}>
             <AiOutlineClose size={20} />
           </button>
@@ -28,7 +28,7 @@ const MobileAppPromotion: React.FC<{ onClose: () => void }> = ({ onClose }) => {
             </div>
           </div>
 
-          <div className="text-[30px] font-bold">{'Credit4Business'}</div>
+          <div className="text-[30px] font-bold">{'Capital4Business'}</div>
           <div className="mb-4 text-[30px] font-bold">
             {'Mobile Application'}
           </div>
