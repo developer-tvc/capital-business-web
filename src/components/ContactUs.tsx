@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { FiPhoneCall } from 'react-icons/fi';
 import { IoCaretDownSharp } from 'react-icons/io5';
-import { LiaEnvelopeOpenTextSolid, LiaFaxSolid } from 'react-icons/lia';
+import { LiaEnvelopeOpenTextSolid } from 'react-icons/lia';
 
 import { contactUsApi } from '../api/userServices';
 import { NotificationType } from '../utils/hooks/toastify/enums';
