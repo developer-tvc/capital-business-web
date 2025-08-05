@@ -1,140 +1,108 @@
-import { BsArrowRight } from 'react-icons/bs';
-import { MdCall, MdEmail, MdLocationOn } from 'react-icons/md';
-import { Link } from 'react-router-dom';
 
-import c4b from '../../assets/images/c4b.png';
-import Logo from '../../assets/images/WhiteLogo.png';
-import { Useful, whatWeDo } from '../../utils/data';
+import { Link ,NavLink} from 'react-router-dom';
+import Logo from '../../assets/images/Logo.png';
 
+import figure1 from '../../assets/images/figure1.png'
+import figure2 from '../../assets/images/figure2.png'
+import figure4 from '../../assets/images/figure4.png'
 const Footer = () => {
-  const footerIcons = [
-    {
-      name: 'Unit-2 Bow Court, Fletchworth Gate, Canley, Coventry, Warwickshire, CV5 6SP',
-      icon: <MdLocationOn />
-    },
-    {
-      name: 'info@capital4business.co.uk',
-      icon: <MdEmail />
-    },
-    {
-      name: '020 3691 9423',
-      icon: <MdCall />
-    }
-  ];
+ 
   return (
     <>
-      <section id="footer ">
-        <div className="relative bg-[#081B2C] py-4 text-white">
-          <div className="container mx-auto px-8 py-10 max-sm:px-2">
-            <div className="grid grid-cols-12 border-b-2 border-gray-700 px-[2%] pb-12 max-lg:gap-7">
-              <div className="col-span-12 lg:col-span-7">
-                <h2 className="font-manrope mb-2 text-3xl font-bold leading-tight text-white max-lg:text-center max-sm:text-[16px]">
-                  {'Newsletter.'}
-                </h2>
-                <p className="text-base font-normal text-gray-400 max-lg:text-center max-sm:text-[12px]">
-                  {'Get instant news by subscribe to our daily newsletter'}
+      <footer className="footer-area1">
+        <div className="footer-bottom-img">
+          <img src={figure1} alt="figure" width={309} height={235} />
+        </div>
+        <div className="footer-top-img">
+          <img src={figure2} alt="figure" width={369} height={225} />
+        </div>
+        <div className="container">
+          <div className="row">
+            <div className="col-xl-4 col-lg-6 col-md-4 col-sm-6">
+              <div className="footer-left">
+                <div className="footer-logo">
+                  <a href="#"><img src={Logo} alt="logo" width={180} height={45} /></a>
+                </div>
+                <p>We offer B2B Funding Solutions to the Limited company SME’s in the UK. Explore Effortless Funding Options Facilitating Business to business connections
                 </p>
-              </div>
-              <div className="col-span-12 flex flex-col items-center gap-4 lg:col-span-5">
-                <div className="mx-auto flex w-full max-w-md items-center justify-between rounded-full border border-gray-700 bg-white p-2.5 pl-5 transition-all duration-300 focus-within:border-gray-400 hover:border-gray-400 min-[470px]:p-1.5 min-[470px]:pl-7 lg:mr-0">
-                  <input
-                    type="text"
-                    className="placeholder:text[#524F4F] bg-transparent text-base font-normal text-white focus-within:outline-0"
-                    placeholder="Enter your Email address"
-                  />
-                  <button className="rounded-full bg-red-600 p-4 text-base font-semibold text-white shadow-sm shadow-transparent transition-all duration-500 focus-within:bg-red-700 focus-within:outline-0 hover:bg-red-700 min-[470px]:block">
-                    <BsArrowRight size={20} />
-                  </button>
+                <div className="footer-social">
+                  <ul>
+                    <li>
+                      <a href="#" className="fb"><i className="fab fa-facebook-square" /></a>
+                      <a href="#" className="twit"><i className="fab fa-twitter" /></a>
+                      <a href="#" className="linkin"><i className="fab fa-linkedin-in" /></a>
+                      <a href="#" className="pint"><i className="fab fa-pinterest" /></a>
+                      <a href="#" className="skype"><i className="fab fa-skype" /></a>
+                    </li>
+                  </ul>
                 </div>
               </div>
             </div>
-
-            <div className="grid grid-cols-3 gap-4 border-b-2 border-gray-700 p-[2%] max-sm:mt-2 max-sm:grid-cols-2 max-sm:justify-center max-sm:gap-2">
-              {' '}
-              <div className="space-y-6">
-                <div className="font-bold">
-                  <a href="#" className="flex items-center">
-                    <img
-                      src={Logo}
-                      alt="Logo"
-                      className="max-lg:w-[180px] max-sm:w-[100px]"
-                    />
-                  </a>
-                </div>
-
-                {footerIcons.map((footerIcons, index) => (
-                  <div
-                    key={index}
-                    className="grid max-lg:text-[14px] max-sm:text-[10px]"
-                  >
-                    <ul className="text-color-text-primary-dark">
-                      <li className="flex gap-x-2 hover:text-color-text-secondary max-sm:gap-x-1">
-                        <span className="-ml-2 mt-1 text-2xl text-[#F02E23] max-sm:hidden">
-                          {footerIcons.icon}{' '}
-                        </span>{' '}
-                        <a href="#" className=" ">
-                          {footerIcons.name}
-                        </a>
-                      </li>
+            <div className="col-xl-4 col-lg-6 col-md-4 col-sm-6">
+              <div className="footer-middle">
+                <h2 className="footer-title">Quick Links</h2>
+                <div className="row">
+                  <div className="col-lg-6 col-md-12">
+                    <ul className="footer-list">
+                      <li><NavLink to={'/'}><i className="fas fa-angle-right" />Home</NavLink></li>
+                      <li><NavLink to={'/about-us'}><i className="fas fa-angle-right" />About</NavLink></li>
+                      <li><NavLink to={'/services'}><i className="fas fa-angle-right" />Services</NavLink></li>
+                      <li><NavLink to={'/contact-us'}><i className="fas fa-angle-right" />Contact</NavLink></li>
                     </ul>
                   </div>
-                ))}
-              </div>{' '}
-              <div className="space-y-2">
-                <div className="grid items-start text-[17px] font-bold max-sm:text-[14px]">
-                  {'Useful Links'}{' '}
-                  <div className="my-1 h-[1.5px] w-7 bg-[#F02E23]"></div>
+                  {/* <div class="col-lg-6 col-md-12">
+                                    <ul class="footer-list2">
+                                        <li><a href="#"><i class="fas fa-angle-right"></i>Wealth Marketing</a></li>
+                                        <li><a href="#"><i class="fas fa-angle-right"></i>Our Services</a></li>
+                                        <li><a href="#"><i class="fas fa-angle-right"></i>Stats Element</a></li>
+                                    </ul>
+                                </div> */}
                 </div>
-                {Useful.map((item, index) => (
-                  <div key={index}>
-                    {' '}
-                    <ul className="text-color-text-primary-dark max-lg:text-[14px] max-sm:text-[10px]">
-                      <li className="flex hover:text-color-text-secondary">
-                        <Link to={item.path} className="mt-1">
-                          {item.name}
-                        </Link>
-                      </li>
-                    </ul>
-                  </div>
-                ))}
-              </div>
-              <div className="space-y-2">
-                <div className="grid items-start text-[17px] font-bold max-sm:text-[14px]">
-                  {'What We Do'}{' '}
-                  <div className="my-1 h-[1.5px] w-7 bg-[#F02E23]"></div>
-                </div>
-                {whatWeDo.map((whatWeDo, index) => (
-                  <div key={index}>
-                    {' '}
-                    <ul className="text-color-text-primary-dark max-lg:text-[14px] max-sm:text-[10px]">
-                      <li className="flex hover:text-color-text-secondary">
-                        <a href="#" className="mt-1">
-                          {whatWeDo.name}
-                        </a>
-                      </li>
-                    </ul>
-                  </div>
-                ))}
               </div>
             </div>
-
-            <div className="mt-12 flex items-center gap-2 max-lg:justify-center max-sm:grid max-sm:justify-items-center">
-              <span>
-                {' '}
-                <img src={c4b} alt="Logo" className="max-lg:w-[100px]" />
-              </span>
-              <span className="text-[16px] font-semibold text-[#b6bbc0] max-lg:text-[8px] max-sm:text-center max-sm:text-[12px]">
-                {' '}
-                {
-                  'trading as Capital4Business, is registered in England and Wales'
-                }
-                {'under company number: 10765922. Capital4Business is a direct'}
-                {'finance provider.'}
-              </span>
+            <div className="col-xl-4 col-lg-6 col-md-4 col-sm-6">
+              <div className="footer-right">
+                <h2 className="footer-title">Contact</h2>
+                <p><span className="fa fa-home" />&nbsp;&nbsp;Capital finserv Limited T/a Capital4business, <br />Unit 2, Bow court, Fletchworthgate,<br /> Canley, CV5 6SP <br /> <span className="fa fa-phone" />&nbsp;&nbsp;020 3691 9423<br /><span className="fa fa-envelope" />&nbsp;&nbsp;info@capital4business.co.uk</p>
+                {/* <h2 class="footer-title">Get Updates!</h2>
+                            <p>Sign up for our latest news &amp; articles. We won’t give you spam mails.</p>
+                            <div class="input-group">
+                                <input type="text" class="form-control" placeholder="Enter your Email">
+                                <div class="input-group-append">
+                                    <button class="btn btn-outline-secondary" type="button" id="button-addon2"><i class="fas fa-angle-right"></i></button>
+                                </div>
+                            </div> */}
+              </div>
             </div>
           </div>
         </div>
-      </section>
+        <div className="footer-bottom">
+          <div className="container">
+            <div className="row justify-content-center">
+              <div className="col-lg-12">
+                <div className="copyright-area">
+                  <p> © Capital4Business 2024. All Rights Reserved</p>
+                  <div className="copyright-img1">
+                    <img src={figure4} alt="figure" width={20} height={20} />
+                  </div>
+                  <div className="copyright-img2">
+                    <img src={figure4} alt="figure" width={20} height={20} />
+                  </div>
+                </div>
+              </div>
+              <div className="col-lg-12">
+                <p className="nav-item text-center">
+                  <NavLink to={'/duty-statement'}>Consumer Duty Statement</NavLink>|
+                   <NavLink to={'/data-protection-policy'}>Data Protection Policy</NavLink> |
+                   <NavLink to={'/terms-and-conditions'}>Website Terms of Use</NavLink>
+                </p>
+                <p className="nav-item text-center">Capital Finserv Limited T/a Capital4business Registered in England and Wales. Company Number: 10765922. Authorised and Regulated by the Financial Conduct Authority. FCA Registration Number 780153
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </footer>
     </>
   );
 };
