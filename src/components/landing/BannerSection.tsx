@@ -49,7 +49,7 @@ const BannerSection: React.FC = () => {
 
 
   const bannerbg1animation = {
-    hidden: { opacity: 0, scale: 0 ,},
+    hidden: { opacity: 0, scale: 0, },
     visible: {
       opacity: 1,
       scale: 1,
@@ -58,14 +58,14 @@ const BannerSection: React.FC = () => {
 
   };
 
-const bannerbg2animation = {
-  hidden: { opacity: 0, x: 20 }, // x: 20 = move to right
-  visible: {
-    opacity: 1,
-    x: 0,
-    transition: { duration: 0.8, ease: 'easeOut', delay: 0.4 }
-  }
-};
+  const bannerbg2animation = {
+    hidden: {  x:100,scale: 0, }, // x: 20 = move to right
+    visible: {
+      x: 0,
+      scale: 1,
+      transition: { duration: 1, ease: 'easeOut', delay: 0.4 }
+    }
+  };
 
   useEffect(() => {
     const checkEligibility = async () => {
@@ -252,23 +252,22 @@ const bannerbg2animation = {
               </motion.div>
 
               <div>
-                  <motion.div
-               initial={{ opacity: 0, y: 150 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5, ease: "easeOut" }}
-              
-              >
-                <div className="slider-bg-img2">
-                  <img src={bannerbg2} alt="figure" width="211" height="96" />
-                </div>
-              </motion.div>
+                <motion.div
+                 aria-hidden="true"
+                  initial="hidden"
+                  whileInView="visible"
+                  variants={bannerbg2animation}
+                    viewport={{ once: true }}
+                >
+                  <div className="slider-bg-img2">
+                    <img src={bannerbg2} alt="figure" width="211" height="96" />
+                  </div>
+                </motion.div>
+
               </div>
-              
+
             </SwiperSlide>
           ))}
-
-
-
           <div className="swiper-pagination !bottom-0 mt-8 flex justify-center" />
         </Swiper>
       </div>

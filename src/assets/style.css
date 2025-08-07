@@ -1704,6 +1704,7 @@ h6 {
   font-size: 22px;
   font-weight: 700;
   padding-bottom: 10px;
+  margin-bottom: 20px;
 }
 .footer-middle .footer-title:before {
   content: "";
@@ -1786,6 +1787,7 @@ h6 {
   font-size: 22px;
   font-weight: 700;
   padding-bottom: 10px;
+  margin-bottom: 20px;
 }
 .footer-right .footer-title:before {
   content: "";
@@ -1907,7 +1909,11 @@ h6 {
 }
 .footer-bottom .copyright-area p {
   text-align: center;
-  margin-bottom: 0;
+  margin-bottom: 20px;
+}
+
+p.nav-item.text-center {
+    margin-bottom: 20px;
 }
 @media only screen and (max-width: 575px) {
   .footer-bottom .copyright-area p {
@@ -4174,6 +4180,7 @@ div#wrapper.open > .offcanvas-mask {
   font-weight: 700;
   color: #000;
   padding-right: 20px;
+  margin-bottom: 20px;
 }
 @media only screen and (max-width: 1199px) {
   .about-box4 .heading-title {
@@ -7325,6 +7332,11 @@ div#wrapper.open > .offcanvas-mask {
   line-height: 40px;
   margin-bottom: 50px;
 }
+
+.consulting-service1 p {
+  margin-bottom: 20px;
+}
+
 @media only screen and (max-width: 1199px) {
   .consulting-service1 .section-title {
     font-size: 30px;
@@ -12411,6 +12423,9 @@ div#wrapper.open > .offcanvas-mask {
 .why-choose-us-wrap1 {
   padding: 100px 0px;
 }
+.choose-us-box1 p {
+  margin-bottom: 20px;
+}
 @media only screen and (max-width: 1199px) {
   .why-choose-us-wrap1 {
     padding: 40px 0px 48px 0px;
@@ -12427,6 +12442,7 @@ div#wrapper.open > .offcanvas-mask {
   font-weight: 700;
   position: relative;
   padding-bottom: 23px;
+  margin-bottom: 20px;
 }
 @media only screen and (max-width: 1199px) {
   .choose-us-box1 .section-title {
@@ -12488,6 +12504,7 @@ div#wrapper.open > .offcanvas-mask {
   opacity: 90%;
   background-color: #fa360a;
   transition: all 0.3s ease-in-out;
+  margin-bottom: 20px;
 }
 @media only screen and (max-width: 1199px) {
   .choose-us-box1 .accordion .card .card-header .heading-title {
@@ -12586,6 +12603,7 @@ div#wrapper.open > .offcanvas-mask {
 }
 .choose-us-box1 .accordion .card .card-body p {
   color: #fff;
+  margin-bottom: 0px;
 }
 @media only screen and (max-width: 575px) {
   .choose-us-box1 .accordion .card .card-body p {
@@ -12681,6 +12699,7 @@ div#wrapper.open > .offcanvas-mask {
   color: #dcdcdc;
   z-index: 15;
   margin-top: -10px;
+  margin-bottom: 20px;
 }
 @media only screen and (max-width: 479px) {
   .consulation-box1 p {
@@ -12889,8 +12908,7 @@ font-size: 0;
   aspect-ratio: 1;
   border-radius: 50%;
   background: 
-    radial-gradient(farthest-side,#ffa516 94%,#0000) top/8px 8px no-repeat,
-    conic-gradient(#0000 30%,#ffa516);
+    radial-gradient(farthest-side, #ef2005 94%, #0000) top / 8px 8px no-repeat, conic-gradient(#0000 30%, #ef2005);
   -webkit-mask: radial-gradient(farthest-side,#0000 calc(100% - 8px),#000 0);
   animation: l13 1s infinite linear;
   margin: auto;
@@ -12898,4 +12916,12 @@ font-size: 0;
 }
 @keyframes l13{ 
   100%{transform: rotate(1turn)}
+}
+
+
+.consulting-service3 .title-heading {
+ margin-bottom: 20px;
+}
+.consulting-service3  p {
+  margin-bottom: 20px;
 }
