@@ -198,6 +198,16 @@ export type GuaranteedPropertyType = {
   }[];
 };
 
+declare module "jspdf" {
+  interface jsPDF {
+    lastAutoTable?: {
+      finalY: number;
+    };
+    autoTable: (...args: unknown[]) => unknown;
+    getNumberOfPages: () => number;
+  }
+}
+
 export type CorporateGuarantorDirectorType = {
   id?: number;
   title: string;

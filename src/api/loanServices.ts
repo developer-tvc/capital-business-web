@@ -1149,6 +1149,13 @@ const loanSummaryByCustomer = (loanId: string) => {
   });
 };
 
+ const getLoanStatement = (loanId: string) => {
+  return Get({
+    url: `/manage_loan/statement/${loanId}/`,
+    request: {},
+  });
+};
+
 export {
   addNewMandateSubscription,
   addNewPap,
@@ -1304,5 +1311,6 @@ export {
   corporateGuarantorGetAPI,
   corporateGuarantorPostAPI,
   corporateGuarantorPropertyPostAPI,
-  corporateGuarantorPropertyGetAPI
+  corporateGuarantorPropertyGetAPI,
+  getLoanStatement
 };
