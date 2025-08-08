@@ -480,7 +480,7 @@ const Navbar = ({
 return (
   <div
     ref={navRef}
-    className="sticky top-0 z-50 px-[1%]"
+    // className="sticky top-0 z-50 px-[1%]"
     style={{ backgroundColor: getBackgroundColor() }}
   >
     {authenticated ? (
