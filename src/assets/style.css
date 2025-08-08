@@ -12925,3 +12925,12 @@ font-size: 0;
 .consulting-service3  p {
   margin-bottom: 20px;
 }
+
+
+.selectPadding {
+  padding-left: 35px !important;
+}
+
+.pl-40 {
+  padding-left: 40px !important;
+}

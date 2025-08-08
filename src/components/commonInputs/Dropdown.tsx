@@ -55,13 +55,13 @@ const DropdownController: React.FC<{ metaData: DropdownControllerProps }> = ({
               {...field}
               id={name}
               disabled={isDisabled}
-              className={`${fieldClass}`}
+              className={`${fieldClass} selectPadding` }
               onChange={e => {
                 setIsDisabled(!isDeSelectable);
                 field.onChange(e.target.value);
                 trigger(name);
               }}
-              style={{ paddingLeft: '2rem' }}
+              
             >
               {!disabled && <option key={key}>{placeholder}</option>}
               {options?.map(item => {
