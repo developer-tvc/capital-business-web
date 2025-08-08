@@ -1,4 +1,3 @@
-import React from 'react'
 import { aboutcompanycorevalues } from '../../utils/data'
 const Companycorevalues = () => {
   return (

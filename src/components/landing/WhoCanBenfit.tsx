@@ -1,4 +1,4 @@
-import React from 'react'
+
 import figure55 from '../../assets/images/figure/figure55.png'
 import { whocanbenifits } from '../../utils/data'
 function WhoCanBenfit() {

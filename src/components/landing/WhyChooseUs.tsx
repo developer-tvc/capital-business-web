@@ -1,4 +1,4 @@
-import React from 'react'
+
 import {whyChooseus} from '../../utils/data';
 const WhyChooseUs = () => {
   return (

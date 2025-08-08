@@ -1,5 +1,3 @@
-import React from 'react';
-
 import figure69 from '../../assets/images/figure/figure69.png';
 import figure70 from '../../assets/images/figure/figure70.png';
 import { NavLink } from 'react-router-dom';

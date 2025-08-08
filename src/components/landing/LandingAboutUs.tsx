@@ -1,4 +1,4 @@
-import React from 'react'
+
 import figure64 from '../../assets/images/figure/figure64.png'
 import service9 from '../../assets/images/service/service9.jpg'
 const LandingAboutUs = () => {

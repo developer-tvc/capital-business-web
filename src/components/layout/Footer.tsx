@@ -1,5 +1,5 @@
 
-import { Link ,NavLink} from 'react-router-dom';
+import { NavLink} from 'react-router-dom';
 import Logo from '../../assets/images/Logo.png';
 
 import figure1 from '../../assets/images/figure1.png'
