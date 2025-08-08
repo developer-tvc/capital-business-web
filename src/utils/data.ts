@@ -1,6 +1,6 @@
 import plus from '../assets/images/18plus.png';
-import icon1 from '../assets/images/Banner.png';
-import icon2 from '../assets/images/Banner2.png';
+// import icon1 from '../assets/images/Banner.png';
+// import icon2 from '../assets/images/Banner2.png';
 import Bills from '../assets/images/Bills.png';
 import im1 from '../assets/images/blog-image-1.png';
 import im2 from '../assets/images/blog-image-2.png';

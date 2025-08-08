@@ -1,4 +1,3 @@
-import React from 'react'
 import figure76 from '../../assets/images/figure/figure76.png'
 import about6 from '../../assets/images/about/about6.jpg'
 

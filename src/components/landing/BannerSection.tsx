@@ -1,7 +1,7 @@
 import 'swiper/css';
 import 'swiper/css/navigation';
 
-import { delay, motion } from 'framer-motion';
+import { motion } from 'framer-motion';
 import React, { useEffect, useState } from 'react';
 
 import { useNavigate } from 'react-router-dom';
@@ -9,10 +9,10 @@ import { Autoplay, Pagination } from 'swiper/modules';
 import { Swiper, SwiperSlide } from 'swiper/react';
 
 import { bannerSlides } from '../../utils/data';
-import { applyNewLoan, chkCustNewLoan } from '../../utils/helpers';
+import { applyNewLoan } from '../../utils/helpers';
 import { NotificationType } from '../../utils/hooks/toastify/enums';
 import useToast from '../../utils/hooks/toastify/useToast';
-import useAuth from '../../utils/hooks/useAuth';
+// import useAuth from '../../utils/hooks/useAuth';
 import ConfirmModal from '../fundingForms/modals/ConfirmModal';
 import Loader from '../Loader';
 import '../../assets/vendor/nivo-slider/nivo-slider.css';
@@ -21,11 +21,11 @@ import bannerbg2 from '../../assets/images/figure/figure99.png';
 const BannerSection: React.FC = () => {
   const navigate = useNavigate();
   const { showToast } = useToast();
-  const { authenticated } = useAuth();
-  const [isEligibleNewLoan, setIsEligibleNewLoan] = useState<{
-    isApplicableForNewLoan: boolean;
-    loanCount: number;
-  }>(null);
+  // const { authenticated } = useAuth();
+  // const [isEligibleNewLoan, setIsEligibleNewLoan] = useState<{
+  //   isApplicableForNewLoan: boolean;
+  //   loanCount: number;
+  // }>(null);
   const [newLoanModalOpen, setNewLoanModalOpen] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState(false);
   const fadeInUp = {
@@ -70,11 +70,11 @@ const BannerSection: React.FC = () => {
   useEffect(() => {
     const checkEligibility = async () => {
       try {
-        const eligibility = await chkCustNewLoan();
-        setIsEligibleNewLoan(eligibility);
+        // const eligibility = await chkCustNewLoan();
+        // setIsEligibleNewLoan(eligibility);
       } catch (error) {
         console.error('Failed to check eligibility:', error);
-        setIsEligibleNewLoan(null); // or handle error state
+        // setIsEligibleNewLoan(null); // or handle error state
       }
     };
 

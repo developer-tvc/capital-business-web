@@ -1,4 +1,3 @@
-import React from 'react'
 import blog4 from '../../assets/images/blog/blog4.jpg'
 import figure11 from '../../assets/images/figure/figure11.png'
 const Callback = () => {

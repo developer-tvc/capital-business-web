@@ -243,11 +243,11 @@ const Navbar = ({
     setIsOpenSidebar(false);
   };
 
-  const [mobisMenuOpen, setmobIsMenuOpen] = useState(false);
+  // const [mobisMenuOpen, setmobIsMenuOpen] = useState(false);
 
-  const toggleMeanMenu = () => {
-    setmobIsMenuOpen(!mobisMenuOpen);
-  };
+  // const toggleMeanMenu = () => {
+  //   setmobIsMenuOpen(!mobisMenuOpen);
+  // };
 
   const menuRef = useRef(null);
   const placeholderRef = useRef(null);

@@ -1,4 +1,4 @@
-import React from 'react'
+
 import { ourkeyfeatures } from '../../utils/data';
 
 import figure57 from '../../assets/images/figure/figure57.png'
