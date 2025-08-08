@@ -15,6 +15,9 @@ import { Roles } from '../../utils/enums';
 import useAuth from '../../utils/hooks/useAuth';
 import HeaderNotification from './HeaderNotification';
 import { useMediaQuery } from 'react-responsive';
+import Mobilenav from './Mobilenav';
+import { PiSignIn } from 'react-icons/pi';
+import Preloader from './Preloader';
 
 const Navbar = ({
   backHandler,
@@ -228,13 +231,263 @@ const Navbar = ({
       document.removeEventListener('click', handleOutsideClick);
     };
   }, [isOpen]);
-  return (
-    <div
-      ref={navRef}
-      className="sticky top-0 z-50 px-[1%]"
-      style={{ backgroundColor: getBackgroundColor() }}
-    >
-      <div className="flex h-20 items-center justify-between text-white">
+
+  const [isOpenSidebar, setIsOpenSidebar] = useState(false);
+  const position = 'right'; // or 'right'
+
+  const handleToggleMenu = () => {
+    setIsOpenSidebar(prev => !prev);
+  };
+
+  const handleCloseMenu = () => {
+    setIsOpenSidebar(false);
+  };
+
+  const [mobisMenuOpen, setmobIsMenuOpen] = useState(false);
+
+  const toggleMeanMenu = () => {
+    setmobIsMenuOpen(!mobisMenuOpen);
+  };
+
+  const menuRef = useRef(null);
+  const placeholderRef = useRef(null);
+  const scrollUpRef = useRef(null);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const scrollY = window.scrollY;
+
+      // Back to Top Button Logic
+      if (scrollUpRef.current) {
+        if (scrollY > 500) {
+          scrollUpRef.current.classList.add('back-top');
+        } else {
+          scrollUpRef.current.classList.remove('back-top');
+        }
+      }
+
+      // Sticky Header Logic
+      if (document.body.classList.contains('sticky-header')) {
+        const menu = menuRef.current;
+        const placeholder = placeholderRef.current;
+
+        const topHeader = document.getElementById('header-topbar');
+        const middleHeader = document.getElementById('header-middlebar');
+
+        const topHeaderH = topHeader?.offsetHeight || 0;
+        const middleHeaderH = middleHeader?.offsetHeight || 0;
+        const targetScroll = topHeaderH + middleHeaderH;
+
+        if (scrollY > targetScroll) {
+          menu?.classList.add('rt-sticky');
+          if (placeholder) placeholder.style.height = `${menu.offsetHeight}px`;
+        } else {
+          menu?.classList.remove('rt-sticky');
+          if (placeholder) placeholder.style.height = '0px';
+        }
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  //   return (
+  //     <>
+
+  //     <Preloader/>
+  //     <div>
+  //         {(!authenticated ||
+  //     (authenticated &&
+  //       ![
+  //         Roles.FieldAgent,
+  //         Roles.Manager,
+  //         Roles.Admin,
+  //         Roles.UnderWriter,
+  //         Roles.FinanceManager
+  //       ].includes(user?.role as Roles))) && (
+  //       <header className="header">
+  //         <div id="rt-sticky-placeholder" ref={placeholderRef}></div>
+  //         <div id="header-topbar" className="header-topbar-layout2" >
+  //           <div className="container">
+  //             <div className="row align-items-center">
+  //               <div className="col-xl-2 col-lg-2">
+  //                 <div className="logo-area2">
+  //                   <NavLink to={"/"}>  <img src={Logo} alt="logo" className="img-fluid" width={180} height={45} /></NavLink>
+  //                 </div>
+  //               </div>
+  //               <div className="col-xl-6 col-lg-6 d-flex justify-content-center">
+  //                 <div className="topbar-left topbar-left2">
+  //                   <p className="item-paragraph item-paragraph2">Are you ready to grow up your business?</p>
+  //                   <div className="header-button header-button2">
+  //                     <NavLink to={'/contact-us'}>Contact us today <i className="fas fa-long-arrow-alt-right" /></NavLink>
+  //                   </div>
+  //                 </div>
+  //               </div>
+  //               <div className="col-xl-4 col-lg-4 d-flex justify-content-end">
+  //                 <div className="topbar-right2">
+  //                   <ul>
+  //                     <li>
+  //                       <div className="media">
+  //                         <div className="item-icon">
+  //                           <i className="far fa-comments" />
+  //                         </div>
+  //                         <div className="media-body">
+  //                           <div className="item-label">Hotline Number</div>
+  //                           <div className="item-number" style={{ fontSize: '1em' }}>020 3691 9423</div>
+  //                         </div>
+  //                       </div>
+  //                     </li>
+  //                     <li>
+  //                       <div className="header-right-button">
+  //                         <NavLink to={'/funding-form'}><a className="header-btn">Find An Advisor</a></NavLink>
+  //                       </div>
+  //                     </li>
+  //                   </ul>
+  //                 </div>
+  //               </div>
+  //             </div>
+  //           </div>
+  //         </div>
+  //          <div id="rt-sticky-placeholder" ref={placeholderRef} style={{ height: 0 }}></div>
+  //         <div id="header-menu" className="header-menu menu-layout1" ref={menuRef}>
+  //           <div className="container">
+  //             <div className="row d-flex align-items-center">
+  //               <div className="col-xl-10 col-lg-10 d-flex justify-content-start position-static">
+  //                 <nav id="dropdown" className="template-main-menu">
+  //                   <ul>
+  //                     <li>
+  //                       <NavLink to={"/"}>Home</NavLink>
+  //                     </li>
+  //                     <li>
+  //                       <NavLink to={"/about-us"}>
+  //                         About Us
+  //                       </NavLink>
+  //                     </li>
+  //                     <li>
+  //                       <NavLink to={"/services"}>
+  //                         Services
+  //                       </NavLink>
+  //                     </li>
+  //                     <li>
+  //                       <NavLink to={"/contact-us"}>
+  //                        Contact US
+  //                       </NavLink>
+  //                     </li>
+  //                   </ul>
+  //                 </nav>
+  //               </div>
+  //               <div className="col-xl-2 col-lg-2 d-flex justify-content-end">
+  //                 <div className="header-action-layout1">
+  //                   <ul>
+  //                     <li className="offcanvas-menu-trigger-wrap">
+  //                       <button type="button" className={`offcanvas-menu-btn ${isOpenSidebar ? 'menu-status-close' : 'menu-status-open'}`}
+  //                         onClick={handleToggleMenu}>
+  //                         <span className="btn-icon-wrap">
+  //                           <span />
+  //                           <span />
+  //                           <span />
+  //                         </span>
+  //                       </button>
+  //                     </li>
+  //                     <li> <NavLink to={"/login"} className={"signin-a"}>
+  //                        <PiSignIn /> Sign In
+  //                       </NavLink></li>
+  //                   </ul>
+  //                 </div>
+  //               </div>
+  //             </div>
+  //           </div>
+  //         </div>
+  //       </header>
+  //         )}
+  //       </div>
+  //       <div id="wrapper" className={isOpenSidebar ? 'open' : ''}>
+  //         {/* Offcanvas Mask */}
+  //         {isOpenSidebar && <div className="offcanvas-mask" onClick={handleCloseMenu}></div>}
+
+  //         {/* Offcanvas Menu */}
+  //         <div
+  //           id="offcanvas-wrap"
+  //           data-position={position}
+  //           className={`offcanvas-panel offcanvas-menu-wrap ${position}`}
+  //           style={{
+  //             transform: isOpenSidebar
+  //               ? 'translateX(0)'
+  //               : position === 'right'
+  //                 ? 'translateX(120%)'
+  //                 : 'translateX(105%)',
+  //           }}
+  //         >
+  //           <div className="offcanvas-close close-btn" onClick={handleCloseMenu}><i className="fas fa-times"></i></div>
+  //           <div className="offcanvas-content">
+  //             <div className="offcanvas-logo">
+  //               <a href="index.html"><img src={Logo} alt="Logo" width="180" height="45" /></a>
+  //             </div>
+  //             <ul className="offcanvas-menu">
+  //               <li className="nav-item">
+  //                   <NavLink to={"/"}>Home</NavLink>
+  //               </li>
+  //               <li className="nav-item">
+  //                 <NavLink to={"/about-us"}>
+  //                   About
+  //                 </NavLink>
+  //               </li>
+  //               <li className="nav-item">
+  //                  <NavLink to={"/services"}>services</NavLink>
+  //               </li>
+  //               <li className="nav-item">
+  //                 <NavLink to={"/contact-us"}>Contact</NavLink>
+  //               </li>
+  //               <li className="nav-item">
+  //                  <NavLink to={"/duty-statement"}>Consumer Duty Statement</NavLink>
+  //               </li>
+  //               <li className="nav-item">
+  //                 <NavLink to={"/data-protection-policy"}>Data Protection Policy</NavLink>
+  //               </li>
+  //               <li className="nav-item">
+  //                <NavLink to={"/terms-and-conditions"}>Website Terms of Use</NavLink>
+  //               </li>
+  //             </ul>
+  //             <div className="offcanvas-footer">
+  //               <div className="item-title">Follow Me</div>
+  //               <ul className="offcanvas-social">
+  //                 <li><a href="#"><i className="fab fa-facebook-f"></i></a></li>
+  //                 <li><a href="#"><i className="fab fa-twitter"></i></a></li>
+  //                 <li><a href="#"><i className="fab fa-linkedin-in"></i></a></li>
+  //                 <li><a href="#"><i className="fab fa-google-plus-g"></i></a></li>
+  //                 <li><a href="#"><i className="fab fa-pinterest"></i></a></li>
+  //                 <li><a href="#"><i className="fas fa-rss"></i></a></li>
+  //               </ul>
+  //             </div>
+  //           </div>
+  //         </div>
+  //       </div>
+  //       <div className='d-lg-none'>
+  //         <Mobilenav/>
+  //       </div>
+  //      {/* Scroll To Top Button */}
+  //    <div
+  //   className="scrollup"
+  //   ref={scrollUpRef}
+  //   onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+  // >
+  //   <i className="fas fa-angle-double-up"></i>
+  // </div>
+  //     </>
+  //   );
+
+return (
+  <div
+    ref={navRef}
+    // className="sticky top-0 z-50 px-[1%]"
+    style={{ backgroundColor: getBackgroundColor() }}
+  >
+    {authenticated ? (
+      // ====================================
+      // AUTHENTICATED USER NAVBAR
+      // ====================================
+        <div className="flex h-20 items-center justify-between text-white">
         {isTabletOrBelow && (
           <div className="items-center">
             <div onClick={handleNav} className="block">
@@ -441,8 +694,8 @@ const Navbar = ({
                             }}
                             className="flex items-center px-4 py-2 text-sm text-[#929292] hover:bg-gray-100"
                           >
-                            <FaRegUser />
-                            <span className="mx-2">{'Profile'}</span>
+                            <FaRegUser style={{ color: '#929292' }}  />
+                            <span className="mx-2" style={{ color: '#929292' }}>{'Profile'}</span>
                           </a>
                         </li>
                         <li>
@@ -450,8 +703,8 @@ const Navbar = ({
                             onClick={handleLogout}
                             className="flex items-center px-4 py-2 text-sm text-[#929292] hover:bg-gray-100"
                           >
-                            <IoIosLogIn size={16} />
-                            <span className="mx-2">{'Sign out'}</span>
+                            <IoIosLogIn size={16} style={{ color: '#929292' }} />
+                            <span className="mx-2" style={{ color: '#929292' }}>{'Sign out'}</span>
                           </a>
                         </li>
                       </ul>
@@ -529,8 +782,195 @@ const Navbar = ({
           ))}
         </ul>
       </div>
-    </div>
-  );
+    ) : (
+      // ====================================
+      // LOGGED OUT HEADER
+      // ====================================
+      <div>
+        <Preloader/>
+    <div>
+        {(!authenticated ||
+    (authenticated &&
+      ![
+        Roles.FieldAgent,
+        Roles.Manager,
+        Roles.Admin,
+        Roles.UnderWriter,
+        Roles.FinanceManager
+      ].includes(user?.role as Roles))) && (
+      <header className="header">
+        <div id="rt-sticky-placeholder" ref={placeholderRef}></div>
+        <div id="header-topbar" className="header-topbar-layout2" >
+          <div className="container">
+            <div className="row align-items-center">
+              <div className="col-xl-2 col-lg-2">
+                <div className="logo-area2">
+                  <NavLink to={"/"}>  <img src={Logo} alt="logo" className="img-fluid" width={180} height={45} /></NavLink>
+                </div>
+              </div>
+              <div className="col-xl-6 col-lg-6 d-flex justify-content-center">
+                <div className="topbar-left topbar-left2">
+                  <p className="item-paragraph item-paragraph2">Are you ready to grow up your business?</p>
+                  <div className="header-button header-button2">
+                    <NavLink to={'/contact-us'}>Contact us today <i className="fas fa-long-arrow-alt-right" /></NavLink>
+                  </div>
+                </div>
+              </div>
+              <div className="col-xl-4 col-lg-4 d-flex justify-content-end">
+                <div className="topbar-right2">
+                  <ul>
+                    <li>
+                      <div className="media">
+                        <div className="item-icon">
+                          <i className="far fa-comments" />
+                        </div>
+                        <div className="media-body">
+                          <div className="item-label">Hotline Number</div>
+                          <div className="item-number" style={{ fontSize: '1em' }}>020 3691 9423</div>
+                        </div>
+                      </div>
+                    </li>
+                    <li>
+                      <div className="header-right-button">
+                        <NavLink to={'/funding-form'}><a className="header-btn">Find An Advisor</a></NavLink>
+                      </div>
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+         <div id="rt-sticky-placeholder" ref={placeholderRef} style={{ height: 0 }}></div>
+        <div id="header-menu" className="header-menu menu-layout1" ref={menuRef}>
+          <div className="container">
+            <div className="row d-flex align-items-center">
+              <div className="col-xl-10 col-lg-10 d-flex justify-content-start position-static">
+                <nav id="dropdown" className="template-main-menu">
+                  <ul>
+                    <li>
+                      <NavLink to={"/"}>Home</NavLink>
+                    </li>
+                    <li>
+                      <NavLink to={"/about-us"}>
+                        About Us
+                      </NavLink>
+                    </li>
+                    <li>
+                      <NavLink to={"/services"}>
+                        Services
+                      </NavLink>
+                    </li>
+                    <li>
+                      <NavLink to={"/contact-us"}>
+                       Contact US
+                      </NavLink>
+                    </li>
+                  </ul>
+                </nav>
+              </div>
+              <div className="col-xl-2 col-lg-2 d-flex justify-content-end">
+                <div className="header-action-layout1">
+                  <ul>
+                    <li className="offcanvas-menu-trigger-wrap">
+                      <button type="button" className={`offcanvas-menu-btn ${isOpenSidebar ? 'menu-status-close' : 'menu-status-open'}`}
+                        onClick={handleToggleMenu}>
+                        <span className="btn-icon-wrap">
+                          <span />
+                          <span />
+                          <span />
+                        </span>
+                      </button>
+                    </li>
+                    <li> <NavLink to={"/login"} className={"signin-a"}>
+                       <PiSignIn /> Sign In
+                      </NavLink></li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </header>
+        )}
+      </div>
+      <div id="wrapper" className={isOpenSidebar ? 'open' : ''}>
+        {/* Offcanvas Mask */}
+        {isOpenSidebar && <div className="offcanvas-mask" onClick={handleCloseMenu}></div>}
+
+        {/* Offcanvas Menu */}
+        <div
+          id="offcanvas-wrap"
+          data-position={position}
+          className={`offcanvas-panel offcanvas-menu-wrap ${position}`}
+          style={{
+            transform: isOpenSidebar
+              ? 'translateX(0)'
+              : position === 'right'
+                ? 'translateX(120%)'
+                : 'translateX(105%)',
+          }}
+        >
+          <div className="offcanvas-close close-btn" onClick={handleCloseMenu}><i className="fas fa-times"></i></div>
+          <div className="offcanvas-content">
+            <div className="offcanvas-logo">
+              <a href="index.html"><img src={Logo} alt="Logo" width="180" height="45" /></a>
+            </div>
+            <ul className="offcanvas-menu">
+              <li className="nav-item">
+                  <NavLink to={"/"}>Home</NavLink>
+              </li>
+              <li className="nav-item">
+                <NavLink to={"/about-us"}>
+                  About
+                </NavLink>
+              </li>
+              <li className="nav-item">
+                 <NavLink to={"/services"}>services</NavLink>
+              </li>
+              <li className="nav-item">
+                <NavLink to={"/contact-us"}>Contact</NavLink>
+              </li>
+              <li className="nav-item">
+                 <NavLink to={"/duty-statement"}>Consumer Duty Statement</NavLink>
+              </li>
+              <li className="nav-item">
+                <NavLink to={"/data-protection-policy"}>Data Protection Policy</NavLink>
+              </li>
+              <li className="nav-item">
+               <NavLink to={"/terms-and-conditions"}>Website Terms of Use</NavLink> 
+              </li>
+            </ul>
+            <div className="offcanvas-footer">
+              <div className="item-title">Follow Me</div>
+              <ul className="offcanvas-social">
+                <li><a href="#"><i className="fab fa-facebook-f"></i></a></li>
+                <li><a href="#"><i className="fab fa-twitter"></i></a></li>
+                <li><a href="#"><i className="fab fa-linkedin-in"></i></a></li>
+                <li><a href="#"><i className="fab fa-google-plus-g"></i></a></li>
+                <li><a href="#"><i className="fab fa-pinterest"></i></a></li>
+                <li><a href="#"><i className="fas fa-rss"></i></a></li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>  
+      <div className='d-lg-none'>
+        <Mobilenav/>
+      </div>
+     {/* Scroll To Top Button */}
+   <div
+  className="scrollup"
+  ref={scrollUpRef}
+  onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+>
+  <i className="fas fa-angle-double-up"></i>
+</div>
+      </div>
+    )}
+  </div>
+);
+
 };
 
 export default Navbar;
