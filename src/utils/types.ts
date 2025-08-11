@@ -9,7 +9,7 @@ import {
 } from 'react-hook-form';
 import { AnyAction, Reducer } from 'redux';
 import yup from 'yup';
-
+import 'jspdf';
 import { ApprovalType, FundingFromCurrentStatus, Roles } from './enums';
 import {
   affordabilityGeneralSchema,
@@ -169,7 +169,7 @@ export interface GuarantorTypeSubSchemaType {
   email?: string;
   owns_other_property?: 'Yes' | 'No';
   stay_validated?: boolean;
-  company_name?: string;
+   company_name?: string;
   stay?: {
     pincode?: string;
     address?: string;
@@ -191,6 +191,7 @@ export type GuaranteedPropertyType = {
   owns_other_property: 'Yes' | 'No';
   owned_property_count?: number;
   owned_property?: {
+    id:string
     owner_name: string;
     owner_email: string;
     pincode: string;
@@ -208,8 +209,9 @@ declare module "jspdf" {
   }
 }
 
+
 export type CorporateGuarantorDirectorType = {
-  id?: number;
+  id?: string;
   title: string;
   first_name: string;
   last_name: string;
