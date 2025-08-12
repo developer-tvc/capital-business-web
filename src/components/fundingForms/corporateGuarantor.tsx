@@ -186,7 +186,7 @@ const CorporateGuarantor: React.FC<LoanFromCommonProps> = ({
           updateFilledForms(loanId, { complete_additional_details: true });
 
           setTimeout(() => {
-            dispatch(updateCurrentStage(12));
+            dispatch(updateCurrentStage(11));
           }, 1500);
         } else {
           showToast(guaranteedRes.status_message, {
