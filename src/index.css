@@ -156,15 +156,10 @@ input:-webkit-autofill:active {
 }
 
 .text-\[12px\].font-normal.text-gray-900 {
-    display: flex
-;
+    display: flex;
     line-height: 18px;
 }
 
-
-label.-top-3.absolute.cursor-text.text-sm.text-gray-500.start-3.mt-1.bg-inherit.mx-1.px-1.peer-placeholder-shown\:text-base.peer-placeholder-shown\:text-gray-500.peer-placeholder-shown\:top-2.peer-focus\:-top-4.peer-focus\:text-gray-600.peer-focus\:text-sm.transition-all {
-    display: none;
-}
 
 .\$.h-\[48px\].rounded-r-lg.py-3.text-center.cursor-pointer.bg-\[\#1A439A\] {
     display: flex;
