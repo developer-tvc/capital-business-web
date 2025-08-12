@@ -18,6 +18,10 @@ import { useMediaQuery } from 'react-responsive';
 import Mobilenav from './Mobilenav';
 import { PiSignIn } from 'react-icons/pi';
 import Preloader from './Preloader';
+import '../../assets/css/bootstrap.min.css'
+import '../../assets/css/all.min.css'
+import '../../assets/style.css'
+
 
 const Navbar = ({
   backHandler,
@@ -293,9 +297,11 @@ const Navbar = ({
   }, []);
 
   return (
+
+
     <div
       ref={navRef}
-      // className="sticky top-0 z-50 px-[1%]"
+      
       style={{ backgroundColor: getBackgroundColor() }}
     >
       {authenticated ? (
@@ -847,6 +853,8 @@ const Navbar = ({
         </div>
       )}
     </div>
+
+    
   );
 };
 

@@ -336,7 +336,7 @@ const AppRoute = () => {
         </>
       )}
       {/* <Route path="*" element={landingPage} /> */}
-           <Route path="/services" element={<Services />} />
+          <Route path="/services" element={<Services />} />
           <Route path="/duty-statement" element={<DutyStatementPage />} />
           <Route path="/data-protection-policy" element={<DataProtectionPolicyPage />} />
           <Route path="/terms-and-conditions" element={<TermsandConditionPage/>} />

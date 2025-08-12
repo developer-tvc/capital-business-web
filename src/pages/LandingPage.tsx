@@ -27,6 +27,9 @@ const LandingPage = () => {
 
   return (
     <>
+
+
+
       <Header />
       <BannerSection />
       <BannerBottom />
