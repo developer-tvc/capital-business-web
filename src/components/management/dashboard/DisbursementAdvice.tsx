@@ -86,7 +86,7 @@ const DisbursementAdvice: React.FC<LoanFromCommonProps> = ({
       complete_disbursement_advice: true
     });
     setTimeout(() => {
-      dispatch(updateCurrentStage(13));
+      dispatch(updateCurrentStage(14));
     }, 1500);
   };
 
