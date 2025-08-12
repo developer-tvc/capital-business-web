@@ -7,7 +7,9 @@
 @tailwind components;
 @tailwind utilities;
 
- 
+
+
+
 body {
   font-family: "Raleway", "sans-serif",
 }
@@ -148,4 +150,32 @@ input:-webkit-autofill:active {
 .tab-btn {
   padding-left: 10px;
   padding-right: 10px;
+}
+.group.relative.mt-4.cursor-pointer {
+    top: 40px;
+}
+
+.text-\[12px\].font-normal.text-gray-900 {
+    display: flex
+;
+    line-height: 18px;
+}
+
+
+label.-top-3.absolute.cursor-text.text-sm.text-gray-500.start-3.mt-1.bg-inherit.mx-1.px-1.peer-placeholder-shown\:text-base.peer-placeholder-shown\:text-gray-500.peer-placeholder-shown\:top-2.peer-focus\:-top-4.peer-focus\:text-gray-600.peer-focus\:text-sm.transition-all {
+    display: none;
+}
+
+.\$.h-\[48px\].rounded-r-lg.py-3.text-center.cursor-pointer.bg-\[\#1A439A\] {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.mt-3.text-center.sm\:ml-4.sm\:mt-0.sm\:text-left {
+    text-align: left !important;
+    font-weight: 600 !important;
+}
+.mx-auto.flex.h-12.w-12.flex-shrink-0.items-center.justify-center.rounded-full.bg-gray-100.sm\:mx-0.sm\:h-10.sm\:w-10 {
+  margin-top: 20px;
 }
