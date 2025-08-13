@@ -18,10 +18,9 @@ import { useMediaQuery } from 'react-responsive';
 import Mobilenav from './Mobilenav';
 import { PiSignIn } from 'react-icons/pi';
 import Preloader from './Preloader';
-import '../../assets/css/bootstrap.min.css'
-import '../../assets/css/all.min.css'
-import '../../assets/style.css'
-
+import '../../assets/css/bootstrap.min.css';
+import '../../assets/css/all.min.css';
+import '../../assets/style.css';
 
 const Navbar = ({
   backHandler,
@@ -297,14 +296,8 @@ const Navbar = ({
   }, []);
 
   return (
-
-
-    <div
-      ref={navRef}
-      
-      style={{ backgroundColor: getBackgroundColor() }}
-    >
-      {authenticated ? (
+    <div ref={navRef} style={{ backgroundColor: getBackgroundColor() }}>
+      {authenticated && user?.role != Roles.Customer ? (
         <div className="flex h-20 items-center justify-between text-white">
           {isTabletOrBelow && (
             <div className="items-center">
@@ -727,10 +720,119 @@ const Navbar = ({
                               </button>
                             </li>
                             <li>
-                              {' '}
-                              <NavLink to={'/login'} className={'signin-a'}>
-                                <PiSignIn /> Sign In
-                              </NavLink>
+                              <div className="flex items-center">
+                                {signedIn && authenticated ? (
+                                  <div className="relative px-1 pr-8">
+                                    <button
+                                      type="button"
+                                      className="focus:none flex text-sm"
+                                      id="user-menu-button"
+                                      aria-expanded={isOpen}
+                                      onClick={toggleMenu}
+                                    >
+                                      {/* <div className=" font-semibold mt-3">
+                  <span className="mx-2 text-[#1A439A] ml-1 max-sm:text-[6.5px] text-[8px]">
+                    {user?.role}
+                  </span>
+                </div> */}
+                                      <img
+                                        className="h-10 w-10 rounded-full"
+                                        src={user?.image || userIcon}
+                                        alt="user photo"
+                                      />
+                                    </button>
+                                    {isOpen && (
+                                      <>
+                                        <div
+                                          aria-hidden="true"
+                                          className="fixed inset-0 z-50 overflow-y-auto overflow-x-hidden bg-black bg-opacity-5"
+                                          onClick={() => setIsOpen(false)}
+                                        />
+                                        <div
+                                          className="w-70 absolute right-0 z-50 mt-2 divide-y divide-gray-100 rounded-lg bg-white py-2 shadow"
+                                          id="user-dropdown"
+                                        >
+                                          <div className="px-4 py-3">
+                                            <div className="flex">
+                                              <div className="mr-2 h-10 w-10">
+                                                <img
+                                                  className="h-full w-full rounded-full object-cover object-center ring ring-white"
+                                                  src={user?.image || userIcon}
+                                                  alt=""
+                                                />
+                                              </div>
+                                              <div>
+                                                <div className="text-[12px] font-normal text-gray-900">
+                                                  {`${user?.first_name} ${user?.last_name}`}
+                                                </div>
+                                                <div className="text-[12px] font-normal text-gray-900">
+                                                  {user?.email}
+                                                </div>
+                                                <div className="flex text-[12px] text-gray-900">
+                                                  <span className="text-[#929292]">
+                                                    {'Role: '}
+                                                  </span>
+                                                  <span className="mx-2 text-[#1A439A]">
+                                                    {user?.role}
+                                                  </span>
+                                                </div>
+                                              </div>
+                                            </div>
+                                          </div>
+                                          <div>
+                                            <hr />
+                                            <ul
+                                              className="py-2"
+                                              aria-labelledby="user-menu-button"
+                                            >
+                                              <li>
+                                                <a
+                                                  // href="/profile"
+                                                  onClick={() => {
+                                                    navigate('/profile');
+                                                  }}
+                                                  className="flex items-center px-4 py-2 text-sm text-[#929292] hover:bg-gray-100"
+                                                >
+                                                  <FaRegUser
+                                                    style={{ color: '#929292' }}
+                                                  />
+                                                  <span
+                                                    className="mx-2"
+                                                    style={{ color: '#929292' }}
+                                                  >
+                                                    {'Profile'}
+                                                  </span>
+                                                </a>
+                                              </li>
+                                              <li>
+                                                <a
+                                                  onClick={handleLogout}
+                                                  className="flex items-center px-4 py-2 text-sm text-[#929292] hover:bg-gray-100"
+                                                >
+                                                  <IoIosLogIn
+                                                    size={16}
+                                                    style={{ color: '#929292' }}
+                                                  />
+                                                  <span
+                                                    className="mx-2"
+                                                    style={{ color: '#929292' }}
+                                                  >
+                                                    {'Sign out'}
+                                                  </span>
+                                                </a>
+                                              </li>
+                                            </ul>
+                                          </div>
+                                        </div>
+                                      </>
+                                    )}
+                                  </div>
+                                ) : (
+                                  <NavLink to={'/login'} className={'signin-a'}>
+                                    <PiSignIn /> Sign In
+                                  </NavLink>
+                                )}
+                              </div>
                             </li>
                           </ul>
                         </div>
@@ -853,8 +955,6 @@ const Navbar = ({
         </div>
       )}
     </div>
-
-    
   );
 };
 
