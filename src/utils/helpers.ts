@@ -14,22 +14,26 @@ import { QueryObject } from './types';
 interface Address {
   full_address: string;
   Company_Name: string;
+    Company_Number: string;
+
 }
 
 interface FormattedAddress {
   pincode: string;
   addressText: string;
   Company_Name: string;
+   Company_Number?: string;
 }
 
 export const lookUpAddressFormatter = (address: Address): FormattedAddress => {
   const addressText = address?.full_address || '';
   const Company_Name = address?.Company_Name || '';
+  const Company_Number = address?.Company_Number || '';
 
   const keys = Object.keys(address);
   const pincode = address[keys[keys.length - 2]];
 
-  return { pincode, addressText, Company_Name };
+  return { pincode, addressText, Company_Name,Company_Number };
 };
 
 export const dateInSlashFromate = currentDate => {
@@ -72,7 +76,7 @@ export const getStayDateWithExcludeDateIntervals = directors => {
   return dateRanges;
 };
 
-export const convertDateString = dateString => {
+export const convertDateString = (dateString) => {
   if (!dateString) return 'N/A';
   return moment(dateString).isValid()
     ? moment(dateString).format('YYYY-MM-DD')

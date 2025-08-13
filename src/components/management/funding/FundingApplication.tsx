@@ -133,7 +133,7 @@ const ManagementFundingApplication = () => {
       }, 1500);
     } else if (role !== Roles.UnderWriter && isUwRepaymentComplete) {
       setTimeout(() => {
-        handleStageChange(12);
+        handleStageChange(13);
         setIsUwRepaymentComplete(false);
       }, 1500);
     }
@@ -1201,6 +1201,10 @@ const ManagementFundingApplication = () => {
               }
             ]);
           case Roles.Manager:
+            console.log('11111111111activeStage', activeStage);
+            console.log("11111111111number of forms", NumberOfForms);
+            
+            
             if (activeStage === 10) {
               switch (affordabilityActiveStage) {
                 case 'general_form':

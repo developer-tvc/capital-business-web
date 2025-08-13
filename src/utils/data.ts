@@ -1,6 +1,6 @@
 import plus from '../assets/images/18plus.png';
-import icon1 from '../assets/images/Banner.png';
-import icon2 from '../assets/images/Banner2.png';
+// import icon1 from '../assets/images/Banner.png';
+// import icon2 from '../assets/images/Banner2.png';
 import Bills from '../assets/images/Bills.png';
 import im1 from '../assets/images/blog-image-1.png';
 import im2 from '../assets/images/blog-image-2.png';
@@ -29,7 +29,21 @@ import support from '../assets/images/support.png';
 import test from '../assets/images/testinomial.png';
 import Wages from '../assets/images/Wages.png';
 import { MandateStatus } from './enums';
-
+import Slider1 from '../assets/images/slider/slider1.png'
+import Slider2 from '../assets/images/slider/slider2.png'
+import Slider3 from '../assets/images/slider/slider3.png'
+import figure59 from '../assets/images/figure/figure59.png'
+import figure60 from '../assets/images/figure/figure60.png'
+import figure41 from '../assets/images/figure/figure41.png'
+import figure43 from '../assets/images/figure/figure43.png'
+import figure84 from '../assets/images/figure/figure84.png'
+import figure62 from '../assets/images/figure/figure62.png'
+import service5 from '../assets/images/service/service5.jpg'
+import service6 from '../assets/images/service/service6.jpg'
+import service7 from '../assets/images/service/service7.jpg'
+import service8 from '../assets/images/service/service8.jpg'
+import about4 from '../assets/images/about/about4.jpg'
+import about5 from '../assets/images/about/about5.jpg'
 export const eligbleData = [
   {
     name: 'Company Registered in  UK',
@@ -155,34 +169,22 @@ export const featureData = [
 
 export const bannerSlides = [
   {
-    title: 'Payment Upto',
-    title2: '£50,000',
-    description: 'Easiest Place to ',
-    description1: ' apply for your',
-    description3: '  APPLY NOW',
-    description4: '  Terms & condition Apply',
-    description5: '  APPLY NEW FUNDING',
-    image: icon1
+    title: 'Find The Right Way',
+    title2: 'Funding That Works for You',
+    description: 'We offer B2B Funding Solutions',
+    image: Slider3
   },
   {
-    title: 'Payment Upto',
-    title2: '£50,000',
-    description: 'Easiest Place to ',
-    description1: ' apply for your',
-    description3: '  APPLY NOW',
-    description4: '  Terms & condition Apply',
-    description5: '  APPLY NEW FUNDING',
-    image: icon2
+    title: 'Find The Right Way',
+    title2: 'Smart Funding, Smarter Growth',
+    description: 'We offer B2B Funding Solutions',
+    image: Slider2
   },
   {
-    title: 'Payment Upto',
-    title2: '£50,000',
-    description: 'Easiest Place to ',
-    description1: ' apply for your',
-    description3: '  APPLY NOW',
-    description4: '  Terms & condition Apply',
-    description5: '  APPLY NEW FUNDING',
-    image: icon1
+   title: 'Find The Right Way',
+    title2: 'Empower Your Business Potential',
+    description: 'We offer B2B Funding Solutions',
+    image: Slider1
   }
 ];
 
@@ -1775,32 +1777,29 @@ export const BlogsectionImageData = [
 
 export const questions = [
   {
-    title: 'Where can I watch?',
-    answer: `Nibh quisque suscipit fermentum netus nulla cras porttitor euismod nulla. Orci, dictumst nec aliquet id ullamcorper venenatis. Fermentum sulla craspor ttitore ismod nulla.`
+    title: 'Funding Application',
+    answer: `We obtain your Business and personal details when you make an application with us. We want to know your business needs and how we can help as a financier.`
   },
   {
-    title: 'Where can I watch?',
-    answer: `Nibh quisque suscipit fermentum netus nulla cras porttitor euismod nulla. Orci, dictumst nec aliquet id ullamcorper venenatis. Fermentum sulla craspor ttitore ismod nulla.`
+    title: 'Credit Evaluation',
+    answer: `We will review your Business Activity and its revenue generation model, conduct identity and credit checks, and assess your business funding needs based on the information you provided to us. We will conduct an affordability check for your business to ensure that your business is able to meet up with our funding cost.`
   },
   {
-    title: 'How can I get started?',
+    title: 'Funding',
     answer:
-      "Getting started is easy! Sign up for an account, and you'll have access to our platform's features. No credit card required for the initial signup."
+      "Once you qualify during our credit evaluation, we will make you the Funding offer. If you are happy with the offer, We will credit your business account within 2 hours. It's so quick and may not take that long."
   },
   {
-    title: 'What is the pricing structure?',
+    title: 'Funding Repayments',
     answer:
-      'Our pricing structure is flexible. We offer both free and paid plans. You can choose the one that suits your needs and budget.'
+      'Your Payments will be fixed based on your businesses revenue generation model. It must be paid regularly to our account through either Direct Debit Mandate or through Continuous Payment Authority.'
   },
   {
-    title: 'What kind of support do you provide?',
+    title: 'Credit Monitoring',
     answer:
-      'We offer comprehensive customer support. You can reach out to our support team through various channels, including email, chat, and a knowledge base.'
+      'We will be keen in continuously monitoring the health of your business as it impacts your repayments, we would need your cooperation in sharing the true status of your business so that we can timely offer you support if needed.'
   },
-  {
-    title: 'Where can I watch?',
-    answer: `Nibh quisque suscipit fermentum netus nulla cras porttitor euismod nulla. Orci, dictumst nec aliquet id ullamcorper venenatis. Fermentum sulla craspor ttitore ismod nulla.`
-  }
+ 
 ];
 
 export const ApplicationStatusBadgeClasses = {
@@ -2410,4 +2409,134 @@ export const bulkuploadloan = [
     created_by: null,
     modified_by: null
   }
+];
+
+
+// new theme data
+
+
+
+export const ourkeyfeatures = [
+  {
+    headingTitle: 'No Asset Security Required',
+    description: ' Unlike traditional secured fundings, our unsecured fundings eliminate the need for lengthy legal processes and asset valuations. This ensures faster approval and funding, perfect for businesses needing quick access to cash.',
+    image: figure59,
+    link : ""
+  },
+   {
+    headingTitle: 'Generous Credit Consideration',
+    description: " We understand that past financial difficulties should'nt limit your future. Our fundings are accessible even for business owners with a poor credit history, as we focus on your business potential and growth.",
+    image: figure60,
+    link : ""
+  },
+    {
+    headingTitle: 'Tailored Repayment Plans',
+    description: " Choose a weekly or monthly repayment schedule that aligns with your revenue model and business goals. The maximum funding term is 12 months, with fixed costs and no hidden or penalty fees.",
+    image: figure41,
+    link : ""
+  },
+   {
+    headingTitle: 'Personal Guarantee for Assurance',
+    description: " Since no security is required, a personal guarantee from a Director or Shareholder ensures repayment in case the business faces difficulties.",
+    image: figure43,
+    link : ""
+  },
+   {
+    headingTitle: 'Swift and Transparent Process',
+    description: " Our fast application turnaround ensures seamless support for your operations. We prioritize your business needs, providing an empathetic and responsive service to help you navigate challenges and maintain growth.",
+    image: figure84,
+    link : ""
+  },
+  {
+    headingTitle: 'Fixed Costs, No Surprises',
+    description: " The cost of financing is set upfront for the funding period, giving you clarity and confidence in managing repayments.",
+    image: figure62,
+    link : ""
+  },
+];
+
+export const whyChooseus = [
+   {
+    headingTitle: 'Quick Access to Funds',
+    description: ' Ideal for businesses with limited assets that require immediate cash flow support or expansion funding.',
+  },
+  {
+    headingTitle: 'Business-Centric Approach',
+    description: ' We assess your revenue-generating ability and affordability to design a repayment plan that works for you.',
+  },
+  {
+    headingTitle: 'Supportive Partnership',
+    description: 'Our team is dedicated to building long-term relationships, offering continuous assistance during challenging times.',
+  },
+]
+
+export const whocanbenifits = [
+   {
+    img: service5,
+    link: '',
+  },
+   {
+    img: service6,
+    link: '',
+  },
+   {
+    img: service7,
+    link: '',
+  },
+  {
+    img: service8,
+    link: '',
+  },
+]
+
+export const aboutcompanycorevalues = [
+  {
+    img:about4,
+    headingtitle: 'Empowering Growth Through Integrity',
+    p : 'We are committed to fostering trust and transparency in every interaction. By prioritizing ethical practices and honest communication, we empower businesses to achieve sustainable growth with confidence.',
+    link : ''
+  
+  },
+    {
+    img:about5,
+    headingtitle: 'Innovative Solutions with Client-Centric Focus',
+    p : 'Our success is rooted in the success of our clients. We constantly innovate to provide tailored funding solutions, ensuring businesses of all sizes have the resources they need to thrive in a competitive marketplace.',
+    link : ''
+      
+  }
+  
+]
+
+
+export const servicesfeaturesData = [
+  {
+    title: "No Asset Security Required",
+    description:
+      "Unlike traditional secured fundings, our unsecured fundings eliminate the need for lengthy legal processes and asset valuations. This ensures faster approval and funding, perfect for businesses needing quick access to cash.",
+  },
+  {
+    title: "Generous Credit Consideration",
+    description:
+      "We understand that past financial difficulties shouldn't limit your future. Our fundings are accessible even for business owners with a poor credit history, as we focus on your business potential and growth.",
+  },
+  {
+    title: "Tailored Repayment Plans",
+    description:
+      "Choose a weekly or monthly repayment schedule that aligns with your revenue model and business goals. The maximum funding term is 12 months, with fixed costs and no hidden or penalty fees.",
+  },
+  {
+    title: "Personal Guarantee for Assurance",
+    description:
+      "Since no security is required, a personal guarantee from a Director or Shareholder ensures repayment in case the business faces difficulties.",
+  },
+  {
+    title: "Swift and Transparent Process",
+    description:
+      "Our fast application turnaround ensures seamless support for your operations. We prioritize your business needs, providing an empathetic and responsive service to help you navigate challenges and maintain growth.",
+  },
+  {
+    title: "Fixed Costs, No Surprises",
+    description:
+      "The cost of financing is set upfront for the funding period, giving you clarity and confidence in managing repayments.",
+  },
 ];
