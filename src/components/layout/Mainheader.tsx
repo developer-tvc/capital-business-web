@@ -297,7 +297,7 @@ const Navbar = ({
 
   return (
     <div ref={navRef} style={{ backgroundColor: getBackgroundColor() }}>
-      {authenticated && user?.role != Roles.Customer ? (
+      {authenticated && ![Roles.Leads, Roles.Customer].includes(user?.role) ? (
         <div className="flex h-20 items-center justify-between text-white">
           {isTabletOrBelow && (
             <div className="items-center">
