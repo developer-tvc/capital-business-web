@@ -18,6 +18,8 @@ import Loader from '../Loader';
 import '../../assets/vendor/nivo-slider/nivo-slider.css';
 import bannerbg1 from '../../assets/images/figure/figure98.png';
 import bannerbg2 from '../../assets/images/figure/figure99.png';
+import { FiArrowRight } from 'react-icons/fi';
+
 const BannerSection: React.FC = () => {
   const navigate = useNavigate();
   const { showToast } = useToast();
@@ -26,6 +28,7 @@ const BannerSection: React.FC = () => {
   //   isApplicableForNewLoan: boolean;
   //   loanCount: number;
   // }>(null);
+
   const [newLoanModalOpen, setNewLoanModalOpen] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState(false);
   const fadeInUp = {
@@ -33,9 +36,8 @@ const BannerSection: React.FC = () => {
     visible: {
       opacity: 1,
       y: 0,
-      transition: { duration: 0.8, ease: 'easeOut', }
+      transition: { duration: 0.8, ease: 'easeOut' }
     }
-
   };
   const fadeInUpDelay = {
     hidden: { opacity: 0, y: 200 },
@@ -44,22 +46,19 @@ const BannerSection: React.FC = () => {
       y: 0,
       transition: { duration: 0.8, ease: 'easeOut', delay: 0.2 }
     }
-
   };
 
-
   const bannerbg1animation = {
-    hidden: { opacity: 0, scale: 0, },
+    hidden: { opacity: 0, scale: 0 },
     visible: {
       opacity: 1,
       scale: 1,
       transition: { duration: 1, ease: 'easeOut', delay: 0.3 }
     }
-
   };
 
   const bannerbg2animation = {
-    hidden: {  x:100,scale: 0, }, // x: 20 = move to right
+    hidden: { x: 100, scale: 0 }, // x: 20 = move to right
     visible: {
       x: 0,
       scale: 1,
@@ -106,9 +105,9 @@ const BannerSection: React.FC = () => {
           <Loader />
         </div>
       )}
-      <div className="bg-color-primary xs-banner-padding">
+      <div className="xs-banner-padding bg-color-primary">
         <Swiper
-          modules={[Autoplay, Pagination,]}
+          modules={[Autoplay, Pagination]}
           loop={true}
           className="slider-area2 Swiper"
           autoplay={{
@@ -200,12 +199,32 @@ const BannerSection: React.FC = () => {
               </div> */}
 
               <img src={slide.image} />
-              <div className="nivo-caption" style={{ display: "block" }}>
+              <div className="nivo-caption" style={{ display: 'block' }}>
                 <div className="slider-content s-tb slide-1">
-                  <div className="text-left title-container s-tb-c">
+                  <div className="title-container s-tb-c text-left">
                     <div className="container">
+                      {/* <p className="item-subtitle">
+                        {slide.title}
 
-                      <p className="item-subtitle">{slide.title}</p>
+                        <button
+                          onClick={() => navigate('/funding-form')}
+                          className="-mx-2 my-2 block rounded-full bg-gradient-to-r from-orange-500 to-red-500 px-6 text-[10px] font-bold text-white shadow-lg transition-all duration-300 ease-in-out hover:from-orange-600 hover:to-red-600 hover:shadow-xl active:scale-95 sm:hidden"
+                        >
+                          Apply Now
+                        </button>
+                      </p> */}
+                      <p className="item-subtitle flex items-center gap-3">
+                        {slide.title}
+
+                        <button
+                          onClick={() => navigate('/funding-form')}
+                          className="-mx-2 mt-1 inline-flex items-center gap-1 
+                          rounded-full bg-gradient-to-r from-orange-500 to-red-500
+                           px-2 py-1 text-xs font-bold text-white shadow-lg transition-all duration-300 ease-in-out hover:from-orange-600 hover:to-red-600 hover:shadow-xl active:scale-95 sm:hidden"
+                        >
+                          <FiArrowRight className="text-sm animate-blinkSmall" />
+                        </button>
+                      </p>
                       <motion.div
                         aria-hidden="true"
                         initial="hidden"
@@ -220,19 +239,46 @@ const BannerSection: React.FC = () => {
                         whileInView="visible"
                         variants={fadeInUpDelay}
                       >
-                        <div className="item-paragraph">{slide.description}</div>
+                        <div className="item-paragraph">
+                          {slide.description}
+                        </div>
                       </motion.div>
 
                       <div className="slider-button">
-                        <a href="" className="slider-btn">Free Consulting<i className="fas fa-long-arrow-alt-right"></i></a>
+                        <a href="" className="slider-btn">
+                          Free Consulting
+                          <i className="fas fa-long-arrow-alt-right"></i>
+                        </a>
                       </div>
                       <div className="social-site">
                         <ul>
-                          <li><span>Follow Us On :</span><a href="#"><i className="fab fa-facebook-square"></i></a></li>
-                          <li> <a href="#"><i className="fab fa-twitter"></i></a></li>
-                          <li><a href="#"><i className="fab fa-linkedin-in"></i></a></li>
-                          <li><a href="#"><i className="fab fa-pinterest"></i></a></li>
-                          <li><a href="#"><i className="fab fa-skype"></i></a></li>
+                          <li>
+                            <span>Follow Us On :</span>
+                            <a href="#">
+                              <i className="fab fa-facebook-square"></i>
+                            </a>
+                          </li>
+                          <li>
+                            {' '}
+                            <a href="#">
+                              <i className="fab fa-twitter"></i>
+                            </a>
+                          </li>
+                          <li>
+                            <a href="#">
+                              <i className="fab fa-linkedin-in"></i>
+                            </a>
+                          </li>
+                          <li>
+                            <a href="#">
+                              <i className="fab fa-pinterest"></i>
+                            </a>
+                          </li>
+                          <li>
+                            <a href="#">
+                              <i className="fab fa-skype"></i>
+                            </a>
+                          </li>
                         </ul>
                       </div>
                     </div>
@@ -245,27 +291,24 @@ const BannerSection: React.FC = () => {
                 whileInView="visible"
                 variants={bannerbg1animation}
               >
-                <div className="slider-bg-img1" >
+                <div className="slider-bg-img1">
                   <img src={bannerbg1} alt="figure" width="772" height="366" />
                 </div>
-
               </motion.div>
 
               <div>
                 <motion.div
-                 aria-hidden="true"
+                  aria-hidden="true"
                   initial="hidden"
                   whileInView="visible"
                   variants={bannerbg2animation}
-                    viewport={{ once: true }}
+                  viewport={{ once: true }}
                 >
                   <div className="slider-bg-img2">
                     <img src={bannerbg2} alt="figure" width="211" height="96" />
                   </div>
                 </motion.div>
-
               </div>
-
             </SwiperSlide>
           ))}
           <div className="swiper-pagination !bottom-0 mt-8 flex justify-center" />
