@@ -203,35 +203,40 @@ const BannerSection: React.FC = () => {
                 <div className="slider-content s-tb slide-1">
                   <div className="title-container s-tb-c text-left">
                     <div className="container">
-                      {/* <p className="item-subtitle">
+                      <p className="item-subtitle">
                         {slide.title}
 
                         <button
                           onClick={() => navigate('/funding-form')}
-                          className="-mx-2 my-2 block rounded-full bg-gradient-to-r from-orange-500 to-red-500 px-6 text-[10px] font-bold text-white shadow-lg transition-all duration-300 ease-in-out hover:from-orange-600 hover:to-red-600 hover:shadow-xl active:scale-95 sm:hidden"
+                          className="-mx-2 my-2 block rounded-full
+                           bg-gradient-to-r from-orange-500 to-red-500 px-6 text-[10px] 
+                           font-bold text-white shadow-lg transition-all duration-300 ease-in-out
+                            hover:from-orange-600 hover:to-red-600 hover:shadow-xl active:scale-95 lg:hidden mx:block "
                         >
                           Apply Now
                         </button>
-                      </p> */}
-                      <p className="item-subtitle flex items-center gap-3">
+                      </p>
+                      {/* <p className="item-subtitle flex items-center gap-3">
                         {slide.title}
 
                         <button
                           onClick={() => navigate('/funding-form')}
                           className="-mx-2 mt-1 inline-flex items-center gap-1 
                           rounded-full bg-gradient-to-r from-orange-500 to-red-500
-                           px-2 py-1 text-xs font-bold text-white shadow-lg transition-all duration-300 ease-in-out hover:from-orange-600 hover:to-red-600 hover:shadow-xl active:scale-95 sm:hidden"
+                           px-2 py-1 text-xs font-bold text-white shadow-lg transition-all
+                            duration-300 ease-in-out hover:from-orange-600 hover:to-red-600 hover:shadow-xl 
+                            active:scale-95 sm:hidden"
                         >
                           <FiArrowRight className="text-sm animate-blinkSmall" />
                         </button>
-                      </p>
+                      </p> */}
                       <motion.div
                         aria-hidden="true"
                         initial="hidden"
                         whileInView="visible"
                         variants={fadeInUp}
-                      >
-                        <h2 className="item-title">{slide.title2}</h2>
+                      > 
+                        <h2 className="item-title hidden sm:block" >{slide.title2}</h2>
                       </motion.div>
                       <motion.div
                         aria-hidden="true"

@@ -661,7 +661,7 @@ const Navbar = ({
                               </div>
                             </li>
                             <li>
-                              <div className="header-right-button">
+                              <div className="header-right-button ">
                                 <NavLink to={'/funding-form'}>
                                   <a className="header-btn">Apply Now</a>
                                 </NavLink>

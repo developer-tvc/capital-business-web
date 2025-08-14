@@ -16,15 +16,6 @@ export default {
       backgroundImage: {
         'custom-gradient': 'linear-gradient(90deg, white 75%, #1A439A 75%)',
       },
-      keyframes: {
-        blinkSmall: {
-          '0%, 100%': { opacity: 1 },
-          '50%': { opacity: 0.4}, 
-        },
-      },
-      animation: {
-        blinkSmall: 'blinkSmall 1.2s infinite ease-in-out',
-      },
       fontFamily: {
         poppins: ['Poppins', 'sans-serif'],
         Playfair: ["Raleway", "sans-serif"],
