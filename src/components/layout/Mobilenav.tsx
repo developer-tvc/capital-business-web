@@ -1,9 +1,8 @@
 import { useState } from 'react';
 // optional: for icons
+import { NavLink } from 'react-router-dom';
 import Logo from '../../assets/images/Logo.png';
 import close from '../../assets/images/close-x-svgrepo-com.svg';
-import { NavLink } from 'react-router-dom';
-import { useNavigate } from "react-router-dom";
 
 const Mobilenav = () => {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -12,8 +11,6 @@ const Mobilenav = () => {
     setMenuOpen(!menuOpen);
   };
 
-  
-
   return (
     <div className="mean-container">
       <div className="mean-bar">
@@ -21,8 +18,6 @@ const Mobilenav = () => {
           <a className="logo-mobile" href="index.html">
             <img src={Logo} alt="logo" className="img-fluid" width={130} />
           </a>
-         
-
         </div>
 
         <a
