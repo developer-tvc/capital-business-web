@@ -18,8 +18,6 @@ import Loader from '../Loader';
 import '../../assets/vendor/nivo-slider/nivo-slider.css';
 import bannerbg1 from '../../assets/images/figure/figure98.png';
 import bannerbg2 from '../../assets/images/figure/figure99.png';
-import { FiArrowRight } from 'react-icons/fi';
-
 const BannerSection: React.FC = () => {
   const navigate = useNavigate();
   const { showToast } = useToast();
