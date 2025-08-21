@@ -102,6 +102,10 @@ import BulkUploadFundingDetailPage from '../pages/bulkUploadFunding/BulkUploadFu
 import ReportLeadLoan from '../components/management/reports/ReportLeadLoan';
 import DirectDebitSuccess from '../components/management/common/directDebitSuccess';
 import DirectDebitFailed from '../components/management/common/directDebitFailed';
+import Services from '../pages/Services';
+import DutyStatementPage from '../pages/DutyStatementPage';
+import DataProtectionPolicyPage from '../pages/DataProtectionPolicyPage';
+import TermsandConditionPage from '../pages/TermsandConditionPage';
 
 const AppRoute = () => {
   const { authenticated } = useAuth();
@@ -215,6 +219,7 @@ const AppRoute = () => {
         <Route path="/manager" element={<ManagerPage />} />
         <Route path="/referral" element={<ReferralPage />} />
         <Route path="/profile" element={<Profile />} />
+   
         {/* <Route path="/change-password" element={<ChangePasswordPage />} /> */}
         <Route path="/notification" element={<NotificationPage />} />
         <Route path="/approval-list" element={<ApprovalListPage />} />
@@ -309,6 +314,7 @@ const AppRoute = () => {
           <Route path="/blog" element={<BlogPage />} />
           <Route path="/blog-inner" element={<BlogViewPage />} />
           <Route path="/faq" element={<FaqPage />} />
+          
           <Route
             path="/our-lending-process"
             element={<OurLendingProcessPage />}
@@ -330,6 +336,10 @@ const AppRoute = () => {
         </>
       )}
       {/* <Route path="*" element={landingPage} /> */}
+          <Route path="/services" element={<Services />} />
+          <Route path="/duty-statement" element={<DutyStatementPage />} />
+          <Route path="/data-protection-policy" element={<DataProtectionPolicyPage />} />
+          <Route path="/terms-and-conditions" element={<TermsandConditionPage/>} />
     </Routes>
   );
 };

@@ -68,7 +68,7 @@ const AffordabilityApprovalForm = ({
         showToast(response.status_message, { type: NotificationType.Success });
 
         setTimeout(() => {
-          dispatch(updateCurrentStage(11));
+          dispatch(updateCurrentStage(12));
         }, 1500);
       } else {
         console.log('error', response.status_message);

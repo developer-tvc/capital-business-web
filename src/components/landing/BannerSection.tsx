@@ -3,45 +3,75 @@ import 'swiper/css/navigation';
 
 import { motion } from 'framer-motion';
 import React, { useEffect, useState } from 'react';
-import { FaArrowLeftLong, FaArrowRightLong } from 'react-icons/fa6';
+
 import { useNavigate } from 'react-router-dom';
-import { Autoplay, Navigation } from 'swiper/modules';
+import { Autoplay, Pagination } from 'swiper/modules';
 import { Swiper, SwiperSlide } from 'swiper/react';
 
 import { bannerSlides } from '../../utils/data';
-import { applyNewLoan, chkCustNewLoan } from '../../utils/helpers';
+import { applyNewLoan } from '../../utils/helpers';
 import { NotificationType } from '../../utils/hooks/toastify/enums';
 import useToast from '../../utils/hooks/toastify/useToast';
-import useAuth from '../../utils/hooks/useAuth';
+// import useAuth from '../../utils/hooks/useAuth';
 import ConfirmModal from '../fundingForms/modals/ConfirmModal';
 import Loader from '../Loader';
-
+import '../../assets/vendor/nivo-slider/nivo-slider.css';
+import bannerbg1 from '../../assets/images/figure/figure98.png';
+import bannerbg2 from '../../assets/images/figure/figure99.png';
 const BannerSection: React.FC = () => {
   const navigate = useNavigate();
   const { showToast } = useToast();
-  const { authenticated } = useAuth();
-  const [isEligibleNewLoan, setIsEligibleNewLoan] = useState<{
-    isApplicableForNewLoan: boolean;
-    loanCount: number;
-  }>(null);
+  // const { authenticated } = useAuth();
+  // const [isEligibleNewLoan, setIsEligibleNewLoan] = useState<{
+  //   isApplicableForNewLoan: boolean;
+  //   loanCount: number;
+  // }>(null);
+
   const [newLoanModalOpen, setNewLoanModalOpen] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState(false);
-  const fadeInLeft = {
-    hidden: { opacity: 0, x: -50 },
+  const fadeInUp = {
+    hidden: { opacity: 0, y: 200 },
     visible: {
       opacity: 1,
-      x: 0,
+      y: 0,
       transition: { duration: 0.8, ease: 'easeOut' }
     }
   };
+  const fadeInUpDelay = {
+    hidden: { opacity: 0, y: 200 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: { duration: 0.8, ease: 'easeOut', delay: 0.2 }
+    }
+  };
+
+  const bannerbg1animation = {
+    hidden: { opacity: 0, scale: 0 },
+    visible: {
+      opacity: 1,
+      scale: 1,
+      transition: { duration: 1, ease: 'easeOut', delay: 0.3 }
+    }
+  };
+
+  const bannerbg2animation = {
+    hidden: { x: 100, scale: 0 }, // x: 20 = move to right
+    visible: {
+      x: 0,
+      scale: 1,
+      transition: { duration: 1, ease: 'easeOut', delay: 0.4 }
+    }
+  };
+
   useEffect(() => {
     const checkEligibility = async () => {
       try {
-        const eligibility = await chkCustNewLoan();
-        setIsEligibleNewLoan(eligibility);
+        // const eligibility = await chkCustNewLoan();
+        // setIsEligibleNewLoan(eligibility);
       } catch (error) {
         console.error('Failed to check eligibility:', error);
-        setIsEligibleNewLoan(null); // or handle error state
+        // setIsEligibleNewLoan(null); // or handle error state
       }
     };
 
@@ -73,24 +103,24 @@ const BannerSection: React.FC = () => {
           <Loader />
         </div>
       )}
-      <div className="bg-color-primary">
+      <div className="xs-banner-padding bg-color-primary">
         <Swiper
-          modules={[Navigation, Autoplay]}
-          navigation={{
-            nextEl: '.swiper-button-next',
-            prevEl: '.swiper-button-prev'
-          }}
+          modules={[Autoplay, Pagination]}
           loop={true}
-          className="mySwiper"
+          className="slider-area2 Swiper"
           autoplay={{
-            delay: 10000, // Set delay to 10 seconds (10000ms)#1A439A
+            delay: 5000, // Set delay to 10 seconds (10000ms)#1A439A
             reverseDirection: true,
             disableOnInteraction: true // Autoplay will not stop after user interactions
+          }}
+          pagination={{
+            clickable: true,
+            el: '.swiper-pagination' // target class for custom dot placement (optional)
           }}
         >
           {bannerSlides.map((slide, index) => (
             <SwiperSlide key={index}>
-              <div className="container mx-auto px-16">
+              {/* <div className="container mx-auto px-16">
                 <div className="grid md:grid-cols-2 lg:grid-cols-2 lg:items-center">
                   <motion.div
                     aria-hidden="true"
@@ -160,19 +190,131 @@ const BannerSection: React.FC = () => {
                         alt="Your Image"
                         className="-z-0 block w-full max-sm:h-[250px] md:h-[350px] xl:h-[475px]"
                       />
-                      <div className="absolute left-0 top-0 h-1/4 w-full bg-gradient-to-t from-transparent to-[#CDD6E9]"></div>
-                      <div className="absolute bottom-0 left-0 h-[10%] w-full bg-gradient-to-b from-transparent to-[#CDD6E9]"></div>
-                      <div className="absolute left-0 top-0 h-full w-[30%] bg-gradient-to-r from-[#CDD6E9] to-transparent"></div>
-                      <div className="absolute right-0 top-0 h-full w-[30%] bg-gradient-to-l from-[#CDD6E9] to-transparent"></div>
+                     
+                    </div>
+                  </div>
+                </div>
+              </div> */}
+
+              <img src={slide.image} />
+              <div className="nivo-caption" style={{ display: 'block' }}>
+                <div className="slider-content s-tb slide-1">
+                  <div className="title-container s-tb-c text-left">
+                    <div className="container">
+                      <p className="item-subtitle">
+                        {slide.title}
+
+                        <button
+                          onClick={() => navigate('/funding-form')}
+                          className="-mx-2 my-2 block rounded-full
+                           bg-gradient-to-r from-orange-500 to-red-500 px-6 text-[10px] 
+                           font-bold text-white shadow-lg transition-all duration-300 ease-in-out
+                            hover:from-orange-600 hover:to-red-600 hover:shadow-xl active:scale-95 lg:hidden mx:block "
+                        >
+                          Apply Now
+                        </button>
+                      </p>
+                      {/* <p className="item-subtitle flex items-center gap-3">
+                        {slide.title}
+
+                        <button
+                          onClick={() => navigate('/funding-form')}
+                          className="-mx-2 mt-1 inline-flex items-center gap-1 
+                          rounded-full bg-gradient-to-r from-orange-500 to-red-500
+                           px-2 py-1 text-xs font-bold text-white shadow-lg transition-all
+                            duration-300 ease-in-out hover:from-orange-600 hover:to-red-600 hover:shadow-xl 
+                            active:scale-95 sm:hidden"
+                        >
+                          <FiArrowRight className="text-sm animate-blinkSmall" />
+                        </button>
+                      </p> */}
+                      <motion.div
+                        aria-hidden="true"
+                        initial="hidden"
+                        whileInView="visible"
+                        variants={fadeInUp}
+                      > 
+                        <h2 className="item-title hidden sm:block" >{slide.title2}</h2>
+                      </motion.div>
+                      <motion.div
+                        aria-hidden="true"
+                        initial="hidden"
+                        whileInView="visible"
+                        variants={fadeInUpDelay}
+                      >
+                        <div className="item-paragraph">
+                          {slide.description}
+                        </div>
+                      </motion.div>
+
+                      <div className="slider-button">
+                        <a href="" className="slider-btn">
+                          Free Consulting
+                          <i className="fas fa-long-arrow-alt-right"></i>
+                        </a>
+                      </div>
+                      <div className="social-site">
+                        <ul>
+                          <li>
+                            <span>Follow Us On :</span>
+                            <a href="#">
+                              <i className="fab fa-facebook-square"></i>
+                            </a>
+                          </li>
+                          <li>
+                            {' '}
+                            <a href="#">
+                              <i className="fab fa-twitter"></i>
+                            </a>
+                          </li>
+                          <li>
+                            <a href="#">
+                              <i className="fab fa-linkedin-in"></i>
+                            </a>
+                          </li>
+                          <li>
+                            <a href="#">
+                              <i className="fab fa-pinterest"></i>
+                            </a>
+                          </li>
+                          <li>
+                            <a href="#">
+                              <i className="fab fa-skype"></i>
+                            </a>
+                          </li>
+                        </ul>
+                      </div>
                     </div>
                   </div>
                 </div>
               </div>
+              <motion.div
+                aria-hidden="true"
+                initial="hidden"
+                whileInView="visible"
+                variants={bannerbg1animation}
+              >
+                <div className="slider-bg-img1">
+                  <img src={bannerbg1} alt="figure" width="772" height="366" />
+                </div>
+              </motion.div>
+
+              <div>
+                <motion.div
+                  aria-hidden="true"
+                  initial="hidden"
+                  whileInView="visible"
+                  variants={bannerbg2animation}
+                  viewport={{ once: true }}
+                >
+                  <div className="slider-bg-img2">
+                    <img src={bannerbg2} alt="figure" width="211" height="96" />
+                  </div>
+                </motion.div>
+              </div>
             </SwiperSlide>
           ))}
-
-          <FaArrowLeftLong className="swiper-button-prev z-10 flex !h-[36px] !w-[36px] items-center justify-center rounded-full border-4 border-[#8f9fc8] p-1 text-[#8f9fc8] hover:border-color-text-secondary hover:text-color-text-secondary" />
-          <FaArrowRightLong className="swiper-button-next z-10 flex !h-[36px] !w-[36px] items-center justify-center rounded-full border-4 border-[#8f9fc8] p-1 text-[#8f9fc8] hover:border-color-text-secondary hover:text-color-text-secondary" />
+          <div className="swiper-pagination !bottom-0 mt-8 flex justify-center" />
         </Swiper>
       </div>
       {newLoanModalOpen && (

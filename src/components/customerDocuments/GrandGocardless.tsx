@@ -224,7 +224,7 @@ const GrandGocardless = ({
           <Loader />
         </div>
       )}
-      <div className="container mx-auto h-[20rem] border bg-white p-4">
+      <div className="container mx-auto  border bg-white p-4" style={{height:"auto"}}>
         <div
           className="group relative my-4 cursor-pointer border-b py-4"
           onClick={() => setShowBanks(!showBanks)}
@@ -290,7 +290,7 @@ const GrandGocardless = ({
               </div>
             </div>
           ) : (
-            <div className="my-3 py-4">
+            <div className="">
               <div className="flex w-full items-center text-[14px] font-normal text-[#1A439A]">
                 <button
                   type="button"
@@ -323,7 +323,7 @@ const GrandGocardless = ({
         {confirmBankAccountList.length > 0 &&
           selectedBank.id === confirmBankAccountInstitutionId && (
             <div
-              className="group relative mt-4 cursor-pointer"
+              className="mt-custom-top cursor-pointer position-relative"
               onClick={() => setShowAccounts(!showAccounts)}
             >
               <div className="flex items-center justify-between">

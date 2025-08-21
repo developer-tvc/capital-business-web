@@ -1,24 +1,25 @@
 import { useSelector } from 'react-redux';
 
-import ContactUs from '../components/ContactUs';
-import AboutSection from '../components/landing/AboutSection';
+
 import BannerSection from '../components/landing/BannerSection';
-import BlogSection from '../components/landing/BlogSection';
-import EligibleSection from '../components/landing/EligibleSection';
-import FeatureSection from '../components/landing/FeaturesSection';
-import FinanceSection from '../components/landing/FinanceSection';
 import MobileDownloadButton from '../components/landing/MobileDownloadButton';
-import NewsLetter from '../components/landing/NewsLetter';
+
 import PaymentBox from '../components/landing/PaymentBox';
-import QuickButton from '../components/landing/QuickButton';
+
 import ShareLinkSection from '../components/landing/ShareLinkSection';
 import StatusSection from '../components/landing/StatusSection';
-import Testimonial from '../components/landing/Testimonial';
+
 import Footer from '../components/layout/Footer';
 import Header from '../components/layout/Mainheader';
 import { authSelector } from '../store/auth/userSlice';
 import { Roles } from '../utils/enums';
 import useAuth from '../utils/hooks/useAuth';
+import BannerBottom from '../components/landing/BannerBottom';
+import LandingAboutUs from '../components/landing/LandingAboutUs';
+import KeyFeatures from '../components/landing/KeyFeatures';
+import WhyChooseUs from '../components/landing/WhyChooseUs';
+import HowItsWorks from '../components/landing/HowItsWorks';
+import WhoCanBenfit from '../components/landing/WhoCanBenfit';
 
 const LandingPage = () => {
   const { authenticated } = useAuth();
@@ -26,10 +27,15 @@ const LandingPage = () => {
 
   return (
     <>
+
+
+
       <Header />
       <BannerSection />
+      <BannerBottom />
+      <LandingAboutUs />
       <MobileDownloadButton />
-      <QuickButton />
+      <KeyFeatures />
       {authenticated &&
         (role === Roles.Customer ? (
           <>
@@ -39,15 +45,9 @@ const LandingPage = () => {
         ) : (
           <StatusSection />
         ))}
-      <FeatureSection />
-
-      <AboutSection />
-      <EligibleSection />
-      <BlogSection />
-      <FinanceSection />
-      <Testimonial />
-      <NewsLetter />
-      <ContactUs />
+      <WhyChooseUs />
+      <HowItsWorks />
+      <WhoCanBenfit/>
       <Footer />
     </>
   );

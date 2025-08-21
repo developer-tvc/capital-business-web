@@ -137,7 +137,7 @@ const ReportReferral = () => {
             onSubmit={handleSubmit(onFilter)}
             // className='flex justify-between items-center mb-8 gap-4 '
           >
-            <div className="flex gap-4">
+            <div className="flex gap-4 ref-label-wrap">
               <DateController
                 metaData={{
                   fieldClass: fieldClass,

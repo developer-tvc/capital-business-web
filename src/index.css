@@ -2,9 +2,13 @@
 @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Raleway:ital,wght@0,100..900;1,100..900&display=swap');
 @import 'animate.css/animate.min.css';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+
+
 
 body {
   font-family: "Raleway", "sans-serif",
@@ -141,9 +145,53 @@ input:-webkit-autofill:active {
 
 .tab-btn[aria-selected="true"]{
   border-bottom: 2px solid;
+  outline: none;
+}
+
+button:focus{
+  outline: none !important;
 }
 
 .tab-btn {
   padding-left: 10px;
   padding-right: 10px;
+}
+.group.relative.mt-4.cursor-pointer {
+    top: 40px;
+}
+
+.text-\[12px\].font-normal.text-gray-900 {
+    display: flex;
+    line-height: 18px;
+}
+
+
+.\$.h-\[48px\].rounded-r-lg.py-3.text-center.cursor-pointer.bg-\[\#1A439A\] {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.mt-3.text-center.sm\:ml-4.sm\:mt-0.sm\:text-left {
+    text-align: left !important;
+    font-weight: 600 !important;
+}
+.mx-auto.flex.h-12.w-12.flex-shrink-0.items-center.justify-center.rounded-full.bg-gray-100.sm\:mx-0.sm\:h-10.sm\:w-10 {
+  margin-top: 20px;
+}
+
+/* .ref-label-wrap .-top-3 {
+    left: -4px;
+    top: 0px;
+} */
+.mt-custom-top {
+  margin-top: 20px;
+}
+
+.mt-15 {
+  margin-top: 15px;
+}
+
+.ref-label-wrap {
+  font-size: 0px;
 }

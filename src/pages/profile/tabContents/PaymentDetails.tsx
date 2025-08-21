@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { IoIosArrowDown, IoIosArrowUp } from 'react-icons/io';
 
 import {
+  getLoanStatement,
   getPaymentApi,
   loanSummaryByCustomer
 } from '../../../api/loanServices';
@@ -14,7 +15,9 @@ import { Roles } from '../../../utils/enums';
 import { useSelector } from 'react-redux';
 import { authSelector } from '../../../store/auth/userSlice';
 import { managementSliceSelector } from '../../../store/managementReducer';
-
+import autoTable from 'jspdf-autotable';
+import { jsPDF } from 'jspdf';
+import { UserOptions } from 'jspdf-autotable';
 const PaymentDetails: React.FC<{ loanId: string }> = ({ loanId }) => {
   const { showToast } = useToast();
 
@@ -30,8 +33,9 @@ const PaymentDetails: React.FC<{ loanId: string }> = ({ loanId }) => {
     ? authUser
     : managementUser;
 
-  const customerId: string = String(user?.id);
+  const isCustomer = role === Roles.Customer;
 
+  const customerId: string = String(isCustomer ? authUser?.id : user?.id);
   useEffect(() => {
     const fetchSummaryByCustomer = async () => {
       try {
@@ -46,8 +50,12 @@ const PaymentDetails: React.FC<{ loanId: string }> = ({ loanId }) => {
       }
     };
 
-    if (customerId) fetchSummaryByCustomer();
-  }, [customerId]);
+    const shouldFetch = (isCustomer && customerId) || (!isCustomer && user?.id);
+
+    if (shouldFetch) {
+      fetchSummaryByCustomer();
+    }
+  }, [isCustomer, customerId, user?.id]);
 
   useEffect(() => {
     const fetchPaymentData = async () => {
@@ -79,8 +87,199 @@ const PaymentDetails: React.FC<{ loanId: string }> = ({ loanId }) => {
     </div>
   );
 
+    const getImageBase64 = (url: string): Promise<string> => {
+    return fetch(url)
+      .then(res => res.blob())
+      .then(
+        blob =>
+          new Promise(resolve => {
+            const reader = new FileReader();
+            reader.onloadend = () => resolve(reader.result as string);
+            reader.readAsDataURL(blob);
+          })
+      );
+  };
+
+  const generateLoanStatementPDF = async (loanId: string) => {
+    try {
+      const result = await getLoanStatement(loanId);
+      const data = result.data;
+
+      const doc = new jsPDF();
+      const company = data.company_info?.[0];
+      let currentY = 10;
+
+      // Centered Logo
+      if (company?.logo) {
+        const logoBase64 = await getImageBase64(company.logo);
+        doc.addImage(logoBase64, 'JPEG', 70, currentY, 70, 20);
+      }
+
+      doc.setFontSize(10);
+      doc.text(`Date: ${data.date}`, 200, 10, { align: 'right' });
+
+      currentY += 25;
+
+      // Company Name centered
+      doc.setFontSize(12);
+      doc.setFont(undefined, 'bold');
+      doc.text(data.company_name || '', 105, currentY, { align: 'center' });
+
+      currentY += 8;
+
+      const tableStyle: UserOptions = {
+        styles: {
+          fontSize: 9,
+          textColor: [0, 0, 0],
+          halign: 'center'
+        },
+        headStyles: {
+          fillColor: [255, 255, 255],
+          textColor: [0, 0, 0],
+          fontStyle: 'bold',
+          halign: 'center'
+        },
+        theme: 'grid',
+        tableLineColor: [0, 0, 0] as [number, number, number],
+        tableLineWidth: 0.1
+      };
+
+      autoTable(doc, {
+        startY: currentY,
+        head: [['Contract No', 'Advance Amount', 'Payback Amount']],
+        body: [
+          [
+            data.loan_number,
+            `£${data.advance_amount}`,
+            `£${data.payback_amount}`
+          ]
+        ],
+        ...tableStyle
+      });
+
+      currentY = doc.lastAutoTable.finalY + 2;
+
+      // Repayment Terms Table 1
+      autoTable(doc, {
+        startY: currentY,
+        head: [['Start Date', 'Weekly Repayment Amount', 'End Date']],
+        body: [
+          [data.start_date, `£${data.weekly_repayment_amount}`, data.end_date]
+        ],
+        ...tableStyle
+      });
+
+      // Repayment Terms Table 2
+      autoTable(doc, {
+        startY: doc.lastAutoTable.finalY,
+        head: [
+          [
+            'No of Weekly Instalments',
+            'Installment Amount',
+            'Weekly Repayment Day(s)'
+          ]
+        ],
+        body: [
+          [
+            data.no_of_weeks || '1',
+            `£${data.weekly_repayment_amount}`,
+            data.weekly_repayment_days?.join(', ') || 'Thursday'
+          ]
+        ],
+        ...tableStyle
+      });
+
+      currentY = doc.lastAutoTable.finalY + 5;
+
+      // Statement Table
+      const statementBody = data.statement_data.map((item, i) => [
+        (i + 1).toString(),
+        item.date,
+        item.day,
+        item.narration,
+        item.debit ? `£${item.debit}` : '',
+        item.credit ? `£${item.credit}` : '',
+        `£${item.balance}`
+      ]);
+
+      autoTable(doc, {
+        startY: currentY,
+        head: [
+          ['S. No', 'Date', 'Day', 'Narration', 'Debit', 'Credit', 'Balance']
+        ],
+        body: statementBody,
+        styles: { fontSize: 9, textColor: [0, 0, 0] },
+        headStyles: {
+          fillColor: [255, 255, 255],
+          textColor: [0, 0, 0],
+          fontStyle: 'bold' as const,
+          halign: 'center' as const
+        },
+        columnStyles: {
+          4: { halign: 'right' as const },
+          5: { halign: 'right' as const },
+          6: { halign: 'right' as const }
+        },
+        theme: 'grid' as const,
+
+        tableLineColor: [0, 0, 0],
+        tableLineWidth: 0.1,
+        didDrawCell: data => {
+          const { cell, doc } = data;
+          const { x, y, width, height } = cell;
+
+          doc.setDrawColor(0, 0, 0);
+          doc.setLineWidth(0.5); // Set desired thickness
+
+          // Force draw all 4 borders for every cell
+          doc.line(x, y, x + width, y); // Top border
+          doc.line(x + width, y, x + width, y + height); // Right border
+          doc.line(x + width, y + height, x, y + height); // Bottom border
+          doc.line(x, y + height, x, y); // Left border (reversed to avoid overlaps)
+        }
+      });
+
+      currentY = doc.lastAutoTable.finalY + 10;
+
+      // ✅ Dynamic Footer from company address
+      if (company) {
+        doc.setFontSize(9);
+        doc.setFont(undefined, 'normal');
+
+        const addressLines = [
+          company.address_line1,
+          company.address_line2,
+          company.address_line3
+        ].filter(Boolean); // Exclude empty or null lines
+
+        addressLines.forEach((line, index) => {
+          doc.text(line, 105, 285 + index * 5, { align: 'center' });
+        });
+      }
+
+      // Save PDF
+      doc.save(`${data.company_name}_Statement.pdf`);
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+    }
+  };
+
   return (
     <div>
+
+       <div className="mb-4 flex items-center justify-between pr-5">
+        <h2 className="text-xl font-semibold">Payment History</h2>
+        {payments && (
+          <div>
+            <button
+              onClick={() => generateLoanStatementPDF(loanId)}
+              className="rounded bg-blue-500 px-4 py-2 text-white shadow"
+            >
+              Download Statement
+            </button>
+          </div>
+        )}
+      </div>
       {loader && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
           <Loader />
