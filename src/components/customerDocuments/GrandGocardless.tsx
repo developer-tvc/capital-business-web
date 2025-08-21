@@ -323,7 +323,7 @@ const GrandGocardless = ({
         {confirmBankAccountList.length > 0 &&
           selectedBank.id === confirmBankAccountInstitutionId && (
             <div
-              className="mt-custom-top cursor-pointer"
+              className="mt-custom-top cursor-pointer position-relative"
               onClick={() => setShowAccounts(!showAccounts)}
             >
               <div className="flex items-center justify-between">
