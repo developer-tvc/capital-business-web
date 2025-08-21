@@ -180,10 +180,18 @@ button:focus{
   margin-top: 20px;
 }
 
-.ref-label-wrap .-top-3 {
+/* .ref-label-wrap .-top-3 {
     left: -4px;
     top: 0px;
-}
+} */
 .mt-custom-top {
   margin-top: 20px;
+}
+
+.mt-15 {
+  margin-top: 15px;
+}
+
+.ref-label-wrap {
+  font-size: 0px;
 }

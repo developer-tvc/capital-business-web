@@ -4,7 +4,7 @@ const InstantPayPending = () => {
       <div className="w-full max-w-md overflow-hidden rounded-lg bg-white p-6 shadow-md">
         <div className="text-center">
           <div className="mb-4 flex justify-center">
-            <div className="mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-green-100 sm:mx-0 sm:h-10 sm:w-10">
+            <div className="mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-green-100 sm:mx-0 sm:h-10 sm:w-10 mt-15">
               <svg
                 className="h-6 w-6 text-yellow-600"
                 fill="none"
