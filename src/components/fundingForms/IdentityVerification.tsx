@@ -213,7 +213,8 @@ const IdentityVerification: React.FC<LoanFromCommonProps> = ({
                               <div
                                 key={idx}
                                 className={`rounded-lg px-4 py-3 text-center text-sm font-medium ${
-                                  subStatus?.value === 'Passed' ||
+                                  subStatus?.value === 'Passed'||
+                                  subStatus?.value === 'Clear'||
                                   subStatus?.value === 'Live'
                                     ? 'bg-green-100 text-green-700'
                                     : subStatus?.value === 'Alert'
