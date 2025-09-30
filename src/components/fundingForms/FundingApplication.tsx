@@ -535,7 +535,7 @@ const CustomerFundingApplication: React.FC = ({
                     {'Previous'}
                   </button>
                 </div>
-                {[5, 6, 7,9, 10].includes(activeStage) && (
+                {[5, 6, 7, 10].includes(activeStage) && (
                   <div>
                     <button
                       type="button"

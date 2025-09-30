@@ -1151,8 +1151,15 @@ const loanSummaryByCustomer = (loanId: string) => {
 
  const getLoanStatement = (loanId: string) => {
   return Get({
-    url: `/manage_loan/statement/${loanId}/`,
+    url: `${manageLoanBaseUrl}/statement/${loanId}/`,
     request: {},
+  });
+};
+
+const changeToManualGocardlessApi = (loanId: string) => {
+  return Get({
+    url: `${baseUrl}/change-to-manual-gocardless/${loanId}/`,
+    request: {}
   });
 };
 
@@ -1312,5 +1319,6 @@ export {
   corporateGuarantorPostAPI,
   corporateGuarantorPropertyPostAPI,
   corporateGuarantorPropertyGetAPI,
-  getLoanStatement
+  getLoanStatement,
+  changeToManualGocardlessApi
 };

@@ -3,6 +3,7 @@ import { FaClosedCaptioning } from 'react-icons/fa';
 import { useDispatch, useSelector } from 'react-redux';
 
 import {
+  changeToManualGocardlessApi,
   fetchgocardlessStatementGroupedApi,
   gocardlessStatementGroupedApi,
   uwVerifyGetApi
@@ -115,6 +116,29 @@ const GoCardLess: React.FC<LoanFromCommonProps> = ({
     } catch {
       showToast('Something went wrong!', { type: NotificationType.Error });
       return null;
+    }
+  };
+
+  const handleChangeToManual = async () => {
+    try {
+      const response = await changeToManualGocardlessApi(loanId);
+
+      if (response.status_code === 200) {
+        showToast(
+          response.status_message || 'Changed to manual successfully!',
+          {
+            type: NotificationType.Success
+          }
+        );
+        setIsGocardless(true);
+      } else {
+        showToast(
+          response.status_message || 'Something went wrong. No data returned.'
+        );
+      }
+    } catch (error) {
+      console.error(error);
+      showToast('Something went wrong. Please try again.');
     }
   };
 
@@ -346,9 +370,21 @@ const GoCardLess: React.FC<LoanFromCommonProps> = ({
           sortTransactionCheckpoint={sortTransactionCheckpoint}
         />
       )}
-      <p className="mb-4 pr-4 text-[20px] font-semibold text-[#000000] max-sm:text-[18px]">
-        {'Statements Granted'}
-      </p>
+      <div className="mb-4 flex items-center justify-between pr-4">
+        <p className="text-[20px] font-semibold text-[#000000] max-sm:text-[18px]">
+          {'Statements Granted'}
+        </p>
+        {[Roles.FieldAgent, Roles.Manager, Roles.Admin].includes(role) &&
+          !isGocardless && (
+            <button
+              type="button"
+              onClick={() => handleChangeToManual()}
+              className="rounded-lg bg-blue-600 px-5 py-2 font-semibold text-white shadow-md transition-colors duration-300 hover:bg-blue-700"
+            >
+              {'Change to manual'}
+            </button>
+          )}
+      </div>
       {renderBankCards(
         [...gocardlessData, ...withoutGocardlessData],
         isHigherAuthority
