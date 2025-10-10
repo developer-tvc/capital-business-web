@@ -38,6 +38,7 @@ const affordabilityUrl = `${baseUrl}/affordability/`;
 const sendContractEmailUrl = `${baseUrl}/send_contract_email/`;
 const sendDirectDebitLinkUrl = `${baseUrl}/direct_debit_email/`;
 const reSendContractEmailUrl = `${baseUrl}/send_contract_reminder_email/`;
+const regenarateAndSendApiUrl = `${baseUrl}/regenerate_and_send_contract_email/`;
 const getContractUrl = `${baseUrl}/contract/`;
 const getDebitUrl = `${baseUrl}/direct_debit_detail/`;
 const paymentUrl = `${baseUrl}/payments/`;
@@ -463,6 +464,13 @@ const sendContractEmailApi = (loanId: string) => {
 const reSendContractEmailApi = (loanId: string) => {
   return Post({
     url: `${reSendContractEmailUrl}${loanId}/`,
+    request: {}
+  });
+};
+
+const regenarateAndSendApi = (loanId: string) => {
+  return Post({
+    url: `${regenarateAndSendApiUrl}${loanId}/`,
     request: {}
   });
 };
@@ -1320,5 +1328,6 @@ export {
   corporateGuarantorPropertyPostAPI,
   corporateGuarantorPropertyGetAPI,
   getLoanStatement,
-  changeToManualGocardlessApi
+  changeToManualGocardlessApi,
+  regenarateAndSendApi
 };
