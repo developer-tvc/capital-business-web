@@ -2296,7 +2296,7 @@ export const loanFormDocumentationUploads: FundingFormFieldType[] = [
     name: 'photo',
     label: 'Photo of owner in business premises',
     type: 'file',
-    isMultiple: false,
+    isMultiple: true,
     memTypes:
       'image/jpg, image/gif, image/png, image/jpeg, image/svg+xml, image/webp, application/pdf',
     icon: () => {
@@ -2307,7 +2307,7 @@ export const loanFormDocumentationUploads: FundingFormFieldType[] = [
     name: 'passport',
     label: 'Passport',
     type: 'file',
-    isMultiple: false,
+    isMultiple: true,
     memTypes:
       'image/jpg, image/gif, image/png, image/jpeg, image/svg+xml, image/webp, application/pdf',
     icon: () => {
@@ -2318,7 +2318,7 @@ export const loanFormDocumentationUploads: FundingFormFieldType[] = [
     name: 'driving_license',
     label: 'Driving License',
     type: 'file',
-    isMultiple: false,
+    isMultiple: true,
     memTypes:
       'image/jpg, image/gif, image/png, image/jpeg, image/svg+xml, image/webp, application/pdf',
     icon: () => {
@@ -2329,8 +2329,8 @@ export const loanFormDocumentationUploads: FundingFormFieldType[] = [
     name: 'council_tax',
     label: 'Council tax',
     type: 'file',
-    isMultiple: false,
-    memTypes: 'application/pdf',
+    isMultiple: true,
+    memTypes: 'image/jpg, image/gif, image/png, image/jpeg, image/svg+xml, image/webp, application/pdf',
     icon: () => {
       return <img src={bill} className="h-5 w-5 rtl:rotate-[270deg]" />;
     }
@@ -2339,8 +2339,8 @@ export const loanFormDocumentationUploads: FundingFormFieldType[] = [
     name: 'utility_bill',
     label: 'Latest Utility bill of Trading Business',
     type: 'file',
-    isMultiple: false,
-    memTypes: 'application/pdf',
+    isMultiple: true,
+    memTypes: 'image/jpg, image/gif, image/png, image/jpeg, image/svg+xml, image/webp, application/pdf',
     icon: () => {
       return <img src={bill} className="h-5 w-5 rtl:rotate-[270deg]" />;
     }
@@ -2349,8 +2349,8 @@ export const loanFormDocumentationUploads: FundingFormFieldType[] = [
     name: 'lease_deed',
     label: 'Business premises lease deed',
     type: 'file',
-    isMultiple: false,
-    memTypes: 'application/pdf',
+    isMultiple: true,
+    memTypes: 'image/jpg, image/gif, image/png, image/jpeg, image/svg+xml, image/webp, application/pdf',
     icon: () => {
       return <img src={user} />;
     }
@@ -2370,6 +2370,7 @@ export const loanFormDocumentationUploads: FundingFormFieldType[] = [
     name: 'other_files',
     label: 'Other Files',
     type: 'file',
+    isMultiple: true,
     memTypes:
       'image/jpg, image/gif, image/png, image/jpeg, image/svg+xml, image/webp, application/pdf, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
     icon: () => {

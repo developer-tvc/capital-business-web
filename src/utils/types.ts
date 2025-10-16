@@ -136,12 +136,12 @@ export type MarketingPreferencesType = {
 };
 
 export type DocumentationUploadsType = {
-  photo?: File;
-  passport?: File;
-  driving_license?: File;
-  council_tax: File;
-  utility_bill: File;
-  lease_deed?: File;
+  photo?: File[];
+  passport?: File[];
+  driving_license?: File[];
+  council_tax: File[];
+  utility_bill: File[];
+  lease_deed?: File[];
   // business_account_statements?: File[];
   other_files?: File[];
   document_upload_self_declaration?: boolean;

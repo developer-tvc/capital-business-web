@@ -529,9 +529,9 @@ export const BusinessPremiseDetailsSchema = yup.object().shape({
       trading_same_as_registered === true
         ? yup.object().shape({ ...tradingPremiseSchema.fields })
         : yup.object().shape({
-            ...addressSchema.fields,
-            ...tradingPremiseSchema.fields
-          })
+          ...addressSchema.fields,
+          ...tradingPremiseSchema.fields
+        })
     )
 });
 
@@ -590,9 +590,9 @@ export const DirectorOrProprietorDetailsSchema = yup.object().shape({
         .when('owns_other_property', ([owns_other_property], sch) => {
           return owns_other_property === 'Yes'
             ? sch
-                .required('Owned Property Count is required')
-                .positive('Owned Property Count must be positive')
-                .min(1, 'Owned Property Count must be minimum of 1')
+              .required('Owned Property Count is required')
+              .positive('Owned Property Count must be positive')
+              .min(1, 'Owned Property Count must be minimum of 1')
             : sch.notRequired();
         }),
       owned_property: yup.array().of(
@@ -670,90 +670,114 @@ export const MAX_FILE_SIZE_2_MB = 2 * 1024 * 1024;
 
 export const DocumentationUploadsSchema = yup.object().shape({
   photo: yup
-    .mixed<File>()
-    .test(
-      'is-valid-type',
-      'Only JPG, GIF, PNG, JPEG, SVG, WebP and PDF formats are accepted',
-      (value: File | null) => {
-        if (!value?.[0]) return true;
-        return isValidMimeType(value?.[0]?.type, ['image', 'pdf']);
-      }
-    )
-    .test('is-valid-size', 'Max allowed size is 2MB', (value: File | null) => {
-      if (!value?.[0]) return true;
-      return value?.[0]?.size <= MAX_FILE_SIZE_2_MB;
-    }),
+    .array()
+    .of(
+      yup
+        .mixed<File>()
+        .test(
+          'is-valid-type',
+          'Only JPG, GIF, PNG, JPEG, SVG, WebP and PDF formats are accepted',
+          (value: File | null) => {
+            if (!value) return true;
+            return isValidMimeType(value.type, ['image', 'pdf']);
+          }
+        )
+        .test('is-valid-size', 'Max allowed size is 2MB', (value: File | null) => {
+          if (!value) return true;
+          return value.size <= MAX_FILE_SIZE_2_MB;
+        })
+    ),
   passport: yup
-    .mixed<File>()
-    .test(
-      'is-valid-type',
-      'Only JPG, GIF, PNG, JPEG, SVG,WebP, and PDF formats are accepted',
-      (value: File | null) => {
-        if (!value?.[0]) return true;
-        return isValidMimeType(value?.[0]?.type, ['pdf', 'image']);
-      }
-    )
-    .test('is-valid-size', 'Max allowed size is 2MB', (value: File | null) => {
-      if (!value?.[0]) return true;
-      return value?.[0]?.size <= MAX_FILE_SIZE_2_MB;
-    }),
+    .array()
+    .of(
+      yup
+        .mixed<File>()
+        .test(
+          'is-valid-type',
+          'Only JPG, GIF, PNG, JPEG, SVG,WebP, and PDF formats are accepted',
+          (value: File | null) => {
+            if (!value) return true;
+            return isValidMimeType(value.type, ['pdf', 'image']);
+          }
+        )
+        .test('is-valid-size', 'Max allowed size is 2MB', (value: File | null) => {
+          if (!value) return true;
+          return value.size <= MAX_FILE_SIZE_2_MB;
+        })
+    ),
   driving_license: yup
-    .mixed<File>()
-    .test(
-      'is-valid-type',
-      'Only JPG, GIF, PNG, JPEG, SVG,WebP and PDF formats are accepted',
-      (value: File | null) => {
-        if (!value?.[0]) return true;
-        return isValidMimeType(value?.[0]?.type, ['pdf', 'image']);
-      }
-    )
-    .test('is-valid-size', 'Max allowed size is 2MB', (value: File | null) => {
-      if (!value?.[0]) return true;
-      return value?.[0]?.size <= MAX_FILE_SIZE_2_MB;
-    }),
+    .array()
+    .of(
+      yup
+        .mixed<File>()
+        .test(
+          'is-valid-type',
+          'Only JPG, GIF, PNG, JPEG, SVG,WebP and PDF formats are accepted',
+          (value: File | null) => {
+            if (!value) return true;
+            return isValidMimeType(value.type, ['pdf', 'image']);
+          }
+        )
+        .test('is-valid-size', 'Max allowed size is 2MB', (value: File | null) => {
+          if (!value) return true;
+          return value.size <= MAX_FILE_SIZE_2_MB;
+        })
+    ),
   utility_bill: yup
-    .mixed<File>()
-    .test(
-      'is-valid-type',
-      'Only PDF format is accepted',
-      (value: File | null) => {
-        if (!value?.[0]) return true;
-        return isValidMimeType(value?.[0]?.type, ['pdf']);
-      }
-    )
-    .test('is-valid-size', 'Max allowed size is 2MB', (value: File | null) => {
-      if (!value?.[0]) return true;
-      return value?.[0]?.size <= MAX_FILE_SIZE_2_MB;
-    }),
-  council_tax: yup
-    .mixed<File>()
-    .test(
-      'is-valid-type',
-      'Only PDF format is accepted',
-      (value: File | null) => {
-        if (!value?.[0]) return true;
-        return isValidMimeType(value?.[0]?.type, ['pdf']);
-      }
-    )
-    .test('is-valid-size', 'Max allowed size is 2MB', (value: File | null) => {
-      if (!value?.[0]) return true;
-      return value?.[0]?.size <= MAX_FILE_SIZE_2_MB;
-    }),
-  lease_deed: yup
-    .mixed<File>()
-    .test(
-      'is-valid-type',
-      'Only PDF format is accepted',
-      (value: File | null) => {
-        if (!value?.[0]) return true;
-        return isValidMimeType(value?.[0].type, ['pdf']);
-      }
-    )
-    .test('is-valid-size', 'Max allowed size is 2MB', (value: File | null) => {
-      if (!value?.[0]) return true;
-      return value?.[0]?.size <= MAX_FILE_SIZE_2_MB;
-    }),
+    .array()
+    .of(
+      yup
+        .mixed<File>()
+        .test(
+          'is-valid-type',
+          'Only PDF format is accepted',
+          (value: File | null) => {
+            if (!value) return true;
+            return isValidMimeType(value.type, ['pdf', 'image']);
+          }
+        )
+        .test('is-valid-size', 'Max allowed size is 2MB', (value: File | null) => {
+          if (!value) return true;
+          return value.size <= MAX_FILE_SIZE_2_MB;
+        })
+    ),
 
+  council_tax: yup
+    .array()
+    .of(
+      yup
+        .mixed<File>()
+        .test(
+          'is-valid-type',
+          'Only PDF format is accepted',
+          (value: File | null) => {
+            if (!value) return true;
+            return isValidMimeType(value.type, ['pdf', 'image']);
+          }
+        )
+        .test('is-valid-size', 'Max allowed size is 2MB', (value: File | null) => {
+          if (!value) return true;
+          return value.size <= MAX_FILE_SIZE_2_MB;
+        })
+    ),
+  lease_deed: yup
+    .array()
+    .of(
+      yup
+        .mixed<File>()
+        .test(
+          'is-valid-type',
+          'Only PDF format is accepted',
+          (value: File | null) => {
+            if (!value) return true;
+            return isValidMimeType(value.type, ['pdf', 'image']);
+          }
+        )
+        .test('is-valid-size', 'Max allowed size is 2MB', (value: File | null) => {
+          if (!value) return true;
+          return value.size <= MAX_FILE_SIZE_2_MB;
+        })
+    ),
   // business_account_statements: yup
   //   .array()
   //   .min(0, "Please upload your business account statements for the last 6 months.")
@@ -935,9 +959,9 @@ export const GuarantorSchema = yup.object().shape({
         .when('owns_other_property', ([owns_other_property], sch) => {
           return owns_other_property === 'Yes'
             ? sch
-                .required('Owned Property Count is required')
-                .positive('Owned Property Count must be positive')
-                .min(1, 'Owned Property Count must be minimum of 1')
+              .required('Owned Property Count is required')
+              .positive('Owned Property Count must be positive')
+              .min(1, 'Owned Property Count must be minimum of 1')
             : sch.notRequired();
         }),
       owned_property: yup.array().of(
