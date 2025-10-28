@@ -186,7 +186,7 @@ const AddPaymentSchedule = ({
                 {fieldRenderer.renderField('amount')}
               </div>
               <div
-                className="ref-label-wrap grid grid-cols-1 gap-4 p-2 "
+                className="ref-label-wrap grid grid-cols-1 gap-4 p-2"
                 style={{ fontSize: '14px' }}
               >
                 <DateController
