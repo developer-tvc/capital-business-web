@@ -185,21 +185,24 @@ const AddPaymentSchedule = ({
               <div className="grid grid-cols-1 gap-4 p-2">
                 {fieldRenderer.renderField('amount')}
               </div>
-              <div className="grid grid-cols-1 gap-4 p-2 ref-label-wrap">
+              <div
+                className="ref-label-wrap grid grid-cols-1 gap-4 p-2"
+                style={{ fontSize: '14px' }}
+              >
                 <DateController
                   key="start_date"
                   metaData={{
                     fieldClass: loanFormCommonStyleConstant.date.fieldClass,
                     labelClass: loanFormCommonStyleConstant.date.labelClass,
                     placeholder: 'Day of Debit',
-                    // isRequired: true,
                     name: `start_date`,
-                    label: 'Day of Debit',
+                    // label: 'Day of Debit',
                     type: 'date',
                     filterDates: filterDates
                   }}
                 />
               </div>
+
               <div>
                 {error ? (
                   <p className="text-[12px] text-[tomato]">{error}</p>
