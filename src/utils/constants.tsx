@@ -2049,7 +2049,7 @@ export const loanFormBusinessPremiseDetails: FundingFormFieldType[] = [
   },
   {
     name: 'trading_address.start_date',
-    label: 'Start Date',
+    // label: 'Start Date',
     placeholder: 'Start Date',
     type: 'date',
     icon: () => {
@@ -2062,7 +2062,7 @@ export const loanFormBusinessPremiseDetails: FundingFormFieldType[] = [
   },
   {
     name: 'trading_address.end_date',
-    label: 'End Date',
+    // label: 'End Date',
     placeholder: 'End Date',
     type: 'date',
     icon: () => {
