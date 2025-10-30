@@ -504,7 +504,7 @@ export const tradingPremiseSchema = yup.object().shape({
         .test('fileSize', 'File Size is too large', value => {
           if (Array.isArray(value) && value?.length > 0) {
             for (let i = 0; i < value?.length; i++) {
-              if (value[i].size < MAX_FILE_SIZE_2_MB) {
+              if (value[i].size < MAX_FILE_SIZE_10_MB) {
                 return true;
               }
             }
@@ -682,9 +682,9 @@ export const DocumentationUploadsSchema = yup.object().shape({
             return isValidMimeType(value.type, ['image', 'pdf']);
           }
         )
-        .test('is-valid-size', 'Max allowed size is 2MB', (value: File | null) => {
+        .test('is-valid-size', 'Max allowed size is 10MB', (value: File | null) => {
           if (!value) return true;
-          return value.size <= MAX_FILE_SIZE_2_MB;
+          return value.size <= MAX_FILE_SIZE_10_MB;
         })
     ),
   passport: yup
@@ -700,9 +700,9 @@ export const DocumentationUploadsSchema = yup.object().shape({
             return isValidMimeType(value.type, ['pdf', 'image']);
           }
         )
-        .test('is-valid-size', 'Max allowed size is 2MB', (value: File | null) => {
+        .test('is-valid-size', 'Max allowed size is 10MB', (value: File | null) => {
           if (!value) return true;
-          return value.size <= MAX_FILE_SIZE_2_MB;
+          return value.size <= MAX_FILE_SIZE_10_MB;
         })
     ),
   driving_license: yup
@@ -718,9 +718,9 @@ export const DocumentationUploadsSchema = yup.object().shape({
             return isValidMimeType(value.type, ['pdf', 'image']);
           }
         )
-        .test('is-valid-size', 'Max allowed size is 2MB', (value: File | null) => {
+        .test('is-valid-size', 'Max allowed size is 10MB', (value: File | null) => {
           if (!value) return true;
-          return value.size <= MAX_FILE_SIZE_2_MB;
+          return value.size <= MAX_FILE_SIZE_10_MB;
         })
     ),
   utility_bill: yup
@@ -736,9 +736,9 @@ export const DocumentationUploadsSchema = yup.object().shape({
             return isValidMimeType(value.type, ['pdf', 'image']);
           }
         )
-        .test('is-valid-size', 'Max allowed size is 2MB', (value: File | null) => {
+        .test('is-valid-size', 'Max allowed size is 10MB', (value: File | null) => {
           if (!value) return true;
-          return value.size <= MAX_FILE_SIZE_2_MB;
+          return value.size <= MAX_FILE_SIZE_10_MB;
         })
     ),
 
@@ -755,9 +755,9 @@ export const DocumentationUploadsSchema = yup.object().shape({
             return isValidMimeType(value.type, ['pdf', 'image']);
           }
         )
-        .test('is-valid-size', 'Max allowed size is 2MB', (value: File | null) => {
+        .test('is-valid-size', 'Max allowed size is 10MB', (value: File | null) => {
           if (!value) return true;
-          return value.size <= MAX_FILE_SIZE_2_MB;
+          return value.size <= MAX_FILE_SIZE_10_MB;
         })
     ),
   lease_deed: yup
@@ -773,9 +773,9 @@ export const DocumentationUploadsSchema = yup.object().shape({
             return isValidMimeType(value.type, ['pdf', 'image']);
           }
         )
-        .test('is-valid-size', 'Max allowed size is 2MB', (value: File | null) => {
+        .test('is-valid-size', 'Max allowed size is 10MB', (value: File | null) => {
           if (!value) return true;
-          return value.size <= MAX_FILE_SIZE_2_MB;
+          return value.size <= MAX_FILE_SIZE_10_MB;
         })
     ),
   // business_account_statements: yup
@@ -788,9 +788,9 @@ export const DocumentationUploadsSchema = yup.object().shape({
   //         if (!value) return false;
   //         return isValidMimeType(value.type, ["pdf", "xlsx"]);
   //       })
-  //       .test("is-valid-size", "Max allowed size is 2MB", (value: File | null) => {
+  //       .test("is-valid-size", "Max allowed size is 10MB", (value: File | null) => {
   //         if (!value) return false;
-  //         return value?.size <= MAX_FILE_SIZE_2_MB;
+  //         return value?.size <= MAX_FILE_SIZE_10_MB;
   //       })
   //   ),
   other_files: yup
@@ -809,10 +809,10 @@ export const DocumentationUploadsSchema = yup.object().shape({
         )
         .test(
           'is-valid-size',
-          'Max allowed size is 2MB',
+          'Max allowed size is 10MB',
           (value: File | null) => {
             if (!value) return false;
-            return value.size <= MAX_FILE_SIZE_2_MB;
+            return value.size <= MAX_FILE_SIZE_10_MB;
           }
         )
     ),
@@ -1965,10 +1965,10 @@ export const BankDetailsSchema = yup.object().shape({
         )
         .test(
           'is-valid-size',
-          'Max allowed size is 2MB',
+          'Max allowed size is 10MB',
           (value: File | null) => {
             if (!value) return false;
-            return value?.size <= MAX_FILE_SIZE_2_MB;
+            return value?.size <= MAX_FILE_SIZE_10_MB;
           }
         )
     )
@@ -1993,10 +1993,10 @@ export const CustomerIdentityDocumentSchema = yup.object().shape({
     )
     .test(
       'is-valid-size',
-      'Max allowed size is 2MB',
+      'Max allowed size is 10MB',
       (value: FileList | null) => {
         if (!value) return false;
-        return value?.[0]?.size <= MAX_FILE_SIZE_2_MB;
+        return value?.[0]?.size <= MAX_FILE_SIZE_10_MB;
       }
     )
 });
