@@ -16,7 +16,7 @@ import { authSelector, setUser } from '../../../store/auth/userSlice';
 import { Roles } from '../../../utils/enums';
 import { NotificationType } from '../../../utils/hooks/toastify/enums';
 import useToast from '../../../utils/hooks/toastify/useToast';
-import { MAX_FILE_SIZE_2_MB } from '../../../utils/Schema';
+import { MAX_FILE_SIZE_10_MB } from '../../../utils/Schema';
 import { UserProfile } from '../../../utils/types';
 import EditProfile from '../EditProfile';
 
@@ -71,7 +71,7 @@ const ProfileDetails = () => {
   const handleFileChange = async event => {
     const file = event.target.files[0];
 
-    if (file && file.size > MAX_FILE_SIZE_2_MB) {
+    if (file && file.size > MAX_FILE_SIZE_10_MB) {
       showToast('File size must be less than 2 MB.', {
         type: NotificationType.Error
       });
