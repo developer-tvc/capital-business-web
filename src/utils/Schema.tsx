@@ -671,6 +671,7 @@ export const MAX_FILE_SIZE_10_MB = 10 * 1024 * 1024;
 export const DocumentationUploadsSchema = yup.object().shape({
   photo: yup
     .array()
+    .transform(value => (Array.isArray(value) ? value : []))
     .of(
       yup
         .mixed<File>()
@@ -689,6 +690,8 @@ export const DocumentationUploadsSchema = yup.object().shape({
     ),
   passport: yup
     .array()
+    .transform(value => (Array.isArray(value) ? value : []))
+
     .of(
       yup
         .mixed<File>()
@@ -707,6 +710,8 @@ export const DocumentationUploadsSchema = yup.object().shape({
     ),
   driving_license: yup
     .array()
+    .transform(value => (Array.isArray(value) ? value : []))
+
     .of(
       yup
         .mixed<File>()
@@ -725,6 +730,8 @@ export const DocumentationUploadsSchema = yup.object().shape({
     ),
   utility_bill: yup
     .array()
+    .transform(value => (Array.isArray(value) ? value : []))
+
     .of(
       yup
         .mixed<File>()
@@ -744,6 +751,8 @@ export const DocumentationUploadsSchema = yup.object().shape({
 
   council_tax: yup
     .array()
+        .transform(value => (Array.isArray(value) ? value : []))
+
     .of(
       yup
         .mixed<File>()
@@ -762,6 +771,8 @@ export const DocumentationUploadsSchema = yup.object().shape({
     ),
   lease_deed: yup
     .array()
+    .transform(value => (Array.isArray(value) ? value : []))
+
     .of(
       yup
         .mixed<File>()
