@@ -454,7 +454,7 @@ export const AddEntry: FC<AddEntryProps> = ({
                   placeholder: 'Date',
                   isRequired: true,
                   name: 'date',
-                  label: 'Date',
+                  // label: 'Date',
                   type: 'date',
                   isDisabled: !!entry_id
                 }}
