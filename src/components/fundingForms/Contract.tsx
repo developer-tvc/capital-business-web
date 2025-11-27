@@ -7,6 +7,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import {
   getContractApi,
   getDebitApi,
+  regenarateAndSendApi,
   reSendContractEmailApi,
   sendContractEmailApi,
   sendDirectDebitLinkApi
@@ -139,6 +140,11 @@ const Contract: React.FC<LoanFromCommonProps> = ({
   const [rateOfInterest, setRateOfInterest] = useState(null);
   const [isContractSendConfirmModal, setIsContractSendConfirmModal] =
     useState(false);
+  const [
+    isRegenerateContractConfirmModal,
+    setIsRegenerateContractConfirmModal
+  ] = useState(false);
+
   // const [contractPdf, setContractPdf] = useState(null);
   const [contractResponse, setContractResponse] = useState(null);
   const dispatch = useDispatch();
@@ -293,6 +299,28 @@ const Contract: React.FC<LoanFromCommonProps> = ({
     setIsLoading(false);
   };
 
+  const handleRegenerateAndSend = async () => {
+    setIsRegenerateContractConfirmModal(false); // close modal
+    setIsLoading(true);
+
+    try {
+      const response = await regenarateAndSendApi(loanId || loan.id);
+
+      if (response.status_code >= 200 && response.status_code < 300) {
+        showToast(response.status_message, { type: NotificationType.Success });
+        setIsContractSend(true); // mark contract as sent
+        updateFilledForms(loanId, { complete_contract: true }); // update filled forms
+      } else {
+        showToast(response.status_message, { type: NotificationType.Error });
+      }
+    } catch (error) {
+      console.error('Exception', error);
+      showToast('Something went wrong!', { type: NotificationType.Error });
+    }
+
+    setIsLoading(false);
+  };
+
   useEffect(() => {
     if (role !== Roles.FieldAgent) {
       fetchContractApi(loanId || loan.id);
@@ -373,20 +401,44 @@ const Contract: React.FC<LoanFromCommonProps> = ({
                       {openContract ? <IoIosArrowUp /> : <IoIosArrowDown />}
                     </span>
                   ) : (
-                    <button
-                      type="button"
-                      className={`bg-white ${[FundingFromCurrentStatus.UnderwriterSubmitted].includes(fundingFormStatus) ? 'text-[#1A439A]' : 'text-[#BABABA]'} cursor-pointer text-[14px] font-semibold uppercase max-sm:text-[10px]`}
-                      disabled={
-                        ![
-                          FundingFromCurrentStatus.UnderwriterSubmitted
-                        ].includes(fundingFormStatus)
-                      }
-                      onClick={() => {
-                        setIsContractSendConfirmModal(true);
-                      }}
-                    >
-                      {'RESEND'}
-                    </button>
+                    <div className="flex items-center gap-4">
+                      <button
+                        type="button"
+                        className={`bg-white ${[FundingFromCurrentStatus.UnderwriterSubmitted].includes(fundingFormStatus) ? 'text-[#1A439A]' : 'text-[#BABABA]'} cursor-pointer text-[14px] font-semibold uppercase max-sm:text-[10px]`}
+                        disabled={
+                          ![
+                            FundingFromCurrentStatus.UnderwriterSubmitted
+                          ].includes(fundingFormStatus)
+                        }
+                        onClick={() => {
+                          setIsContractSendConfirmModal(true);
+                        }}
+                      >
+                        {'RESEND'}
+                      </button>
+                      {!isSigned && (
+                        <button
+                          type="button"
+                          className={`bg-white ${
+                            [
+                              FundingFromCurrentStatus.UnderwriterSubmitted
+                            ].includes(fundingFormStatus)
+                              ? 'text-[#1A439A]'
+                              : 'text-[#BABABA]'
+                          } cursor-pointer text-[14px] font-semibold uppercase max-sm:text-[10px]`}
+                          disabled={
+                            ![
+                              FundingFromCurrentStatus.UnderwriterSubmitted
+                            ].includes(fundingFormStatus)
+                          }
+                          onClick={() =>
+                            setIsRegenerateContractConfirmModal(true)
+                          }
+                        >
+                          REGENERATE & SEND
+                        </button>
+                      )}
+                    </div>
                   )
                 ) : (
                   <span>
@@ -594,6 +646,16 @@ const Contract: React.FC<LoanFromCommonProps> = ({
         onApprove={handleSignContract}
         head="Send Contract Mail!"
         content="Are you sure send contract mail?"
+        setUpdateRateOfInterest={setRateOfInterest}
+        InterestOld={12}
+        InterestNew={rateOfInterest}
+      />
+      <ContractSignConfirmation
+        isOpen={isRegenerateContractConfirmModal}
+        onClose={() => setIsRegenerateContractConfirmModal(false)}
+        onApprove={handleRegenerateAndSend} // <-- this will call the API
+        head="Regenerate & Send Contract"
+        content="Are you sure you want to regenerate and send the contract?"
         setUpdateRateOfInterest={setRateOfInterest}
         InterestOld={12}
         InterestNew={rateOfInterest}
