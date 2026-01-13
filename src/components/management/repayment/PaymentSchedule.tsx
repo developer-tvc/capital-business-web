@@ -17,7 +17,17 @@ import { MdEdit } from 'react-icons/md';
 
 const PaymentSchedule = ({ loanId, setRef, setIsUwRepaymentComplete }) => {
   const formRef = useRef<HTMLFormElement>(null);
-  setRef(formRef);
+  
+  useEffect(() => {
+    if (formRef.current) {
+      setRef(formRef);
+    }
+  }, [setRef]);
+  
+  useEffect(() => {
+    // Component mounted
+  }, []);
+  
   const methods = useForm({
     resolver: yupResolver(paymentScheduleSchema)
   });
@@ -63,7 +73,9 @@ const PaymentSchedule = ({ loanId, setRef, setIsUwRepaymentComplete }) => {
   const onSubmit = async data => {
     trigger();
 
-    if (Object.values(errors).length > 0) return;
+    if (Object.values(errors).length > 0) {
+      return;
+    }
 
     const tolerance = 1;
     if (Math.abs(pendingAmount) > tolerance) {
@@ -75,7 +87,13 @@ const PaymentSchedule = ({ loanId, setRef, setIsUwRepaymentComplete }) => {
     }
 
     try {
-      const response = await addPaymentScheduleAPI(data, contractId);
+      // API expects only adjustment_plans array
+      const payload = {
+        adjustment_plans: data.adjustment_plans || []
+      };
+      
+      const response = await addPaymentScheduleAPI(payload, contractId);
+      
       if (response.status_code === 200) {
         setIsUwRepaymentComplete(true);
         showToast(response?.status_message, { type: NotificationType.Success });
@@ -88,10 +106,7 @@ const PaymentSchedule = ({ loanId, setRef, setIsUwRepaymentComplete }) => {
   };
 
   const onError = error => {
-    showToast('Please check the validation error!', {
-      type: NotificationType.Error
-    });
-    console.log('error', error);
+    // Form validation error
   };
 
   useEffect(() => {
@@ -111,18 +126,19 @@ const PaymentSchedule = ({ loanId, setRef, setIsUwRepaymentComplete }) => {
   const fetchDataFromApi = async (loanId: string) => {
     try {
       const PaymentScheduleApiResponse = await getPaymentScheduleAPI(loanId);
+      
       if (PaymentScheduleApiResponse?.status_code === 200) {
         SetTotalPendingDueToCollect(
           PaymentScheduleApiResponse.data.amount_per_week
         );
         methods.reset(PaymentScheduleApiResponse.data);
+        
       } else {
         showToast(PaymentScheduleApiResponse.status_message, {
           type: NotificationType.Error
         });
       }
     } catch (error) {
-      console.log('Exception', error);
       showToast('something wrong!', { type: NotificationType.Error });
     }
   };
@@ -288,6 +304,58 @@ const PaymentSchedule = ({ loanId, setRef, setIsUwRepaymentComplete }) => {
                 </div>
               </div>
             ))}
+            <button type="submit" hidden>Submit</button>
+            
+            {/* Submit Payment Schedule Button */}
+            {currentDynamicPlanFields.length > 0 && (
+              <div className="mt-6 flex justify-end">
+                <button
+                  type="button"
+                  onClick={async () => {
+                    const { addPaymentScheduleAPI } = await import('../../../api/loanServices');
+                    
+                    // Round amounts to 2 decimal places (backend expects decimals, not integers)
+                    const adjustmentPlansWithRoundedAmounts = currentDynamicPlanFields.map(plan => ({
+                      ...plan,
+                      amount: parseFloat(plan.amount.toFixed(2)) // Round to 2 decimals
+                    }));
+                    
+                    // Calculate total and adjust last amount to match weekly installment exactly
+                    const weeklyInstallment = parseFloat(methods.getValues('amount_per_week').toFixed(2));
+                    const total = adjustmentPlansWithRoundedAmounts.reduce((sum, plan) => sum + plan.amount, 0);
+                    const totalRounded = parseFloat(total.toFixed(2));
+                    const difference = parseFloat((weeklyInstallment - totalRounded).toFixed(2));
+                    
+                    // Adjust the last schedule's amount to match exactly (if needed)
+                    if (Math.abs(difference) > 0.001 && adjustmentPlansWithRoundedAmounts.length > 0) {
+                      const lastIndex = adjustmentPlansWithRoundedAmounts.length - 1;
+                      adjustmentPlansWithRoundedAmounts[lastIndex].amount = parseFloat(
+                        (adjustmentPlansWithRoundedAmounts[lastIndex].amount + difference).toFixed(2)
+                      );
+                    }
+                    
+                    const payload = {
+                      adjustment_plans: adjustmentPlansWithRoundedAmounts
+                    };
+                    
+                    try {
+                      const response = await addPaymentScheduleAPI(payload, loanId);
+                      
+                      if (response.status_code === 200) {
+                        showToast(response.status_message, { type: NotificationType.Success });
+                      } else {
+                        showToast(response.status_message || 'Failed to save payment schedule', { type: NotificationType.Error });
+                      }
+                    } catch (error) {
+                      showToast(error.message || 'Failed to save payment schedule', { type: NotificationType.Error });
+                    }
+                  }}
+                  className="rounded bg-blue-900 px-6 py-2 text-sm font-medium text-white hover:bg-blue-800"
+                >
+                  Submit Payment Schedule
+                </button>
+              </div>
+            )}
           </form>
         </FormProvider>
       </div>
@@ -299,6 +367,7 @@ const PaymentSchedule = ({ loanId, setRef, setIsUwRepaymentComplete }) => {
           pendingAmount={pendingAmount}
           toggleModal={closeModal}
           methods={methods}
+          loanId={loanId}
         />
       )}
     </>

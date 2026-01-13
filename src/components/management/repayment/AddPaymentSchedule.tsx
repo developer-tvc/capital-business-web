@@ -25,7 +25,8 @@ const AddPaymentSchedule = ({
   toggleModal,
   methods,
   pendingAmount,
-  editingSchedule
+  editingSchedule,
+  loanId
 }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -59,6 +60,7 @@ const AddPaymentSchedule = ({
     setIsLoading(true);
     const currentDynamicPlanFields =
       methods.getValues('adjustment_plans') || [];
+
     const lastAmount = editingSchedule
       ? pendingAmount + editingSchedule.amount
       : pendingAmount;
@@ -79,6 +81,7 @@ const AddPaymentSchedule = ({
     methods.setValue('adjustment_plans', updatedDynamicPlanFields, {
       shouldValidate: true
     });
+    
     setTimeout(() => {
       setIsLoading(false);
       toggleModal();
@@ -86,7 +89,7 @@ const AddPaymentSchedule = ({
   };
 
   const onError = error => {
-    console.log('error', error);
+    // Form validation error
   };
 
   useEffect(() => {
@@ -203,6 +206,7 @@ const AddPaymentSchedule = ({
                 />
               </div>
 
+              {/* Show API errors but don't disable submit button */}
               <div>
                 {error ? (
                   <p className="text-[12px] text-[tomato]">{error}</p>
@@ -212,8 +216,7 @@ const AddPaymentSchedule = ({
                 <input
                   type="submit"
                   value="SUBMIT"
-                  disabled={error}
-                  className={`w-full rounded border ${error ? 'cursor-not-allowed border-gray-700 bg-gray-600' : 'cursor-pointer border-blue-700 bg-blue-900 hover:bg-blue-800'} px-4 py-2 text-[12px] font-medium text-white`}
+                  className="w-full cursor-pointer rounded border border-blue-700 bg-blue-900 px-4 py-2 text-[12px] font-medium text-white hover:bg-blue-800"
                 />
               </div>
             </form>

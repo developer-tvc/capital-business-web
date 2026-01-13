@@ -718,7 +718,10 @@ const ManagementFundingApplication = () => {
                   {
                     value: 'Next',
                     onClick: () => {
-                      formRef.current.requestSubmit();
+                      if (formRef.current) {
+                        formRef.current.requestSubmit();
+                      } else {
+                      }
                     },
                     style: 'next'
                   },
@@ -807,7 +810,16 @@ const ManagementFundingApplication = () => {
               return renderActionButtons([
                 {
                   value: 'Next',
-                  onClick: () => formRef.current.requestSubmit(),
+                  onClick: () => {
+                    if (formRef.current) {
+                      const submitButton = formRef.current.querySelector('button[type="submit"]');
+                      if (submitButton) {
+                        submitButton.click();
+                      } else {
+                      }
+                    } else {
+                    }
+                  },
                   style: 'next'
                 }
               ]);
@@ -887,7 +899,10 @@ const ManagementFundingApplication = () => {
                 {
                   value: 'Next',
                   onClick: () => {
-                    formRef.current.requestSubmit();
+                    if (formRef.current) {
+                      const submitButton = formRef.current.querySelector('button[type="submit"]');
+                      if (submitButton) submitButton.click();
+                    }
                   },
                   style: 'next'
                 },
@@ -905,7 +920,12 @@ const ManagementFundingApplication = () => {
                   return renderActionButtons([
                     {
                       value: 'Next',
-                      onClick: () => formRef.current.requestSubmit(),
+                      onClick: () => {
+                        if (formRef.current) {
+                          const submitButton = formRef.current.querySelector('button[type="submit"]');
+                          if (submitButton) submitButton.click();
+                        }
+                      },
                       style: 'next',
                       disabled: ![
                         FundingFromUpcomingStatus.UnderwriterGocardlessSortingWaiting,
@@ -977,7 +997,12 @@ const ManagementFundingApplication = () => {
                   return renderActionButtons([
                     {
                       value: 'Next',
-                      onClick: () => formRef.current.requestSubmit(),
+                      onClick: () => {
+                        if (formRef.current) {
+                          const submitButton = formRef.current.querySelector('button[type="submit"]');
+                          if (submitButton) submitButton.click();
+                        }
+                      },
                       style: 'next',
                       disabled: ![
                         FundingFromUpcomingStatus.UnderwriterAffordabilityWaiting,
@@ -1050,7 +1075,12 @@ const ManagementFundingApplication = () => {
                   return renderActionButtons([
                     {
                       value: 'Next',
-                      onClick: () => formRef.current.requestSubmit(),
+                      onClick: () => {
+                        if (formRef.current) {
+                          const submitButton = formRef.current.querySelector('button[type="submit"]');
+                          if (submitButton) submitButton.click();
+                        }
+                      },
                       style: 'next',
                       disabled: ![
                         FundingFromUpcomingStatus.UnderwriterAffordabilityWaiting,
@@ -1088,12 +1118,42 @@ const ManagementFundingApplication = () => {
             return renderActionButtons([
               {
                 value: 'Next',
-                onClick: () => formRef.current.requestSubmit(),
+                onClick: () => {
+                  console.log('🔵 Next clicked (Admin default)!');
+                  if (formRef.current) {
+                    const submitButton = formRef.current.querySelector('button[type="submit"]');
+                    if (submitButton) submitButton.click();
+                  }
+                },
                 style: 'next'
               }
             ]);
 
           default:
+            // Special handling for Repayment Schedule (stage 12)
+            if (activeStage === 12) {
+              return renderActionButtons([
+                {
+                  value: 'Next',
+                  onClick: () => {
+                    console.log('🔵 Next clicked (Repayment Schedule - default case)!');
+                    if (formRef.current) {
+                      const submitButton = formRef.current.querySelector('button[type="submit"]');
+                      if (submitButton) {
+                        console.log('✅ Clicking submit button...');
+                        submitButton.click();
+                      } else {
+                        console.log('❌ Submit button not found!');
+                      }
+                    } else {
+                      console.log('❌ Form ref is null!');
+                    }
+                  },
+                  style: 'next'
+                }
+              ]);
+            }
+            
             if (activeStage === 10) {
               switch (affordabilityActiveStage) {
                 case 'general_form':

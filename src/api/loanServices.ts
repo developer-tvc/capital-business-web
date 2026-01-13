@@ -1120,7 +1120,7 @@ const bpAddRemoveApi = async payload => {
 };
 
 const addPaymentScheduleAPI = (payload, loanId: string) => {
-  const data = Post({
+  const data = Put({
     url: `${paymentScheduleUrl}${loanId}/`,
     request: payload
   });
@@ -1149,7 +1149,7 @@ const loanSummaryByCustomer = (loanId: string) => {
   });
 };
 
- const getLoanStatement = (loanId: string) => {
+const getLoanStatement = (loanId: string) => {
   return Get({
     url: `/manage_loan/statement/${loanId}/`,
     request: {},
