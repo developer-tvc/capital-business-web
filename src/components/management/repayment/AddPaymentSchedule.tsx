@@ -25,8 +25,7 @@ const AddPaymentSchedule = ({
   toggleModal,
   methods,
   pendingAmount,
-  editingSchedule,
-  loanId
+  editingSchedule
 }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -88,7 +87,7 @@ const AddPaymentSchedule = ({
     }, 1000);
   };
 
-  const onError = error => {
+  const onError = () => {
     // Form validation error
   };
 

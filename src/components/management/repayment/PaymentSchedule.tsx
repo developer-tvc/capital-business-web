@@ -105,7 +105,7 @@ const PaymentSchedule = ({ loanId, setRef, setIsUwRepaymentComplete }) => {
     }
   };
 
-  const onError = error => {
+  const onError = () => {
     // Form validation error
   };
 
@@ -367,7 +367,6 @@ const PaymentSchedule = ({ loanId, setRef, setIsUwRepaymentComplete }) => {
           pendingAmount={pendingAmount}
           toggleModal={closeModal}
           methods={methods}
-          loanId={loanId}
         />
       )}
     </>
