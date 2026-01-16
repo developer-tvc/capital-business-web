@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { HiOutlineDotsHorizontal } from 'react-icons/hi';
 import { useSelector } from 'react-redux';
 
@@ -8,6 +9,7 @@ import { declarationCheckboxStyle } from '../../../utils/constants';
 import { Roles } from '../../../utils/enums';
 import { NotificationType } from '../../../utils/hooks/toastify/enums';
 import useToast from '../../../utils/hooks/toastify/useToast';
+import RevokedRequisitionModal from './RevokedRequisitionModal';
 
 const BankCard = ({
   statement,
@@ -16,10 +18,13 @@ const BankCard = ({
   isHigherAuthority,
   seuUpdatedPrimaryAccount,
   setIsGocardless,
-  isFundingInProgress
+  isFundingInProgress,
+  loanId,
+  onRevokeSuccess
 }) => {
   const { role } = useSelector(authSelector);
   const { showToast } = useToast();
+  const [showRevokedModal, setShowRevokedModal] = useState(false);
 
   const getStyle = () => {
     if (isHigherAuthority && !isFundingInProgress) {
@@ -165,6 +170,35 @@ const BankCard = ({
           </span>
         )}
       </div>
+
+      {/* Revoked Requisition Button - Only for GoCardless statements */}
+      {statement.continue_with_gocardless && 
+       statement.institution_id && 
+       statement.requisition_id && 
+       [Roles.Manager, Roles.Admin, Roles.UnderWriter].includes(role) && (
+        <div className="mt-4 flex justify-end">
+          <button
+            onClick={() => setShowRevokedModal(true)}
+            className="rounded bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700"
+          >
+            Revoke Requisition
+          </button>
+        </div>
+      )}
+
+      {/* Revoked Requisition Modal */}
+      {showRevokedModal && (
+        <RevokedRequisitionModal
+          onClose={() => setShowRevokedModal(false)}
+          statement={{
+            institution_id: statement.institution_id,
+            bank_name: statement.bank_name,
+            requisition_id: statement.requisition_id
+          }}
+          loanId={loanId}
+          onSuccess={onRevokeSuccess}
+        />
+      )}
     </div>
   );
 };

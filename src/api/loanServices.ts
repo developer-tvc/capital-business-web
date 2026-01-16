@@ -30,6 +30,7 @@ const rejectLoanUrl = `${baseUrl}/reject_loan/`;
 const assignAgentUrl = `${baseUrl}/assign_agent/`;
 const gocardlessBankListUrl = `${baseUrl}/banks/`;
 const createRequisitionLinkUrl = `${baseUrl}/requisition/`;
+const resentRequisitionUrl = `${baseUrl}/resent-requisition/`;
 const confirmBankAccountUrl = `${baseUrl}/confirm_bank_account/`;
 const gocardlessStatementUrl = `${baseUrl}/gocardless_statement/`;
 const gocardlessStatementGroupedUrl = `${baseUrl}/process_transactions/`;
@@ -1156,6 +1157,18 @@ const getLoanStatement = (loanId: string) => {
   });
 };
 
+const resentRequisitionAPI = (loanId: string, payload: {
+  institution_id: string;
+  bank_name: string;
+  requisition_id: string;
+  reason: string;
+}) => {
+  return Post({
+    url: `${resentRequisitionUrl}${loanId}/?request_from=customer`,
+    request: payload
+  });
+};
+
 export {
   addNewMandateSubscription,
   addNewPap,
@@ -1312,5 +1325,6 @@ export {
   corporateGuarantorPostAPI,
   corporateGuarantorPropertyPostAPI,
   corporateGuarantorPropertyGetAPI,
-  getLoanStatement
+  getLoanStatement,
+  resentRequisitionAPI
 };

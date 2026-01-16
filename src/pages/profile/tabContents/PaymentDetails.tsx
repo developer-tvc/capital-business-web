@@ -11,6 +11,7 @@ import { NotificationType } from '../../../utils/hooks/toastify/enums';
 import useToast from '../../../utils/hooks/toastify/useToast';
 import PaymentHistory from './PaymentHistoryCard';
 import PaymentCard from './PaymentInfoCard';
+import UpcomingPaymentsCard from './UpcomingPaymentsCard';
 import { Roles } from '../../../utils/enums';
 import { useSelector } from 'react-redux';
 import { authSelector } from '../../../store/auth/userSlice';
@@ -22,6 +23,7 @@ const PaymentDetails: React.FC<{ loanId: string }> = ({ loanId }) => {
   const { showToast } = useToast();
 
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [isUpcomingDropdownOpen, setIsUpcomingDropdownOpen] = useState(false);
   const [payments, setPayments] = useState(undefined);
   const [summary, setSummary] = useState(undefined);
   const [loader, setLoader] = useState(false);
@@ -329,40 +331,76 @@ const PaymentDetails: React.FC<{ loanId: string }> = ({ loanId }) => {
               />
             </div>
 
-            {/* Right Side - Payment History */}
-            <div
-              className={`flex h-full flex-col border bg-white shadow-sm transition-all duration-300 ${
-                isDropdownOpen ? 'max-h-[343px]' : 'max-h-[64px]'
-              } overflow-hidden`}
-            >
-              <div className="flex items-center justify-between p-4">
-                <p className="text-lg font-semibold text-gray-800">
-                  Payment History
-                </p>
-                <button
-                  onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                  className="flex items-center text-sm text-gray-500"
-                >
-                  Activity{' '}
-                  {isDropdownOpen ? (
-                    <IoIosArrowUp className="ml-1" />
-                  ) : (
-                    <IoIosArrowDown className="ml-1" />
-                  )}
-                </button>
+            {/* Right Side - Stacked Cards */}
+            <div className="flex flex-col gap-4">
+              {/* Payment History */}
+              <div
+                className={`flex flex-col border bg-white shadow-sm transition-all duration-300 ${
+                  isDropdownOpen ? 'max-h-[343px]' : 'max-h-[64px]'
+                } overflow-hidden`}
+              >
+                <div className="flex items-center justify-between p-4">
+                  <p className="text-lg font-semibold text-gray-800">
+                    Payment History
+                  </p>
+                  <button
+                    onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                    className="flex items-center text-sm text-gray-500"
+                  >
+                    Activity{' '}
+                    {isDropdownOpen ? (
+                      <IoIosArrowUp className="ml-1" />
+                    ) : (
+                      <IoIosArrowDown className="ml-1" />
+                    )}
+                  </button>
+                </div>
+
+                {isDropdownOpen && (
+                  <div className="flex-1 overflow-y-auto px-4 pb-4">
+                    <PaymentHistory
+                      paymentHistory={payments?.funding_payment_history}
+                      paymentMissHistory={
+                        payments?.funding_payments[0].gocardless_missed_emi_dates
+                      }
+                      isDropdownOpen={isDropdownOpen}
+                    />
+                  </div>
+                )}
               </div>
 
-              {isDropdownOpen && (
-                <div className="flex-1 overflow-y-auto px-4 pb-4">
-                  <PaymentHistory
-                    paymentHistory={payments?.funding_payment_history}
-                    paymentMissHistory={
-                      payments?.funding_payments[0].gocardless_missed_emi_dates
-                    }
-                    isDropdownOpen={isDropdownOpen}
-                  />
+              {/* Upcoming EMI Dates */}
+              <div
+                className={`flex flex-col border bg-white shadow-sm transition-all duration-300 ${
+                  isUpcomingDropdownOpen ? 'max-h-[343px]' : 'max-h-[64px]'
+                } overflow-hidden`}
+              >
+                <div className="flex items-center justify-between p-4">
+                  <p className="text-lg font-semibold text-gray-800">
+                    Upcoming EMI Dates
+                  </p>
+                  <button
+                    onClick={() => setIsUpcomingDropdownOpen(!isUpcomingDropdownOpen)}
+                    className="flex items-center text-sm text-gray-500"
+                  >
+                    Activity{' '}
+                    {isUpcomingDropdownOpen ? (
+                      <IoIosArrowUp className="ml-1" />
+                    ) : (
+                      <IoIosArrowDown className="ml-1" />
+                    )}
+                  </button>
                 </div>
-              )}
+
+                {isUpcomingDropdownOpen && (
+                  <div className="flex-1 overflow-y-auto px-4 pb-4">
+                    <UpcomingPaymentsCard
+                      upcomingPayments={payments?.funding_payments?.[0]?.upcoming_emi_dates}
+                      isDropdownOpen={isUpcomingDropdownOpen}
+                    />
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>

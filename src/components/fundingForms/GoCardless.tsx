@@ -222,6 +222,11 @@ const GoCardLess: React.FC<LoanFromCommonProps> = ({
             statement={statement}
             seuUpdatedPrimaryAccount={setUpdatedPrimaryAccount}
             isFundingInProgress={isFundingInProgress}
+            loanId={loanId}
+            onRevokeSuccess={() => {
+              // Refresh data after successful revocation
+              fetchGocardlessStatementApi(loanId);
+            }}
           />
         ))
       ) : (
