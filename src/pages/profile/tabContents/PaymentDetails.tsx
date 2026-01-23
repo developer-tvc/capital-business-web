@@ -395,7 +395,7 @@ const PaymentDetails: React.FC<{ loanId: string }> = ({ loanId }) => {
                 {isUpcomingDropdownOpen && (
                   <div className="flex-1 overflow-y-auto px-4 pb-4">
                     <UpcomingPaymentsCard
-                      upcomingPayments={payments?.funding_payments?.[0]?.upcoming_emi_dates}
+                      incompletedEmiDates={payments?.funding_payments?.[0]?.incompleted_emi_dates}
                       isDropdownOpen={isUpcomingDropdownOpen}
                     />
                   </div>

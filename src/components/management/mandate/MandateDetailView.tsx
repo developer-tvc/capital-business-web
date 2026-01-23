@@ -143,6 +143,9 @@ const MandateDetailView: React.FC<SubscriptionCreatePropType> = ({
     } catch {
       showToast('Something went wrong!', { type: NotificationType.Error });
     }
+    finally {
+      setSelectedSubscription(false);
+    }
   };
 
   useEffect(() => {

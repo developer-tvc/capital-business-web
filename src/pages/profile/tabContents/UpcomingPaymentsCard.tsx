@@ -2,13 +2,13 @@ import React from 'react';
 import password from '../../../assets/svg/credit-card.svg';
 
 const UpcomingPaymentsCard = ({
-  upcomingPayments,
+  incompletedEmiDates,
   isDropdownOpen
 }) => (
   <div className="mx-4 grid grid-cols-2 gap-5 px-1 pt-4">
     {isDropdownOpen && (
       <>
-        {upcomingPayments?.map((item, index) => (
+        {incompletedEmiDates?.map((item, index) => (
           <React.Fragment key={`upcoming-${index}`}>
             <div className="text-black">
               <div className="flex gap-4 max-sm:grid">
@@ -24,7 +24,7 @@ const UpcomingPaymentsCard = ({
               </div>
             </div>
             <div className={`flex justify-end font-medium ${item.status === 'Due' ? 'text-red-500' : 'text-black'}`}>
-               £{typeof item.amount === 'number' ? item.amount.toFixed(2) : item.amount}
+               {typeof item.amount === 'number' ? item.amount.toFixed(2) : item.amount}
             </div>
           </React.Fragment>
         ))}
