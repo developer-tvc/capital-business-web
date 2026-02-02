@@ -181,7 +181,7 @@ const PaymentSchedule = ({ loanId, setRef, setIsUwRepaymentComplete }) => {
                 <div className="flex items-center gap-2">
                   <span className="font-medium">Approved Amount:</span>
                   <span className="font-semibold text-black">
-                    {methods.getValues('fund_request_amount')}
+                    {Number(methods.getValues('fund_request_amount'))?.toFixed(2)}
                   </span>
                 </div>
               )}
@@ -189,7 +189,7 @@ const PaymentSchedule = ({ loanId, setRef, setIsUwRepaymentComplete }) => {
                 <div className="flex items-center gap-2">
                   <span className="font-medium">Repayment Amount:</span>
                   <span className="font-semibold text-black">
-                    {methods.getValues('repayment_amount')}
+                    {Number(methods.getValues('repayment_amount'))?.toFixed(2)}
                   </span>
                 </div>
               )}
@@ -205,7 +205,7 @@ const PaymentSchedule = ({ loanId, setRef, setIsUwRepaymentComplete }) => {
                 <div className="flex items-center gap-2">
                   <span className="font-medium">Amount per week:</span>
                   <span className="font-semibold text-black">
-                    {methods.getValues('amount_per_week')}
+                    {Number(methods.getValues('amount_per_week'))?.toFixed(2)}
                   </span>
                 </div>
               )}
@@ -213,7 +213,7 @@ const PaymentSchedule = ({ loanId, setRef, setIsUwRepaymentComplete }) => {
                 <div className="flex items-center gap-2">
                   <span className="font-medium">Remaining Amount:</span>
                   <span className="font-semibold text-black">
-                    {pendingAmount}
+                    {Number(pendingAmount)?.toFixed(2)}
                   </span>
                 </div>
               }
@@ -273,7 +273,7 @@ const PaymentSchedule = ({ loanId, setRef, setIsUwRepaymentComplete }) => {
                     <div>
                       <div className="text-[12px] text-gray-500">Amount</div>
                       <div className="text-[14px] font-semibold text-black">
-                        {field.amount || 'N/A'}
+                        {Number(field.amount)?.toFixed(2) || 'N/A'}
                       </div>
                     </div>
                   </div>

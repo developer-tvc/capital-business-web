@@ -60,6 +60,7 @@ const GoCardlessModal = ({
   });
   const [startDateError, setStartDateError] = useState(null);
   const [endDateError, setEndDateError] = useState(null);
+  const [showDates, setShowDates] = useState(false);
 
   const setCurrentStayStartDate = date => {
     if (!date) {
@@ -253,18 +254,28 @@ const GoCardlessModal = ({
   }, [bankData]);
 
   useEffect(() => {
-    const parentArr = [...withoutGocardlessData];
+    const parentArr = [...withoutGocardlessData, ...gocardlessData];
     const accountObject = parentArr.find(i => selectedId === i.id);
-    if (!isGocardless) {
-      if (accountObject.start_date && accountObject.end_date) {
-        setCurrentDateRange({
-          start_date: accountObject.start_date,
-          end_date: accountObject.end_date
-        });
+
+    if (accountObject) {
+      if (!accountObject.continue_with_gocardless) {
+        setShowDates(true);
+        if (accountObject.start_date && accountObject.end_date) {
+          setCurrentDateRange({
+            start_date: accountObject.start_date,
+            end_date: accountObject.end_date
+          });
+          setStartDateError(null);
+          setEndDateError(null);
+        }
+      } else {
+        setShowDates(false);
       }
     }
     return () => {
-      if (!isGocardless) {
+      const parentArr = [...withoutGocardlessData, ...gocardlessData];
+      const accountObject = parentArr.find(i => selectedId === i.id);
+      if (accountObject && !accountObject.continue_with_gocardless) {
         if (currentDateRange.start_date && currentDateRange.end_date) {
           accountObject.start_date = currentDateRange.start_date;
           accountObject.end_date = currentDateRange.end_date;
@@ -383,8 +394,8 @@ const GoCardlessModal = ({
             <button
               type="button"
               onClick={() => {
-                if (!isGocardless) {
-                  if (startDateError || endDateError) {
+                if (showDates) {
+                  if (!currentDateRange.start_date || !currentDateRange.end_date) {
                     showToast('Start date and End date are mandatory', {
                       type: NotificationType.Error
                     });
@@ -647,7 +658,7 @@ const GoCardlessModal = ({
           )}
         </div>
 
-        {!isGocardless && (
+        {showDates && (
           <div className="relative flex w-full flex-col justify-between p-4">
             <div className="flex justify-between gap-4">
               <div className="flex w-[80%] gap-4">

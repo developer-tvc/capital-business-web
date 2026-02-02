@@ -18,7 +18,7 @@ const BankCard = ({
   isHigherAuthority,
   seuUpdatedPrimaryAccount,
   setIsGocardless,
-  isFundingInProgress,
+    isFundingInProgress,
   loanId,
   onRevokeSuccess
 }) => {
@@ -175,6 +175,7 @@ const BankCard = ({
       {statement.continue_with_gocardless && 
        statement.institution_id && 
        statement.requisition_id && 
+       isFundingInProgress &&
        [Roles.Manager, Roles.Admin, Roles.UnderWriter].includes(role) && (
         <div className="mt-4 flex justify-end">
           <button
