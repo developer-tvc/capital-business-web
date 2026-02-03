@@ -44,6 +44,7 @@ const GoCardLess: React.FC<LoanFromCommonProps> = ({
 
   const [gocardlessData, setGocardlessData] = useState([]);
   const [withoutGocardlessData, setWithoutGocardlessData] = useState([]);
+  const [revokedCardIds, setRevokedCardIds] = useState(new Set()); // Track revoked card IDs
 
   const [isSendConsent, setIsSendConsent] = useState(false);
   const [selectedStatement, setSelectedStatement] = useState(null);
@@ -210,34 +211,40 @@ const GoCardLess: React.FC<LoanFromCommonProps> = ({
     }
   };
 
-  const renderBankCards = (data, isHigherAuthority) => (
-    <div className="my-2 grid gap-4 max-lg:grid-cols-1 max-md:grid-cols-1">
-      {data.length > 0 ? (
-        data.map(statement => (
-          <BankCard
-            setIsGocardless={setIsGocardless}
-            key={statement.statement_id}
-            isHigherAuthority={isHigherAuthority}
-            setSelectedStatement={setSelectedStatement}
-            setShowModal={setShowModal}
-            statement={statement}
-            seuUpdatedPrimaryAccount={setUpdatedPrimaryAccount}
-            isFundingInProgress={isFundingInProgress}
-            loanId={loanId}
-            onRevokeSuccess={() => {
-              // Refresh data after successful revocation
-              fetchGocardlessStatementApi(loanId);
-            }}
-          />
-        ))
-      ) : (
-        <div className="m-4 flex items-center text-amber-500">
-          <FaClosedCaptioning className="mr-2" />
-          <span>{'Pending'}</span>
-        </div>
-      )}
-    </div>
-  );
+  const renderBankCards = (data, isHigherAuthority) => {
+    // Filter out revoked cards
+    const filteredData = data.filter(statement => !revokedCardIds.has(statement.statement_id));
+    
+    return (
+      <div className="my-2 grid gap-4 max-lg:grid-cols-1 max-md:grid-cols-1">
+        {filteredData.length > 0 ? (
+          filteredData.map(statement => (
+            <BankCard
+              setIsGocardless={setIsGocardless}
+              key={statement.statement_id}
+              isHigherAuthority={isHigherAuthority}
+              setSelectedStatement={setSelectedStatement}
+              setShowModal={setShowModal}
+              statement={statement}
+              seuUpdatedPrimaryAccount={setUpdatedPrimaryAccount}
+              isFundingInProgress={isFundingInProgress}
+              loanId={loanId}
+              onRevokeSuccess={() => {
+                // Add to revoked cards and refresh data
+                setRevokedCardIds(prev => new Set([...prev, statement.statement_id]));
+                fetchGocardlessStatementApi(loanId);
+              }}
+            />
+          ))
+        ) : (
+          <div className="m-4 flex items-center text-amber-500">
+            <FaClosedCaptioning className="mr-2" />
+            <span>{'Pending'}</span>
+          </div>
+        )}
+      </div>
+    );
+  };
 
   useEffect(() => {
     if (authenticated && loanId) fetchGocardlessStatementApi(loanId);

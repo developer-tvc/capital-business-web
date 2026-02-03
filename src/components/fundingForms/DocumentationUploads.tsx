@@ -207,11 +207,21 @@ const DocumentationUploads: React.FC<LoanFromCommonProps> = ({
           formData.append('other_files', file);
         });
       }
-      if (data?.document_upload_self_declaration) {
-        formData.append(
-          'document_upload_self_declaration',
-          JSON.stringify(data?.document_upload_self_declaration)
-        );
+      if (data?.document_upload_self_declaration !== undefined) {
+        // Handle various input types: boolean, array, string, number
+        let booleanValue = data?.document_upload_self_declaration;
+        
+        // Extract from array if needed
+        if (Array.isArray(booleanValue)) {
+          booleanValue = booleanValue.length > 0 ? booleanValue[0] : false;
+        }
+        
+        // Convert to boolean (handles string "true"/"false", numbers 1/0, etc.)
+        const finalBooleanValue = Boolean(booleanValue);
+        
+        // Send as string '1'/'0' for current backend compatibility
+        // Note: Change to `finalBooleanValue` if backend starts accepting booleans
+        formData.append('document_upload_self_declaration', finalBooleanValue ? '1' : '0');
       }
       const response = await documentUploadPostAPI(formData, loanId);
       if (response.status_code >= 200 && response.status_code < 300) {

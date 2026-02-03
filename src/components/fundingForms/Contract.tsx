@@ -1,13 +1,14 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { CiMail } from 'react-icons/ci';
 import { IoIosArrowDown, IoIosArrowUp } from 'react-icons/io';
-import { IoCheckmark } from 'react-icons/io5';
+import { IoCheckmark, IoRefresh } from 'react-icons/io5';
 import { useDispatch, useSelector } from 'react-redux';
 
 import {
   getContractApi,
   getDebitApi,
   reSendContractEmailApi,
+  regenerateAndSendContractEmailApi,
   sendContractEmailApi,
   sendDirectDebitLinkApi
 } from '../../api/loanServices';
@@ -146,6 +147,9 @@ const Contract: React.FC<LoanFromCommonProps> = ({
     'idle' | 'loading' | 'fulfilled' | 'waiting' | 'error'
   >('idle');
   const [contractApiData, setContractApiData] = useState(null);
+  const [isRegenerating, setIsRegenerating] = useState(false);
+  const [lastRegeneratedAt, setLastRegeneratedAt] = useState(null);
+  const regenerateTimeoutRef = useRef(null);
   console.log('contractApiStatus', contractApiStatus);
 
   const fetchDebitApi = async (loanId: string) => {
@@ -171,6 +175,55 @@ const Contract: React.FC<LoanFromCommonProps> = ({
       setContractApiStatus('error');
     }
   };
+
+  // Shared regenerate API function
+  const regenerateData = useCallback(async (triggerSource = 'manual') => {
+    if (!loanId && !loan.id) {
+      showToast('Loan ID not available', { type: NotificationType.Error });
+      return;
+    }
+
+    try {
+      setIsRegenerating(true);
+      
+      // Call the specific regenerate API endpoint
+      const response = await regenerateAndSendContractEmailApi(loanId || loan.id);
+      
+      if (response.status_code >= 200 && response.status_code < 300) {
+        // After successful regeneration, refresh the data
+        await Promise.all([
+          fetchDebitApi(loanId || loan.id),
+          fetchContractApi(loanId || loan.id)
+        ]);
+        
+        setLastRegeneratedAt(new Date());
+        
+        if (triggerSource === 'manual') {
+          showToast(response.status_message || 'Contract regenerated and sent successfully', { 
+            type: NotificationType.Success 
+          });
+        }
+      } else {
+        showToast(response.status_message || 'Failed to regenerate contract', { 
+          type: NotificationType.Error 
+        });
+      }
+    } catch (error) {
+      console.error('Error regenerating data:', error);
+      showToast('Failed to regenerate contract', { type: NotificationType.Error });
+    } finally {
+      setIsRegenerating(false);
+    }
+  }, [loanId, loan.id]);
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (regenerateTimeoutRef.current) {
+        clearTimeout(regenerateTimeoutRef.current);
+      }
+    };
+  }, []);
 
   const handleContractToggle = () => {
     const isOpening = !openContract2;
@@ -555,27 +608,47 @@ const Contract: React.FC<LoanFromCommonProps> = ({
                       Waiting Customer authorization...
                     </div>
                   )}
-                  <div className="mt-4 flex justify-end">
-                    <button
-                      type="button"
-                      className={`bg-white ${
-                        [
-                          FundingFromCurrentStatus.UnderwriterSubmitted
-                        ].includes(fundingFormStatus)
-                          ? 'text-[#1A439A]'
-                          : 'text-[#BABABA]'
-                      } cursor-pointer text-[14px] font-semibold uppercase max-sm:text-[10px]`}
-                      onClick={() =>
-                        sendDirectDebitLinkApi(
-                          {
-                            resend: true
-                          },
-                          loanId || loan.id
-                        )
-                      }
-                    >
-                      RESEND
-                    </button>
+                  <div className="mt-6 flex items-center justify-between gap-4">
+                    <div className="text-xs text-gray-500">
+                      {lastRegeneratedAt && (
+                        <span>Last regenerated: {lastRegeneratedAt.toLocaleTimeString()}</span>
+                      )}
+                    </div>
+                    <div className="flex gap-2">
+                      <button
+                        type="button"
+                        className={`flex items-center gap-2 rounded border px-3 py-2 text-sm font-medium transition-colors ${
+                          isRegenerating
+                            ? 'border-gray-300 bg-gray-100 text-gray-500 cursor-not-allowed'
+                            : 'border-blue-500 bg-blue-50 text-blue-700 hover:bg-blue-100'
+                        }`}
+                        onClick={() => regenerateData('manual')}
+                        disabled={isRegenerating}
+                      >
+                        <IoRefresh className={isRegenerating ? 'animate-spin' : ''} size={16} />
+                        {isRegenerating ? 'Regenerating...' : 'Regenerate'}
+                      </button>
+                      <button
+                        type="button"
+                        className={`bg-white ${
+                          [
+                            FundingFromCurrentStatus.UnderwriterSubmitted
+                          ].includes(fundingFormStatus)
+                            ? 'text-[#1A439A]'
+                            : 'text-[#BABABA]'
+                        } cursor-pointer text-[14px] font-semibold uppercase max-sm:text-[10px]`}
+                        onClick={() =>
+                          sendDirectDebitLinkApi(
+                            {
+                              resend: true
+                            },
+                            loanId || loan.id
+                          )
+                        }
+                      >
+                        RESEND
+                      </button>
+                    </div>
                   </div>
                 </div>
               )}

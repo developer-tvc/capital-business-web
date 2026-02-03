@@ -829,8 +829,19 @@ export const DocumentationUploadsSchema = yup.object().shape({
     ),
 
   document_upload_self_declaration: yup
-    .boolean()
-    .transform(value => (value === '' ? undefined : value))
+    .mixed()
+    .transform(function(value) {
+      // Handle array case - extract first element if it's an array
+      if (Array.isArray(value)) {
+        return value.length > 0 ? value[0] : false;
+      }
+      // Handle empty string case
+      if (value === '' || value === undefined || value === null) {
+        return undefined;
+      }
+      // Return as boolean
+      return Boolean(value);
+    })
     .when(
       [
         'photo',

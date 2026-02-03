@@ -37,6 +37,7 @@ const gocardlessStatementGroupedUrl = `${baseUrl}/process_transactions/`;
 const updateContinueWithGocardlessUri = `${baseUrl}/update_continue_with_gocardless/`;
 const affordabilityUrl = `${baseUrl}/affordability/`;
 const sendContractEmailUrl = `${baseUrl}/send_contract_email/`;
+const regenerateAndSendContractEmailUrl = `${baseUrl}/regenerate_and_send_contract_email/`;
 const sendDirectDebitLinkUrl = `${baseUrl}/direct_debit_email/`;
 const reSendContractEmailUrl = `${baseUrl}/send_contract_reminder_email/`;
 const getContractUrl = `${baseUrl}/contract/`;
@@ -464,6 +465,13 @@ const sendContractEmailApi = (loanId: string) => {
 const reSendContractEmailApi = (loanId: string) => {
   return Post({
     url: `${reSendContractEmailUrl}${loanId}/`,
+    request: {}
+  });
+};
+
+const regenerateAndSendContractEmailApi = (loanId: string) => {
+  return Post({
+    url: `${regenerateAndSendContractEmailUrl}${loanId}/`,
     request: {}
   });
 };
@@ -1287,6 +1295,7 @@ export {
   rejectLoanApi,
   renewFailedMandate,
   reSendContractEmailApi,
+  regenerateAndSendContractEmailApi,
   retrieveDirectorGetAPI,
   sendContractEmailApi,
   sendFundLoanCommentsApi,
