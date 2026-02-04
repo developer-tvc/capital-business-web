@@ -62,7 +62,8 @@ const GoCardLess: React.FC<LoanFromCommonProps> = ({
   const isFundingInProgress = [
     FundingFromCurrentStatus.Inprogress,
     FundingFromCurrentStatus.Submitted,
-    FundingFromCurrentStatus.UnderwriterReturned
+    FundingFromCurrentStatus.UnderwriterReturned,
+    FundingFromCurrentStatus.AgentSubmitted
   ].includes(fundingFormStatus);
   const [isBankDetailsAdded, setIsBankDetailsAdded] = useState(false);
   const [isGocardless, setIsGocardless] = useState(false);

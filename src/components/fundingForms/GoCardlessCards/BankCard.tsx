@@ -18,7 +18,7 @@ const BankCard = ({
   isHigherAuthority,
   seuUpdatedPrimaryAccount,
   setIsGocardless,
-    isFundingInProgress,
+  isFundingInProgress,
   loanId,
   onRevokeSuccess
 }) => {
