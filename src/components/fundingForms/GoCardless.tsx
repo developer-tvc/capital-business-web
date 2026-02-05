@@ -62,7 +62,9 @@ const GoCardLess: React.FC<LoanFromCommonProps> = ({
   const isFundingInProgress = [
     FundingFromCurrentStatus.Inprogress,
     FundingFromCurrentStatus.Submitted,
-    FundingFromCurrentStatus.UnderwriterReturned
+    FundingFromCurrentStatus.UnderwriterReturned,
+    FundingFromCurrentStatus.AgentSubmitted
+
   ].includes(fundingFormStatus);
   const [isBankDetailsAdded, setIsBankDetailsAdded] = useState(false);
   const [isGocardless, setIsGocardless] = useState(false);
@@ -135,7 +137,13 @@ const GoCardLess: React.FC<LoanFromCommonProps> = ({
       const allItemsGrouped = [
         ...(gocardlessData || []),
         ...(withoutGocardlessData || [])
-      ].every(item => item?.all_grouped);
+      ].every(item => {
+        // Skip sorting validation for test banks
+        if (item.institution_id === 'SANDBOXFINANCE_SFIN0000') {
+          return true; // Consider test banks as already sorted
+        }
+        return item?.all_grouped;
+      });
 
       if (!allItemsGrouped) {
         showToast('Please sort the statements.', {
