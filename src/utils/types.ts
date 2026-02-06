@@ -85,7 +85,7 @@ export type TradingAddress = {
   premise_type: 'Freehold' | 'Leasehold' | 'Lease';
   start_date?: string;
   end_date?: string;
-  document?: File[];
+  trading_documents?: File[];
 };
 export type RegisteredAddress = {
   address_line: string;

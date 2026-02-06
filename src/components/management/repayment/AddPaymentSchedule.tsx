@@ -169,7 +169,7 @@ const AddPaymentSchedule = ({
                 <div className="flex items-center gap-2">
                   <p className="text-sm">
                     {'Remaining amount to schedule : '}
-                    {remainingAmount}
+                    {typeof remainingAmount === 'number' ? remainingAmount.toFixed(2) : remainingAmount}
                   </p>
                 </div>
               </div>
@@ -196,9 +196,9 @@ const AddPaymentSchedule = ({
                   metaData={{
                     fieldClass: loanFormCommonStyleConstant.date.fieldClass,
                     labelClass: loanFormCommonStyleConstant.date.labelClass,
-                    placeholder: 'Day of Debit',
+                    placeholder: 'Date of Debit',
                     name: `start_date`,
-                    // label: 'Day of Debit',
+                    // label: 'Date of Debit',
                     type: 'date',
                     filterDates: filterDates
                   }}

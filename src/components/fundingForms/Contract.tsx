@@ -426,6 +426,27 @@ const Contract: React.FC<LoanFromCommonProps> = ({
                       {openContract ? <IoIosArrowUp /> : <IoIosArrowDown />}
                     </span>
                   ) : (
+<div>
+
+                      <div className="text-xs text-gray-500">
+                      {lastRegeneratedAt && (
+                        <span>Last regenerated: {lastRegeneratedAt.toLocaleTimeString()}</span>
+                      )}
+                    </div>
+                    <div className="flex gap-2">
+                      <button
+                        type="button"
+                        className={`flex items-center gap-2 rounded border px-3 py-2 text-sm font-medium transition-colors ${
+                          isRegenerating
+                            ? 'border-gray-300 bg-gray-100 text-gray-500 cursor-not-allowed'
+                            : 'border-blue-500 bg-blue-50 text-blue-700 hover:bg-blue-100'
+                        }`}
+                        onClick={() => regenerateData('manual')}
+                        disabled={isRegenerating}
+                      >
+                        <IoRefresh className={isRegenerating ? 'animate-spin' : ''} size={16} />
+                        {isRegenerating ? 'Regenerating...' : 'Regenerate'}
+                      </button>
                     <button
                       type="button"
                       className={`bg-white ${[FundingFromCurrentStatus.UnderwriterSubmitted].includes(fundingFormStatus) ? 'text-[#1A439A]' : 'text-[#BABABA]'} cursor-pointer text-[14px] font-semibold uppercase max-sm:text-[10px]`}
@@ -440,6 +461,8 @@ const Contract: React.FC<LoanFromCommonProps> = ({
                     >
                       {'RESEND'}
                     </button>
+                    </div>
+                    </div>
                   )
                 ) : (
                   <span>
@@ -609,45 +632,28 @@ const Contract: React.FC<LoanFromCommonProps> = ({
                     </div>
                   )}
                   <div className="mt-6 flex items-center justify-between gap-4">
-                    <div className="text-xs text-gray-500">
-                      {lastRegeneratedAt && (
-                        <span>Last regenerated: {lastRegeneratedAt.toLocaleTimeString()}</span>
-                      )}
-                    </div>
-                    <div className="flex gap-2">
-                      <button
-                        type="button"
-                        className={`flex items-center gap-2 rounded border px-3 py-2 text-sm font-medium transition-colors ${
-                          isRegenerating
-                            ? 'border-gray-300 bg-gray-100 text-gray-500 cursor-not-allowed'
-                            : 'border-blue-500 bg-blue-50 text-blue-700 hover:bg-blue-100'
-                        }`}
-                        onClick={() => regenerateData('manual')}
-                        disabled={isRegenerating}
-                      >
-                        <IoRefresh className={isRegenerating ? 'animate-spin' : ''} size={16} />
-                        {isRegenerating ? 'Regenerating...' : 'Regenerate'}
-                      </button>
-                      <button
-                        type="button"
-                        className={`bg-white ${
-                          [
-                            FundingFromCurrentStatus.UnderwriterSubmitted
-                          ].includes(fundingFormStatus)
-                            ? 'text-[#1A439A]'
-                            : 'text-[#BABABA]'
-                        } cursor-pointer text-[14px] font-semibold uppercase max-sm:text-[10px]`}
-                        onClick={() =>
-                          sendDirectDebitLinkApi(
-                            {
-                              resend: true
-                            },
-                            loanId || loan.id
-                          )
-                        }
-                      >
-                        RESEND
-                      </button>
+                  
+                      <div className="mt-4 flex justify-end">
+                    <button
+                      type="button"
+                      className={`bg-white ${
+                        [
+                          FundingFromCurrentStatus.UnderwriterSubmitted
+                        ].includes(fundingFormStatus)
+                          ? 'text-[#1A439A]'
+                          : 'text-[#BABABA]'
+                      } cursor-pointer text-[14px] font-semibold uppercase max-sm:text-[10px]`}
+                      onClick={() =>
+                        sendDirectDebitLinkApi(
+                          {
+                            resend: true
+                          },
+                          loanId || loan.id
+                        )
+                      }
+                    >
+                      RESEND
+                    </button>
                     </div>
                   </div>
                 </div>

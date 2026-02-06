@@ -473,41 +473,34 @@ export const tradingPremiseSchema = yup.object().shape({
       ? schema.required('End Date is required')
       : schema.notRequired();
   }),
-  document: yup.mixed().when('premise_type', ([premise_type], schema) => {
+  trading_documents: yup.mixed().when('premise_type', ([premise_type], schema) => {
     if (premise_type === 'Leasehold') {
       return schema
-        .required('Document is required')
-        .test('fileFormat', 'Document is required', value => {
-          if (Array.isArray(value) && value?.length > 0) {
-            return true;
-          }
-          return false;
+        .test('fileFormat', 'Trading documents are required', value => {
+          return Array.isArray(value) && value?.length > 0;
         })
         .test(
           'fileFormat',
           'Only JPG, GIF, PNG, JPEG, SVG,WebP and PDF formats are accepted',
           value => {
+            if (!value || (Array.isArray(value) && value.length === 0)) {
+              return true; // Will be handled by required test
+            }
             if (Array.isArray(value) && value?.length > 0) {
-              for (let i = 0; i < value?.length; i++) {
-                if (
-                  [...validMimeTypes.image, ...validMimeTypes.pdf].includes(
-                    value[i].type
-                  )
-                ) {
-                  return true;
-                }
-              }
+              const validTypes = [...validMimeTypes.image, ...validMimeTypes.pdf];
+              // Check ALL files - return false if ANY file is invalid
+              return value.every(file => validTypes.includes(file?.type));
             }
             return false;
           }
         )
         .test('fileSize', 'File Size is too large', value => {
+          if (!value || (Array.isArray(value) && value.length === 0)) {
+            return true; // Will be handled by required test
+          }
           if (Array.isArray(value) && value?.length > 0) {
-            for (let i = 0; i < value?.length; i++) {
-              if (value[i].size < MAX_FILE_SIZE_10_MB) {
-                return true;
-              }
-            }
+            // Check ALL files - return false if ANY file is too large
+            return value.every(file => file?.size < MAX_FILE_SIZE_10_MB);
           }
           return false;
         });
@@ -533,6 +526,13 @@ export const BusinessPremiseDetailsSchema = yup.object().shape({
           ...tradingPremiseSchema.fields
         })
     )
+}).test('leasehold-documents-required', 'Trading documents are required for leasehold property', function(value: any) {
+  const tradingAddress = value?.trading_address as any;
+  if (tradingAddress?.premise_type === 'Leasehold') {
+    const hasTradingDocuments = Array.isArray(tradingAddress?.trading_documents) && tradingAddress.trading_documents.length > 0;
+    return hasTradingDocuments;
+  }
+  return true;
 });
 
 export const DirectorOrProprietorDetailsSchema = yup.object().shape({
@@ -1264,10 +1264,9 @@ export const dynamicPlanFieldsSchema = yup.object().shape({
 });
 
 export const dynamicPaymentScheduleSchema = yup.object().shape({
-  day_of_debit: yup.string().required('Days of Debit is required'),
+  day_of_debit: yup.string().required('Date of Debit is required'),
   start_date: yup
     .string()
-    .nullable()
     .transform(originalValue => {
       const date = new Date(originalValue);
       if (!isNaN(date.getTime())) {
@@ -1277,8 +1276,8 @@ export const dynamicPaymentScheduleSchema = yup.object().shape({
         return `${year}-${month}-${day}`;
       }
       return originalValue;
-    }),
-  // .required('Start date is required'),
+    })
+    .required('Date of Debit is required'),
 
   amount: yup
     .number()

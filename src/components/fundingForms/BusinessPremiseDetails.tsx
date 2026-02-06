@@ -15,7 +15,7 @@ import {
   businessPremiseDetailsGetAPI,
   businessPremiseDetailsPostAPI
 } from '../../api/loanServices';
-import camera from '../../assets/svg/camera.svg';
+// import camera from '../../assets/svg/camera.svg';
 import { updateCurrentStage } from '../../store/fundingStateReducer';
 import {
   loanFormBusinessPremiseDetails,
@@ -39,6 +39,17 @@ import {
 import FieldRenderer from '../commonInputs/FieldRenderer';
 import Loader from '../Loader';
 import AddressLookup from './AddressLookup';
+
+const EMPTY_TRADING_ADDRESS = {
+  address_line: '',
+  town_city: '',
+  post_code: '',
+  premise_type: '',
+  start_date: '',
+  end_date: '',
+  trading_documents: []
+};
+
 
 const BusinessPremiseDetails: React.FC<LoanFromCommonProps> = ({
   setRef,
@@ -65,8 +76,16 @@ const BusinessPremiseDetails: React.FC<LoanFromCommonProps> = ({
   const [isLimitedCompany, setIsLimitedCompany] = useState(false);
 
   const methods = useForm({
+    mode: 'onSubmit',
     resolver: yupResolver(BusinessPremiseDetailsSchema),
-    defaultValues: businessPremiseDetails
+    defaultValues: {
+      registered_address: {
+        address_line: '',
+        post_code: ''
+      },
+      trading_same_as_registered: false,
+      trading_address: EMPTY_TRADING_ADDRESS
+    }
   });
 
   const {
@@ -79,34 +98,27 @@ const BusinessPremiseDetails: React.FC<LoanFromCommonProps> = ({
     getValues
   } = methods;
 
-  const watchTradingAddressDoc = watch(
-    'trading_address.document' as keyof BusinessPremiseDetailsType,
-    []
-  );
-
-  // const watchRegisteredAddressDoc = watch('registered_address.document', []);
-
-  const watchedFieldValues = {
-    'trading_address.document': watchTradingAddressDoc
-    // 'registered_address.document': watchRegisteredAddressDoc
-  };
-
-  const handleClose = (itemName, fileName) => {
-    const file = watchedFieldValues[itemName].filter(
-      word => word.name !== fileName
-    );
-    setValue(itemName, file);
-  };
-
-  // Helper function to convert leasehold document
+  // Helper function to convert leasehold documents (handles both single and multiple)
   const convertLeaseholdDocument = async address => {
     try {
-      if (address?.document) {
+      // Handle new 'documents' array from API response
+      if (address?.documents && Array.isArray(address.documents) && address.documents.length > 0) {
+        const filePromises = address.documents.map(doc => 
+          convertImageLinkToFile(doc.url || doc)
+        );
+        const files = await Promise.all(filePromises);
+        address.trading_documents = files; // Store as trading_documents for form
+        delete address.documents; // Remove API response field
+      }
+      // Handle legacy single 'document' field for backward compatibility
+      else if (address?.document) {
         const file = await convertImageLinkToFile(address?.document);
-        address.document = [file];
+        address.trading_documents = [file]; // Use trading_documents for form
+        delete address.document; // Remove old singular field
       }
       return address;
     } catch (error) {
+      console.error('Error converting leasehold documents:', error);
       throw new Error(error);
     }
   };
@@ -119,20 +131,35 @@ const BusinessPremiseDetails: React.FC<LoanFromCommonProps> = ({
         const data = BusinessPremiseDetailsApiResponse.data;
         if (Object.keys(data)?.length > 0) {
           setIsLimitedCompany(data.business_type === 'Limited Company');
-          data.registered_address = {
-            ...data.registered_address,
-            ...data.registered_address?.leasehold
-          };
-          delete data.registered_address?.leasehold;
-          data.trading_address = {
-            ...data.trading_address,
-            ...data.trading_address?.leasehold
-          };
-          delete data.trading_address?.leasehold;
+          
+          // Handle registered_address - flatten leasehold if exists
+          if (data.registered_address?.leasehold) {
+            data.registered_address = {
+              ...data.registered_address,
+              ...data.registered_address.leasehold
+            };
+            delete data.registered_address.leasehold;
+          }
+          
+          // Handle trading_address - keep leasehold nested but extract documents
+          if (data.trading_address?.leasehold) {
+            // Extract documents from leasehold (API returns 'documents' array)
+            const documents = data.trading_address.leasehold.documents || [];
+            
+            // Create a flattened version for form handling but preserve the structure
+            const flattenedTradingAddress = {
+              ...data.trading_address,
+              ...data.trading_address.leasehold,
+              documents: documents // Keep documents for conversion
+            };
+            
+            // Keep original structure for API but use flattened for form
+            data.trading_address_for_form = flattenedTradingAddress;
+          }
 
           // Convert leasehold document for trading address and registered address
           const modifiedTradingAddress = await convertLeaseholdDocument(
-            data.trading_address
+            data.trading_address_for_form || data.trading_address
           );
           const modifiedRegisteredAddress = await convertLeaseholdDocument(
             data.registered_address
@@ -148,7 +175,14 @@ const BusinessPremiseDetails: React.FC<LoanFromCommonProps> = ({
           setBusinessPremiseDetails(modifiedData);
         }
 
-        reset(BusinessPremiseDetailsApiResponse.data);
+        reset({
+          ...BusinessPremiseDetailsApiResponse.data,
+          trading_address: {
+            ...EMPTY_TRADING_ADDRESS,
+            ...(BusinessPremiseDetailsApiResponse.data.trading_address_for_form || BusinessPremiseDetailsApiResponse.data.trading_address || {})
+          }
+        });
+
       } else {
         showToast(BusinessPremiseDetailsApiResponse.status_message, {
           type: NotificationType.Error
@@ -174,23 +208,30 @@ const BusinessPremiseDetails: React.FC<LoanFromCommonProps> = ({
       trigger('registered_address.address_line');
     }
     if (tradingAddress) {
-      const lookedUpData = lookUpAddressFormatter(tradingAddress);
-
-      setValue(
-        'trading_address.post_code' as keyof BusinessPremiseDetailsType,
-        lookedUpData.pincode
-      );
-
-      setValue(
-        'trading_address.address_line' as keyof BusinessPremiseDetailsType,
-        lookedUpData.addressText
-      );
+      const tradingAddressData = {
+        address_line: tradingAddress.address_line || '',
+        town_city: tradingAddress.town_city || '',
+        post_code: tradingAddress.post_code || '',
+        premise_type: tradingAddress.premise_type || '',
+        start_date: tradingAddress.start_date || '',
+        end_date: tradingAddress.end_date || '',
+        trading_documents: tradingAddress.trading_documents || []
+      };
+      
+      setValue('trading_address', {
+        ...EMPTY_TRADING_ADDRESS,
+        ...(tradingAddressData ?? {})
+      });
 
       trigger(
         'trading_address.address_line' as keyof BusinessPremiseDetailsType
       );
+    } else {
+      // Initialize with empty object if no trading address data
+      setValue('trading_address', EMPTY_TRADING_ADDRESS);
+      trigger('trading_address');
     }
-  }, [registeredAddress, tradingAddress]);
+  }, [tradingAddress, registeredAddress, setValue, trigger]);
 
   const onSubmit: SubmitHandler<BusinessPremiseDetailsType> = async data => {
     setIsLoading(true);
@@ -255,10 +296,15 @@ const BusinessPremiseDetails: React.FC<LoanFromCommonProps> = ({
           'trading_address.leasehold.end_date',
           convertDateString(data.trading_address.end_date)
         );
-        formData.append(
-          'trading_address.leasehold.document',
-          data.trading_address.document[0]
-        );
+        // Handle trading documents
+        const tradingDocuments = getValues('trading_address.trading_documents' as any);
+        
+        if (tradingDocuments && Array.isArray(tradingDocuments) && tradingDocuments.length > 0) {
+          tradingDocuments.forEach((file: File) => {
+            // Send all documents with the correct field name as backend expects
+            formData.append('trading_address.leasehold.trading_documents', file);
+          });
+        }
       }
 
       const response = await businessPremiseDetailsPostAPI(formData, loanId);
@@ -338,140 +384,200 @@ const BusinessPremiseDetails: React.FC<LoanFromCommonProps> = ({
     return path.split('.').reduce((acc, part) => acc?.[part], obj);
   };
 
+
+
   const DocumentUpload = ({ itemName }) => {
-    const handleFileUpload = (files, itemName, isMultiple: boolean) => {
-      const fileList = isMultiple ? files : Array.from(files);
-      setValue(itemName, fileList);
-      trigger(itemName);
+    const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>, itemName: string) => {
+      const files = e.target.files;
+      if (!files) return;
+
+      const fileArray = Array.from(files);
+      const fieldName = itemName;
+      
+      // Append new files to existing ones
+      const currentFiles = getValues(fieldName as any) || [];
+      const updatedFiles = Array.isArray(currentFiles) 
+        ? [...currentFiles, ...fileArray] 
+        : [...(currentFiles ? [currentFiles] : []), ...fileArray];
+        
+      console.log(`📁 Adding ${fileArray.length} files. New total: ${updatedFiles.length}`);
+      
+      setValue(fieldName as keyof BusinessPremiseDetailsType, updatedFiles);
+      trigger(fieldName as keyof BusinessPremiseDetailsType);
+      
+      // Reset input so same files can be selected again if removed
+      e.target.value = '';
     };
 
-    const isMultiple = (
-      loanFormBusinessPremiseDetails.find(
-        i => i.type === 'file' && i.name === itemName
-      ) as fileControllerProps
-    ).isMultiple;
 
-    const fieldError = getNestedError(formState?.errors, itemName);
+    // const isMultiple = (
+    //   loanFormBusinessPremiseDetails.find(
+    //     i => i.type === 'file' && i.name === itemName
+    //   ) as fileControllerProps
+    // ).isMultiple;
+
+    const fieldName = itemName;
+    const rawWatchedFiles = watch(fieldName);
+const watchedFiles: File[] = Array.isArray(rawWatchedFiles)
+  ? rawWatchedFiles
+  : rawWatchedFiles
+  ? [rawWatchedFiles]
+  : [];
+
+    const fieldError = getNestedError(formState?.errors, fieldName);
+
+    const handleClose = (fileName) => {
+      const file = watchedFiles.filter(
+        word => word.name !== fileName
+      );
+      setValue(fieldName, file);
+      trigger(fieldName);
+    };
+
+
 
     return (
-      <div className="w-full rounded-lg border-2 px-[10px]">
-        <div
-          className={`accordion-title flex cursor-pointer items-center justify-between bg-white py-2 ${watchedFieldValues[itemName].length > 0 && 'text-[#00CC08]'} `}
-        >
-          <span
-            className={`accordion mb-4 flex text-[14px] ${
-              fieldError
-                ? 'text-red-500'
-                : watchedFieldValues[itemName].length > 0 && 'text-[#00CC08]'
-            }`}
-          >
-            <div
-              className={`mt-2 flex ${
-                fieldError
-                  ? 'text-red-500'
-                  : watchedFieldValues[itemName].length > 0 && 'text-[#00CC08]'
-              }`}
-            >
-              <img src={camera} /> <a className="mx-2">{'Upload Document'}</a>
+      <div className={`w-full rounded-2xl border transition-all duration-300 mb-6 bg-white ${
+        fieldError 
+          ? 'border-red-200 shadow-[0_0_0_1px_rgba(239,68,68,0.1)]' 
+          : watchedFiles.length > 0 
+            ? 'border-green-100 shadow-[0_8px_20px_-8px_rgba(34,197,94,0.1)]' 
+            : 'border-gray-100 shadow-[0_4px_12px_-2px_rgba(0,0,0,0.03)]'
+      }`}>
+        <div className="flex items-center justify-between px-5 pt-5 pb-2">
+          <div className="flex items-center gap-3">
+            <div className={`p-2 rounded-xl border ${
+              fieldError 
+                ? 'bg-red-50 border-red-100 text-red-500' 
+                : watchedFiles.length > 0 
+                  ? 'bg-green-50 border-green-100 text-green-500' 
+                  : 'bg-gray-50 border-gray-100 text-[#1A439A]'
+            }`}>
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg>
             </div>
-          </span>
-          {!fieldError && (
-            <span className="accordion-arrow">
-              {watchedFieldValues[itemName].length > 0 && <IoCheckmark />}
-            </span>
-          )}
+            <div>
+              <h4 className={`text-sm font-bold tracking-tight ${
+                fieldError ? 'text-red-600' : 'text-gray-800'
+              }`}>
+                Upload Documents
+              </h4>
+              <p className="text-[10px] text-gray-400 font-medium uppercase tracking-widest mt-0.5">
+                Proof of address / Premises
+              </p>
+            </div>
+          </div>
+          
+          <div className="flex items-center gap-3">
+            {watchedFiles.length > 0 && !fieldError && (
+              <div className="flex items-center gap-1.5 py-1.5 px-3 rounded-lg bg-green-50 border border-green-100 text-green-600 text-[11px] font-bold uppercase tracking-wider">
+                <IoCheckmark size={14} />
+                Complete
+              </div>
+            )}
+          </div>
         </div>
 
-        <div className="container mx-auto mb-4 mt-4 flex justify-center">
-          {watchedFieldValues[itemName].length > 0 ? (
-            watchedFieldValues[itemName].map((file, fileId) => {
-              return (
-                <span key={fileId} className="flex items-center gap-1">
-                  <PiFilesLight
-                    size={28}
-                    color={fieldError ? '#F44336' : '#00CC08'}
-                  />
-                  <span
-                    className={fieldError ? 'text-red-500' : 'text-[#00CC08]'}
-                  >
-                    {file.name}
-                  </span>
-                  <a onClick={() => handleClose(itemName, file.name)}>
-                    <IoMdClose color="#000000" className="font-medium" />
-                  </a>
-                </span>
-              );
-            })
-          ) : (
-            <div className="w-full rounded-lg">
-              <div className="m-4">
-                <div className="flex w-full items-center justify-center">
-                  <label
-                    className={`flex h-32 w-full flex-col border-[2px] border-dashed border-[#B7B7B7] ${
-                      fieldError && 'border-red-500'
-                    }`}
-                  >
-                    <div className="flex flex-col items-center justify-center pt-7">
-                      <input
-                        type="file"
-                        multiple={
-                          (
-                            loanFormBusinessPremiseDetails.find(
-                              i => i.type === 'file' && i.name === itemName
-                            ) as fileControllerProps
-                          ).isMultiple
-                        }
-                        onChange={event =>
-                          handleFileUpload(
-                            event.target.files,
-                            itemName,
-                            isMultiple
-                          )
-                        }
-                        className="opacity-0"
-                        accept={
-                          (
-                            loanFormBusinessPremiseDetails.find(
-                              i => i.type === 'file' && i.name === itemName
-                            ) as fileControllerProps
-                          ).memTypes
-                        }
-                      />
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        className={`h-8 w-8 ${
-                          fieldError ? 'text-red-500' : 'text-[#1A439A]'
-                        }`}
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
+        <div className="px-5 pb-5">
+          <div className="container mx-auto mt-4">
+            {watchedFiles.length > 0 && (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-5">
+                {watchedFiles.map((file, fileId) => {
+                  const isImage = file.type && file.type.startsWith('image/');
+                  const previewUrl = file instanceof File ? URL.createObjectURL(file) : (file as any).url;
+                  
+                  return (
+                    <div 
+                      key={fileId} 
+                      className="group relative flex items-center gap-3 p-3 rounded-2xl border border-gray-100 bg-white shadow-[0_2px_8px_-2px_rgba(0,0,0,0.04)] transition-all hover:shadow-[0_12px_24px_-8px_rgba(0,0,0,0.08)] hover:border-[#1A439A]/10"
+                    >
+                      <div className="flex-shrink-0 w-14 h-14 bg-gray-50 rounded-xl overflow-hidden flex items-center justify-center border border-gray-50">
+                        {isImage ? (
+                          <img 
+                            src={previewUrl} 
+                            alt="preview" 
+                            className="w-full h-full object-cover"
+                            onLoad={() => { if (file instanceof File) URL.revokeObjectURL(previewUrl); }}
+                          />
+                        ) : (
+                          <div className="flex flex-col items-center justify-center">
+                            <PiFilesLight size={24} className="text-[#1A439A]" />
+                            <span className="text-[9px] font-extrabold text-[#1A439A]/40 mt-0.5 uppercase">
+                              {file.type?.split('/')[1] || 'PDF'}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                      
+                      <div className="flex-grow min-w-0">
+                        <p className="text-[13px] font-bold text-gray-800 truncate leading-tight">
+                          {file.name}
+                        </p>
+                        <div className="flex items-center gap-2 mt-1.5">
+                          {/* <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span> */}
+                          <span className="text-[10px] text-gray-400 font-medium font-mono">
+                            {(file.size / (1024 * 1024)).toFixed(2)} MB
+                          </span>
+                        </div>
+                      </div>
+
+                      <button 
+                        type="button"
+                        onClick={() => handleClose(file.name)}
+                        className="flex-shrink-0 p-2 rounded-full hover:bg-red-50 text-gray-200 hover:text-red-500 transition-all opacity-0 group-hover:opacity-100 scale-90 group-hover:scale-100"
+                        title="Remove file"
                       >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth="2"
-                          d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
-                        />
-                      </svg>
-                      <p className="pt-1 text-sm tracking-wider text-gray-400 group-hover:text-gray-600"></p>
-                      <p
-                        className={`text-[12px] ${
-                          fieldError ? 'text-red-500' : 'text-[#1A449A]'
-                        } max-sm:text-[9px]`}
-                      >
-                        {'Upload Document'}
-                        {/* <a className={`text-black `}> or drag and drop </a> */}
-                      </p>
+                        <IoMdClose size={18} />
+                      </button>
                     </div>
-                  </label>
-                </div>
+                  );
+                })}
+              </div>
+            )}
+
+            {(watchedFiles.length === 0 || 
+              (loanFormBusinessPremiseDetails.find(i => i.type === 'file' && i.name === itemName) as fileControllerProps)?.isMultiple
+            ) && (
+              <div className="w-full">
+                <label
+                  className={`group relative flex h-36 w-full cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed transition-all duration-300 ${
+                    fieldError 
+                      ? 'border-red-200 bg-red-50/20' 
+                      : 'border-gray-200 bg-gray-50/30 hover:bg-white hover:border-[#1A439A]/30 hover:shadow-[0_8px_30px_-4px_rgba(26,67,154,0.05)]'
+                  }`}
+                >
+                  <input
+                    type="file"
+                    multiple={(loanFormBusinessPremiseDetails.find(i => i.type === 'file' && i.name === itemName) as fileControllerProps).isMultiple}
+                    onChange={event => handleFileUpload(event, itemName)}
+                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                    accept={(loanFormBusinessPremiseDetails.find(i => i.type === 'file' && i.name === itemName) as fileControllerProps).memTypes}
+                  />
+                  
+                  <div className={`p-4 rounded-2xl bg-white shadow-sm mb-3 transition-all duration-500 group-hover:-translate-y-1 group-hover:shadow-[0_12px_20px_-8px_rgba(26,67,154,0.2)] ${
+                    fieldError ? 'text-red-500 ring-4 ring-red-50' : 'text-[#1A439A]'
+                  }`}>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                  </div>
+                  
+                  <span className={`text-[15px] font-bold ${fieldError ? 'text-red-600' : 'text-gray-800'}`}>
+                    {watchedFiles.length > 0 ? 'Add more documents' : 'Choose files to upload'}
+                  </span>
+                  <p className="text-[11px] text-gray-400 mt-1.5 font-medium">
+                    Drag and drop or <span className="text-[#1A439A] underline decoration-2 underline-offset-4">browse local files</span>
+                  </p>
+                </label>
+              </div>
+            )}
+            
+            <div className="mt-5 pt-4 border-t border-gray-50 flex items-center justify-center">
+              <div className="flex items-center gap-2 py-1.5 px-4 rounded-full bg-gray-50/50 border border-gray-100">
+                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+                <p className={`text-[10px] font-bold tracking-tight uppercase ${fieldError ? 'text-red-500' : 'text-gray-400'}`}>
+                  JPG, PNG, GIF, SVG, WEBP & PDF • Max 10MB per file
+                </p>
               </div>
             </div>
-          )}
-        </div>
-        <div className={loanFormCommonStyleConstant.file.errorClass}>
-          <p className={fieldError ? 'mb-[12px] border-red-500' : ''}></p>
-          {fieldError && <p>{fieldError.message}</p>}
+          </div>
         </div>
       </div>
     );
@@ -615,8 +721,10 @@ const BusinessPremiseDetails: React.FC<LoanFromCommonProps> = ({
                 })}
               </div>
             </div>
-            <div className="grid grid-cols-1 gap-4 p-2">
-              <DocumentUpload itemName="trading_address.document" />{' '}
+            <div className="grid grid-cols-1 gap-2 p-2">
+              <DocumentUpload 
+                itemName="trading_address.trading_documents" 
+              />
             </div>
           </>
         )}
