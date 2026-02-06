@@ -14,7 +14,7 @@ import { QueryObject } from './types';
 interface Address {
   full_address: string;
   Company_Name: string;
-    Company_Number: string;
+  Company_Number: string;
 
 }
 
@@ -22,7 +22,7 @@ interface FormattedAddress {
   pincode: string;
   addressText: string;
   Company_Name: string;
-   Company_Number?: string;
+  Company_Number?: string;
 }
 
 export const lookUpAddressFormatter = (address: Address): FormattedAddress => {
@@ -33,7 +33,7 @@ export const lookUpAddressFormatter = (address: Address): FormattedAddress => {
   const keys = Object.keys(address);
   const pincode = address[keys[keys.length - 2]];
 
-  return { pincode, addressText, Company_Name,Company_Number };
+  return { pincode, addressText, Company_Name, Company_Number };
 };
 
 export const dateInSlashFromate = currentDate => {
@@ -112,9 +112,42 @@ export function getExtensionFromUrl(imageUrl: string): string {
 export const convertImageLinkToFile = async imageUrl => {
   try {
     const fileName = getNameFromUrl(imageUrl);
+    const extension = getExtensionFromUrl(imageUrl);
+
+    // Map file extensions to MIME types
+    const mimeTypeMap = {
+      'jpg': 'image/jpeg',
+      'jpeg': 'image/jpeg',
+      'png': 'image/png',
+      'gif': 'image/gif',
+      'svg': 'image/svg+xml',
+      'webp': 'image/webp',
+      'pdf': 'application/pdf'
+    };
+
     const response = await fetch(imageUrl);
+
+    // Check if the response is OK
+    if (!response.ok) {
+      console.error(`Failed to fetch file: ${response.status} ${response.statusText}`);
+      throw new Error(`Failed to fetch file: ${response.status}`);
+    }
+
     const blob = await response.blob();
-    const file = new File([blob], fileName, { type: blob.type });
+
+    // ALWAYS use the inferred MIME type from extension
+    // The server often returns incorrect MIME types (like text/html)
+    const mimeType = mimeTypeMap[extension] || blob.type;
+
+    console.log('📁 Converting file:', {
+      fileName,
+      extension,
+      serverMimeType: blob.type,
+      inferredMimeType: mimeType,
+      finalMimeType: mimeType
+    });
+
+    const file = new File([blob], fileName, { type: mimeType });
     return file;
   } catch (error) {
     console.error('Error converting image to file:', error);

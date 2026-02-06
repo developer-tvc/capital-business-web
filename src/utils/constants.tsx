@@ -2074,10 +2074,24 @@ export const loanFormBusinessPremiseDetails: FundingFormFieldType[] = [
     }
   },
   {
-    name: 'trading_address.document',
+    name: 'trading_address.documents',
     // label: "Address File Upload",
     type: 'file',
-    isMultiple: false,
+    isMultiple: true,
+    isRequired: true,
+    memTypes:
+      'image/jpg, image/gif, image/png, image/jpeg, image/svg+xml, image/webp, application/pdf',
+    icon: () => {
+      return (
+        <CiPassport1 color="#929292" className="h-4 w-4 rtl:rotate-[270deg]" />
+      );
+    }
+  },
+  {
+    name: 'trading_address.trading_documents',
+    // label: "Trading Documents Upload",
+    type: 'file',
+    isMultiple: true,
     isRequired: true,
     memTypes:
       'image/jpg, image/gif, image/png, image/jpeg, image/svg+xml, image/webp, application/pdf',
