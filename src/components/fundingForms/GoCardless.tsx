@@ -62,8 +62,8 @@ const GoCardLess: React.FC<LoanFromCommonProps> = ({
   const isFundingInProgress = [
     FundingFromCurrentStatus.Inprogress,
     FundingFromCurrentStatus.Submitted,
-    FundingFromCurrentStatus.UnderwriterReturned,
-    FundingFromCurrentStatus.AgentSubmitted
+    // FundingFromCurrentStatus.UnderwriterReturned,
+    // FundingFromCurrentStatus.AgentSubmitted
 
   ].includes(fundingFormStatus);
   const [isBankDetailsAdded, setIsBankDetailsAdded] = useState(false);
@@ -237,6 +237,7 @@ const GoCardLess: React.FC<LoanFromCommonProps> = ({
               seuUpdatedPrimaryAccount={setUpdatedPrimaryAccount}
               isFundingInProgress={isFundingInProgress}
               loanId={loanId}
+              fundingFormStatus={fundingFormStatus}
               onRevokeSuccess={() => {
                 // Add to revoked cards and refresh data
                 setRevokedCardIds(prev => new Set([...prev, statement.statement_id]));

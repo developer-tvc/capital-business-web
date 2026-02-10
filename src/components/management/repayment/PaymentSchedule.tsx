@@ -113,15 +113,17 @@ const PaymentSchedule = ({ loanId, setRef, setIsUwRepaymentComplete }) => {
     if (currentDynamicPlanFields.length > 0) {
       const total_to_be_collected = currentDynamicPlanFields.reduce(
         (acc, curr) => {
-          return acc + (curr.amount || 0);
+          return acc + parseFloat((curr.amount || 0).toFixed(2));
         },
         0
       );
-      setPendingAmount(totalPendingDueToCollect - total_to_be_collected);
+      const roundedTotal = parseFloat(total_to_be_collected.toFixed(2));
+      const remaining = parseFloat((totalPendingDueToCollect - roundedTotal).toFixed(2));
+      setPendingAmount(remaining);
     } else {
-      setPendingAmount(methods.getValues('amount_per_week'));
+      setPendingAmount(totalPendingDueToCollect);
     }
-  }, [currentDynamicPlanFields, handleDelete]);
+  }, [currentDynamicPlanFields, handleDelete, totalPendingDueToCollect]);
 
   const fetchDataFromApi = async (loanId: string) => {
     try {
@@ -139,6 +141,7 @@ const PaymentSchedule = ({ loanId, setRef, setIsUwRepaymentComplete }) => {
         });
       }
     } catch (error) {
+      console.log(error,"error");
       showToast('something wrong!', { type: NotificationType.Error });
     }
   };
@@ -235,11 +238,11 @@ const PaymentSchedule = ({ loanId, setRef, setIsUwRepaymentComplete }) => {
               </span>
             </button>
             <button
-              onClick={pendingAmount > 0 ? openModal : undefined}
+              onClick={pendingAmount > 0.01 ? openModal : undefined}
               className="flex items-center gap-2 rounded bg-white px-4 py-2 shadow transition hover:bg-gray-100"
               style={{
-                color: pendingAmount > 0 ? '#1A439A' : 'grey',
-                cursor: pendingAmount > 0 ? 'pointer' : 'not-allowed'
+                color: pendingAmount > 0.01 ? '#1A439A' : 'grey',
+                cursor: pendingAmount > 0.01 ? 'pointer' : 'not-allowed'
               }}
             >
               <IoMdAdd size={16} />

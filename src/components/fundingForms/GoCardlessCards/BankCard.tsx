@@ -6,7 +6,7 @@ import { primaryBankAccountApi } from '../../../api/loanServices';
 import build from '../../../assets/svg/gocard_bank.svg';
 import { authSelector } from '../../../store/auth/userSlice';
 import { declarationCheckboxStyle } from '../../../utils/constants';
-import { Roles } from '../../../utils/enums';
+import { FundingFromCurrentStatus, Roles } from '../../../utils/enums';
 import { NotificationType } from '../../../utils/hooks/toastify/enums';
 import useToast from '../../../utils/hooks/toastify/useToast';
 import RevokedRequisitionModal from './RevokedRequisitionModal';
@@ -20,7 +20,8 @@ const BankCard = ({
   setIsGocardless,
   isFundingInProgress,
   loanId,
-  onRevokeSuccess
+  onRevokeSuccess,
+  fundingFormStatus
 }) => {
   const { role } = useSelector(authSelector);
   const { showToast } = useToast();
@@ -70,6 +71,34 @@ const BankCard = ({
       showToast('Something went wrong!', { type: NotificationType.Error });
     }
   };
+console.log("BANK:", statement.bank_name, {
+  continue_with_gocardless: statement.continue_with_gocardless,
+  institution_id: statement.institution_id,
+  requisition_id: statement.requisition_id
+});
+// ---- TEST / SANDBOX BANK ----
+const isTestBank = Boolean(
+  statement?.institution_id?.includes("SANDBOX")
+);
+
+// ---- ROLES (ONLY THESE CAN SEE) ----
+const allowRoles = [
+  Roles.Admin,
+  Roles.UnderWriter,
+  Roles.Manager
+].includes(role);
+
+// Hide ONLY when status is Inprogress
+const isInProgress =
+  fundingFormStatus === FundingFromCurrentStatus.Inprogress;
+
+// ---- FINAL DECISION ----
+const showThreeDots =
+  allowRoles &&
+  !isTestBank &&
+  !isInProgress;
+
+
 
   return (
     <div
@@ -127,7 +156,8 @@ const BankCard = ({
           </label>
         </div>
 
-        {isHigherAuthority && !isFundingInProgress && (
+        {/* {isHigherAuthority && !isFundingInProgress && ( */}
+        {showThreeDots && (
           <div
             className="cursor-pointer"
             onClick={() => {

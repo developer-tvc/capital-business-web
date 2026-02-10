@@ -61,9 +61,13 @@ const AddPaymentSchedule = ({
       methods.getValues('adjustment_plans') || [];
 
     const lastAmount = editingSchedule
-      ? pendingAmount + editingSchedule.amount
-      : pendingAmount;
-    if (data.amount > lastAmount) {
+      ? parseFloat((pendingAmount + editingSchedule.amount).toFixed(2))
+      : parseFloat(pendingAmount.toFixed(2));
+    
+    const enteredAmount = parseFloat(parseFloat(data.amount).toFixed(2));
+    
+    // Use a small tolerance for floating-point comparison
+    if (enteredAmount > lastAmount + 0.01) {
       setError(
         'Exceeds pending amount, please check installments and amount entered !!'
       );
@@ -135,8 +139,8 @@ const AddPaymentSchedule = ({
   useEffect(() => {
     if (watchAmount) {
       const lastAmount = editingSchedule
-        ? pendingAmount + editingSchedule.amount - parseInt(watchAmount)
-        : pendingAmount - watchAmount;
+        ? pendingAmount + editingSchedule.amount - parseFloat(watchAmount)
+        : pendingAmount - parseFloat(watchAmount);
       setRemainingAmount(lastAmount);
       setError(null);
     }
