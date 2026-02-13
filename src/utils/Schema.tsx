@@ -833,7 +833,8 @@ export const DocumentationUploadsSchema = yup.object().shape({
     .transform(function(value) {
       // Handle array case - extract first element if it's an array
       if (Array.isArray(value)) {
-        return value.length > 0 ? value[0] : false;
+        // Return undefined for empty arrays to skip validation
+        return value.length > 0 ? value[0] : undefined;
       }
       // Handle empty string case
       if (value === '' || value === undefined || value === null) {
@@ -854,8 +855,10 @@ export const DocumentationUploadsSchema = yup.object().shape({
         'other_files'
       ],
       (files, sch) => {
-        return files.some(file => file && file.length > 0)
-          ? sch.required().oneOf([true], 'Must agree the Agreement')
+        // Only require checkbox when at least one file is uploaded
+        const hasFiles = files.some(file => Array.isArray(file) && file.length > 0);
+        return hasFiles
+          ? sch.required('Self declared acknowledgment statement is required').oneOf([true], 'Must agree the Agreement')
           : sch.notRequired();
       }
     )
