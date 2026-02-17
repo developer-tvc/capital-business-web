@@ -42,6 +42,7 @@ const sendDirectDebitLinkUrl = `${baseUrl}/direct_debit_email/`;
 const reSendContractEmailUrl = `${baseUrl}/send_contract_reminder_email/`;
 const getContractUrl = `${baseUrl}/contract/`;
 const getDebitUrl = `${baseUrl}/direct_debit_detail/`;
+const previewContractUrl = `${baseUrl}/preview_contract/`;
 const paymentUrl = `${baseUrl}/payments/`;
 // const companyUrl = `${baseUrl}/company/`;
 const companyDetailsUrl = `${baseUrl}/company/`;
@@ -493,6 +494,13 @@ const getContractApi = (loanId: string) => {
 const getDebitApi = (loanId: string) => {
   return Get({
     url: `${getDebitUrl}${loanId}`,
+    request: {}
+  });
+};
+
+const getPreviewContractApi = (loanId: string) => {
+  return Get({
+    url: `${previewContractUrl}${loanId}/`,
     request: {}
   });
 };
@@ -1329,6 +1337,7 @@ export {
   customersGetList,
   sendDirectDebitLinkApi,
   getDebitApi,
+  getPreviewContractApi,
   loanSummaryByCustomer,
   corporateGuarantorGetAPI,
   corporateGuarantorPostAPI,
