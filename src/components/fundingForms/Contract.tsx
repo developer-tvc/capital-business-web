@@ -7,6 +7,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import {
   getContractApi,
   getDebitApi,
+  getPreviewContractApi,
   reSendContractEmailApi,
   regenerateAndSendContractEmailApi,
   sendContractEmailApi,
@@ -142,6 +143,7 @@ const Contract: React.FC<LoanFromCommonProps> = ({
     useState(false);
   // const [contractPdf, setContractPdf] = useState(null);
   const [contractResponse, setContractResponse] = useState(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const dispatch = useDispatch();
   const [contractApiStatus, setContractApiStatus] = useState<
     'idle' | 'loading' | 'fulfilled' | 'waiting' | 'error'
@@ -278,6 +280,18 @@ const Contract: React.FC<LoanFromCommonProps> = ({
     }
   };
 
+  const fetchPreviewContractApi = async (loanId: string) => {
+    try {
+      const response = await getPreviewContractApi(loanId);
+      if (response.status_code >= 200 && response.status_code < 300) {
+        setPreviewUrl(response.data?.preview_url || null);
+      }
+    } catch (error) {
+      console.log('Preview contract API error:', error);
+      // Silently fail - button just won't show
+    }
+  };
+
   const handleSignContract = async () => {
     setIsContractSendConfirmModal(false);
 
@@ -350,6 +364,7 @@ const Contract: React.FC<LoanFromCommonProps> = ({
     if (role !== Roles.FieldAgent) {
       fetchContractApi(loanId || loan.id);
       fetchDebitApi(loanId || loan.id);
+      fetchPreviewContractApi(loanId || loan.id);
     }
   }, [loanId, loan.id]);
 
@@ -361,16 +376,28 @@ const Contract: React.FC<LoanFromCommonProps> = ({
     return (
       <div className="p-4">
         {isSigned && (
-          <div className="flex">
+          <div className="flex items-center justify-between">
             <h2 className="mb-4 text-[16px] font-bold">{'Contract'}</h2>
-            <div>
+            <div className="flex gap-4">
+              {previewUrl && (
+                <p
+                  className="flex cursor-pointer items-center pr-4 text-[12px] font-medium text-[#1A439A]"
+                  onClick={() => {
+                    window.open(previewUrl, '_blank');
+                  }}
+                >
+                  <img src={eye} alt="eye" className="px-2" />
+                  {'PREVIEW'}
+                </p>
+              )}
               <p
-                className="flex pr-4 text-[12px] font-medium text-[#1A439A]"
+                className="flex cursor-pointer items-center pr-4 text-[12px] font-medium text-[#1A439A]"
                 onClick={() => {
                   window.open(contractResponse?.signed_pdf, '_blank');
                 }}
               >
-                <img src={eye} alt="eye" className="px-2" /> {'VIEW'}
+                <img src={eye} alt="eye" className="px-2" />
+                {'VIEW'}
               </p>
             </div>
           </div>
@@ -406,19 +433,33 @@ const Contract: React.FC<LoanFromCommonProps> = ({
                 }`}
                 onClick={() => setOpenContract(prevProps => !prevProps)}
               >
-                <div className="flex items-center justify-between">
-                  {isContractSend && (
-                    <span className="accordion-tick">
-                      <IoCheckmark className="mx-2" />
-                    </span>
-                  )}
-                  <span className="flex items-center gap-x-2 max-sm:text-[12px]">
-                    {' '}
-                    <CiMail className="mt-[1px] h-5 w-5" />
-                    {isContractSend || isSigned
+                <div className="flex w-full items-center justify-between">
+                  <div className="flex items-center gap-4">
+                    {isContractSend && (
+                      <span className="accordion-tick">
+                        <IoCheckmark className="mx-2" />
+                      </span>
+                    )}
+                    <span className="flex items-center gap-x-2 max-sm:text-[12px]">
+                      {' '}
+                      <CiMail className="mt-[1px] h-5 w-5" />
+                      {isContractSend || isSigned
                       ? 'Contract'
-                      : 'Send Contract Sign Email and Direct debit'}
-                  </span>
+                        : 'Send Contract Sign Email and Direct debit'}
+                    </span>
+                    {previewUrl && (isContractSend || isSigned) && (
+                      <p
+                        className="flex cursor-pointer items-center text-[12px] font-medium text-[#1A439A]"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          window.open(previewUrl, '_blank');
+                        }}
+                      >
+                        <img src={eye} alt="eye" className="px-2" />
+                        {'PREVIEW'}
+                      </p>
+                    )}
+                  </div>
                 </div>
                 {isContractSend || isSigned ? (
                   isSigned ? (
