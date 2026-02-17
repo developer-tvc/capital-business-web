@@ -830,36 +830,16 @@ export const DocumentationUploadsSchema = yup.object().shape({
 
   document_upload_self_declaration: yup
     .mixed()
-    .transform(function(value) {
-      // Handle array case - extract first element if it's an array
-      if (Array.isArray(value)) {
-        // Return undefined for empty arrays to skip validation
-        return value.length > 0 ? value[0] : undefined;
-      }
-      // Handle empty string case
-      if (value === '' || value === undefined || value === null) {
-        return undefined;
-      }
-      // Return as boolean
-      return Boolean(value);
-    })
-    .when(
-      [
-        'photo',
-        'passport',
-        'driving_license',
-        'utility_bill',
-        'council_tax',
-        'lease_deed',
-        // 'business_account_statements',
-        'other_files'
-      ],
-      (files, sch) => {
-        // Only require checkbox when at least one file is uploaded
-        const hasFiles = files.some(file => Array.isArray(file) && file.length > 0);
-        return hasFiles
-          ? sch.required('Self declared acknowledgment statement is required').oneOf([true], 'Must agree the Agreement')
-          : sch.notRequired();
+    .test(
+      'is-checked',
+      'Must agree the Agreement',
+      function (value) {
+        // Validation logic for checkbox value
+        // Handles: true, "true", "1", [true], ["true"], ["1"]
+        if (Array.isArray(value)) {
+          return value.length > 0 && (value[0] === true || value[0] === 'true' || value[0] === '1');
+        }
+        return value === true || value === 'true' || value === '1';
       }
     )
 });

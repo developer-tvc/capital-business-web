@@ -171,7 +171,7 @@ const IdentityVerification: React.FC<LoanFromCommonProps> = ({
                         {/* View Certificate */}
                         {![Roles.Customer, Roles.Leads].includes(
                           role as Roles
-                        ) && (
+                        ) && kyc?.certificate && (
                           <a
                             href={`${baseUrl}${kyc?.certificate}`}
                             target="_blank"
