@@ -207,16 +207,17 @@ const BusinessPremiseDetails: React.FC<LoanFromCommonProps> = ({
       trigger('registered_address.address_line');
     }
     if (tradingAddress) {
+      const lookedUpData = lookUpAddressFormatter(tradingAddress);
       const tradingAddressData = {
-        address_line: tradingAddress.address_line || '',
+        address_line: lookedUpData.addressText || '',
         town_city: tradingAddress.town_city || '',
-        post_code: tradingAddress.post_code || '',
+        post_code: lookedUpData.pincode || '',
         premise_type: tradingAddress.premise_type || '',
         start_date: tradingAddress.start_date || '',
         end_date: tradingAddress.end_date || '',
         trading_documents: tradingAddress.trading_documents || []
       };
-      
+
       setValue('trading_address', {
         ...EMPTY_TRADING_ADDRESS,
         ...(tradingAddressData ?? {})

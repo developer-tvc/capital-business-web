@@ -379,7 +379,7 @@ const Contract: React.FC<LoanFromCommonProps> = ({
           <div className="flex items-center justify-between">
             <h2 className="mb-4 text-[16px] font-bold">{'Contract'}</h2>
             <div className="flex gap-4">
-              {previewUrl && (
+              {/* {previewUrl && (
                 <p
                   className="flex cursor-pointer items-center pr-4 text-[12px] font-medium text-[#1A439A]"
                   onClick={() => {
@@ -389,15 +389,14 @@ const Contract: React.FC<LoanFromCommonProps> = ({
                   <img src={eye} alt="eye" className="px-2" />
                   {'PREVIEW'}
                 </p>
-              )}
+              )} */}
               <p
-                className="flex cursor-pointer items-center pr-4 text-[12px] font-medium text-[#1A439A]"
+                 className="flex pr-4 text-[12px] font-medium text-[#1A439A]"
                 onClick={() => {
                   window.open(contractResponse?.signed_pdf, '_blank');
                 }}
               >
-                <img src={eye} alt="eye" className="px-2" />
-                {'VIEW'}
+                <img src={eye} alt="eye" className="px-2" /> {'VIEW'}
               </p>
             </div>
           </div>
@@ -433,33 +432,31 @@ const Contract: React.FC<LoanFromCommonProps> = ({
                 }`}
                 onClick={() => setOpenContract(prevProps => !prevProps)}
               >
-                <div className="flex w-full items-center justify-between">
-                  <div className="flex items-center gap-4">
-                    {isContractSend && (
-                      <span className="accordion-tick">
-                        <IoCheckmark className="mx-2" />
-                      </span>
-                    )}
-                    <span className="flex items-center gap-x-2 max-sm:text-[12px]">
-                      {' '}
-                      <CiMail className="mt-[1px] h-5 w-5" />
-                      {isContractSend || isSigned
-                      ? 'Contract'
-                        : 'Send Contract Sign Email and Direct debit'}
+                <div className="flex items-center justify-between">
+                  {isContractSend && (
+                    <span className="accordion-tick">
+                      <IoCheckmark className="mx-2" />
                     </span>
-                    {previewUrl && (isContractSend || isSigned) && (
-                      <p
-                        className="flex cursor-pointer items-center text-[12px] font-medium text-[#1A439A]"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          window.open(previewUrl, '_blank');
-                        }}
-                      >
-                        <img src={eye} alt="eye" className="px-2" />
-                        {'PREVIEW'}
-                      </p>
-                    )}
-                  </div>
+                  )}
+                  <span className="flex items-center gap-x-2 max-sm:text-[12px]">
+                    {' '}
+                    <CiMail className="mt-[1px] h-5 w-5" />
+                    {isContractSend || isSigned
+                      ? 'Contract'
+                      : 'Send Contract Sign Email and Direct debit'}
+                  </span>
+                  {previewUrl && (isContractSend || isSigned) && (
+                    <p
+                      className="flex cursor-pointer items-center text-[12px] font-medium text-[#1A439A]"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        window.open(previewUrl, '_blank');
+                      }}
+                    >
+                      <img src={eye} alt="eye" className="px-2" />
+                      {'PREVIEW'}
+                    </p>
+                  )}
                 </div>
                 {isContractSend || isSigned ? (
                   isSigned ? (
