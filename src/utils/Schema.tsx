@@ -832,7 +832,7 @@ export const DocumentationUploadsSchema = yup.object().shape({
     .mixed()
     .test(
       'is-checked',
-      'Must agree the Agreement',
+      'You must agree to the self-declaration acknowledgment statement.',
       function (value) {
         // Validation logic for checkbox value
         // Handles: true, "true", "1", [true], ["true"], ["1"]
