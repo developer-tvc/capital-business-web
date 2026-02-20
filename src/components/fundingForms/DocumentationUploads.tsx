@@ -143,6 +143,7 @@ const DocumentationUploads: React.FC<LoanFromCommonProps> = ({
       const response = await documentUploadGetAPI(loanId);
       if (response.status_code >= 200 && response.status_code < 300) {
         const modifiedData = await fetchAndConvertFiles(response.data);
+        modifiedData.document_upload_self_declaration = true;
         setPersonalInfo(modifiedData);
         reset(modifiedData);
       } else {
