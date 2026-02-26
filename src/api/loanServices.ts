@@ -104,6 +104,7 @@ const addressProofRejectUrl = `${baseUrl}/address-proof-changes-approval/`;
 const unitProfileRejectUrl = `${baseUrl}/company_approval/`;
 const transactionCategoryUrl = `${baseUrl}/transaction_category/`;
 const sendPapContractUrl = `${manageLoanBaseUrl}/send_pap_contract_email/`;
+const skipPapContractUrl = `${manageLoanBaseUrl}/skip_pap_contract/`;
 const downloadBankStatementUrl = `${baseUrl}/download_transactions/`;
 const bpAddRemoveUrl = `${baseUrl}/add_remove_unit_customers/`;
 const addMandateSubscriptionUrl = `${manageLoanBaseUrl}/add_gocardless_subscription/`; //need to change the url
@@ -1128,8 +1129,18 @@ const sendPapContractApi = loanId => {
   });
 };
 
-const downloadBankStatementApi = statementId => {
-  return Get({ url: `${downloadBankStatementUrl}${statementId}`, request: {} });
+const skipPapContractApi = loanId => {
+  return Post({
+    url: `${skipPapContractUrl}${loanId}/`,
+    request: {}
+  });
+};
+
+const downloadBankStatementApi = (statementId, type?: string) => {
+  const url = type 
+    ? `${downloadBankStatementUrl}${statementId}/?type=${type}`
+    : `${downloadBankStatementUrl}${statementId}`;
+  return Get({ url, request: {} });
 };
 
 const bpAddRemoveApi = async payload => {
@@ -1344,5 +1355,6 @@ export {
   corporateGuarantorPropertyPostAPI,
   corporateGuarantorPropertyGetAPI,
   getLoanStatement,
-  resentRequisitionAPI
+  resentRequisitionAPI,
+  skipPapContractApi
 };

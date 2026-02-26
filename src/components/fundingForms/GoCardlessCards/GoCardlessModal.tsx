@@ -48,6 +48,9 @@ const GoCardlessModal = ({
   const [openChipInput, setOpenChipInput] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [type, setType] = useState('payments');
+  const [creditDownloadData, setCreditDownloadData] = useState([]);
+  const [debitDownloadData, setDebitDownloadData] = useState([]);
+  const [allDownloadData, setAllDownloadData] = useState([]);
 
   const currentDate = new Date();
   const prevFiveYearDate = new Date(
@@ -363,12 +366,24 @@ const GoCardlessModal = ({
     setOpenChipInput(false);
   };
 
-  const [transactionData, setTransactionData] = useState([]);
+  // const [transactionData, setTransactionData] = useState([]);
 
   const downloadData = () => {
     handleReportDownload(
-      downloadBankStatementApi,
-      setTransactionData,
+      (id) => downloadBankStatementApi(id, 'credit'),
+      setCreditDownloadData,
+      showToast,
+      selectedId
+    );
+    handleReportDownload(
+      (id) => downloadBankStatementApi(id, 'debit'),
+      setDebitDownloadData,
+      showToast,
+      selectedId
+    );
+    handleReportDownload(
+      (id) => downloadBankStatementApi(id, 'all'),
+      setAllDownloadData,
       showToast,
       selectedId
     );
@@ -480,32 +495,74 @@ const GoCardlessModal = ({
           </div>
 
           {isGocardless && (
-            <div className="flex flex-col items-center gap-4 px-4 pt-4">
-              <CSVLink
-                data={transactionData}
-                filename={`statement-${selectedId}.csv`}
-                target="_blank"
-                onClick={event => {
-                  if (transactionData.length === 0 || bankData.length === 0) {
-                    event.preventDefault();
-                    showToast('No data available for download.', {
-                      type: NotificationType.Error
-                    });
-                  } else {
-                    showToast('Download started successfully!', {
-                      type: NotificationType.Success
-                    });
-                  }
-                }}
-                className="flex w-full cursor-pointer justify-between rounded border border-gray-300 p-4 text-[#929292]"
-              >
-                <div className="flex gap-2">
-                  <img src={download} alt="download" />
-                  <div>
-                    <a className="text-[14px]">{'Download Statement'}</a>
-                  </div>
-                </div>
-              </CSVLink>
+            <div className="flex flex-col gap-4 px-4 pt-4">
+              <div className="flex gap-2">
+                <CSVLink
+                  data={creditDownloadData}
+                  filename={`transactions_credit_${selectedId}.csv`}
+                  target="_blank"
+                  onClick={event => {
+                    if (creditDownloadData.length === 0) {
+                      event.preventDefault();
+                      showToast('No credit transactions available for download.', {
+                        type: NotificationType.Error
+                      });
+                    } else {
+                      showToast('Download started successfully!', {
+                        type: NotificationType.Success
+                      });
+                    }
+                  }}
+                  className="flex flex-1 cursor-pointer justify-center items-center gap-2 rounded border border-gray-300 p-3 text-[#1A439A] hover:bg-gray-50"
+                >
+                  <img src={download} alt="download" className="w-4 h-4" />
+                  <span className="text-[13px] font-medium">{'Credit'}</span>
+                </CSVLink>
+
+                <CSVLink
+                  data={debitDownloadData}
+                  filename={`transactions_debit_${selectedId}.csv`}
+                  target="_blank"
+                  onClick={event => {
+                    if (debitDownloadData.length === 0) {
+                      event.preventDefault();
+                      showToast('No debit transactions available for download.', {
+                        type: NotificationType.Error
+                      });
+                    } else {
+                      showToast('Download started successfully!', {
+                        type: NotificationType.Success
+                      });
+                    }
+                  }}
+                  className="flex flex-1 cursor-pointer justify-center items-center gap-2 rounded border border-gray-300 p-3 text-[#1A439A] hover:bg-gray-50"
+                >
+                  <img src={download} alt="download" className="w-4 h-4" />
+                  <span className="text-[13px] font-medium">{'Debit'}</span>
+                </CSVLink>
+
+                <CSVLink
+                  data={allDownloadData}
+                  filename={`transactions_all_${selectedId}.csv`}
+                  target="_blank"
+                  onClick={event => {
+                    if (allDownloadData.length === 0) {
+                      event.preventDefault();
+                      showToast('No transactions available for download.', {
+                        type: NotificationType.Error
+                      });
+                    } else {
+                      showToast('Download started successfully!', {
+                        type: NotificationType.Success
+                      });
+                    }
+                  }}
+                  className="flex flex-1 cursor-pointer justify-center items-center gap-2 rounded border border-gray-300 p-3 text-[#1A439A] hover:bg-gray-50"
+                >
+                  <img src={download} alt="download" className="w-4 h-4" />
+                  <span className="text-[13px] font-medium">{'All'}</span>
+                </CSVLink>
+              </div>
               {openStatements &&
                 bankData?.business_account_statements?.map(statement => (
                   <div
