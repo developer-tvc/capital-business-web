@@ -11,7 +11,8 @@ import {
   cancelPapPlan,
   deletePapPlan,
   getPapPlanById,
-  sendPapContractApi
+  sendPapContractApi,
+  skipPapContractApi
 } from '../../../api/loanServices';
 import { authSelector } from '../../../store/auth/userSlice';
 import { fieldClass, labelClass, PapFields } from '../../../utils/constants';
@@ -175,6 +176,25 @@ const PapDetailView = () => {
     }
   };
 
+  const handleSkipPap = async () => {
+    setIsLoading(true);
+    try {
+      const response = await skipPapContractApi(pap.contract_id);
+      if (response.status_code === 200) {
+        showToast(response.status_message, { type: NotificationType.Success });
+        fetchContractDetails(planId);
+      } else {
+        showToast(response.status_message || 'Something went wrong !', {
+          type: NotificationType.Error
+        });
+      }
+    } catch (error) {
+      showToast(error.message, { type: NotificationType.Error });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   // const isSigned= !!(adjustment_plans[0].signable_contract.signed_pdf?.signed_pdf&&adjustment_plans[0].signable_contract.signed_pdf!=="")
 
   const RenderButton = () => {
@@ -194,12 +214,20 @@ const PapDetailView = () => {
               {'Approve'}
             </button>
           ) : (
-            <button
-              onClick={() => handleSendContract()}
-              className="my-4 cursor-pointer rounded-lg bg-color-text-secondary bg-green-700 px-10 py-2 text-[14px] font-medium uppercase text-white hover:bg-green-800"
-            >
-              {'Send Contract'}
-            </button>
+            <div className="flex gap-4">
+              <button
+                onClick={() => handleSkipPap()}
+                className="my-4 cursor-pointer rounded-lg bg-orange-600 px-6 py-2 text-[14px] font-medium uppercase text-white hover:bg-orange-700"
+              >
+                {'Skip PAP'}
+              </button>
+              <button
+                onClick={() => handleSendContract()}
+                className="my-4 cursor-pointer rounded-lg bg-color-text-secondary bg-green-700 px-10 py-2 text-[14px] font-medium uppercase text-white hover:bg-green-800"
+              >
+                {'Send Contract'}
+              </button>
+            </div>
           )}
           <button
             onClick={handleDelete}

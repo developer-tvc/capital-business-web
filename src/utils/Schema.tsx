@@ -1251,6 +1251,9 @@ export const dynamicPaymentScheduleSchema = yup.object().shape({
   start_date: yup
     .string()
     .transform(originalValue => {
+      if (originalValue === null || originalValue === undefined) {
+        return undefined; // undefined triggers .required() correctly; null does NOT when .nullable() is used
+      }
       const date = new Date(originalValue);
       if (!isNaN(date.getTime())) {
         const year = date.getFullYear();
