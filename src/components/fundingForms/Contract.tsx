@@ -30,6 +30,7 @@ import useToast from '../../utils/hooks/toastify/useToast';
 import { LoanFromCommonProps } from '../../utils/types';
 import Loader from '../Loader';
 import ContractSignConfirmation from './modals/ContractSignConfirmationModal';
+import AgreementPreviewModal from './modals/AgreementPreviewModal';
 
 export const badgeClassesHead = [
   {
@@ -143,7 +144,8 @@ const Contract: React.FC<LoanFromCommonProps> = ({
     useState(false);
   // const [contractPdf, setContractPdf] = useState(null);
   const [contractResponse, setContractResponse] = useState(null);
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [previewData, setPreviewData] = useState<Record<string, unknown> | null>(null);
+  const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
   const dispatch = useDispatch();
   const [contractApiStatus, setContractApiStatus] = useState<
     'idle' | 'loading' | 'fulfilled' | 'waiting' | 'error'
@@ -284,7 +286,14 @@ const Contract: React.FC<LoanFromCommonProps> = ({
     try {
       const response = await getPreviewContractApi(loanId);
       if (response.status_code >= 200 && response.status_code < 300) {
-        setPreviewUrl(response.data?.preview_url || null);
+        // Store the full agreement data object for the modal
+        const { preview_url, ...agreementData } = response.data || {};
+        if (Object.keys(agreementData).length > 0) {
+          setPreviewData(agreementData);
+        } else if (response.data) {
+          // If there's no extra data apart from preview_url, store the whole object
+          setPreviewData(response.data);
+        }
       }
     } catch (error) {
       console.log('Preview contract API error:', error);
@@ -445,12 +454,12 @@ const Contract: React.FC<LoanFromCommonProps> = ({
                       ? 'Contract'
                       : 'Send Contract Sign Email and Direct debit'}
                   </span>
-                  {previewUrl && (isContractSend || isSigned) && (
+                  {previewData && (isContractSend || isSigned) && (
                     <p
                       className="flex cursor-pointer items-center text-[12px] font-medium text-[#1A439A]"
                       onClick={(e) => {
                         e.stopPropagation();
-                        window.open(previewUrl, '_blank');
+                        setIsPreviewModalOpen(true);
                       }}
                     >
                       <img src={eye} alt="eye" className="px-2" />
@@ -714,6 +723,11 @@ const Contract: React.FC<LoanFromCommonProps> = ({
         setUpdateRateOfInterest={setRateOfInterest}
         InterestOld={12}
         InterestNew={rateOfInterest}
+      />
+      <AgreementPreviewModal
+        isOpen={isPreviewModalOpen}
+        onClose={() => setIsPreviewModalOpen(false)}
+        data={previewData}
       />
     </>
   );
