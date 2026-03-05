@@ -185,7 +185,11 @@ const financeEntryPostApi = async (payload: {
 };
 
 //business-partner-group-create Api
-const bpGroupPostApi = async (payload: { group_name: string; id?: string }) => {
+const bpGroupPostApi = async (payload: {
+  group_name: string;
+  gl_account?: string;
+  id?: string;
+}) => {
   const subCategoryUrl = `${businessPartnerGroupsGetUrl}`;
   return Post({ url: subCategoryUrl, request: payload });
 };
