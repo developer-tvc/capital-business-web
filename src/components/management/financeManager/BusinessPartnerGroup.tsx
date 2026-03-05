@@ -4,7 +4,8 @@ import { RxCross2 } from 'react-icons/rx';
 import {
   bpGroupDeleteApi,
   bpGroupGetApi,
-  bpGroupPostApi
+  bpGroupPostApi,
+  generalLedgerGetApi
 } from '../../../api/financeManagerServices';
 import threeDots from '../../../assets/svg/threeDots.svg';
 import { NotificationType } from '../../../utils/hooks/toastify/enums';
@@ -28,6 +29,8 @@ const BusinessPartnerGroup: React.FC = () => {
   const [errorMessage, setErrorMessage] = useState('');
   const [isAction, setIsAction] = useState(false);
   const [actionLeadId, setActionLeadId] = useState<string | null>(null);
+  const [glList, setGlList] = useState<any[]>([]);
+  const [selectedGlAccount, setSelectedGlAccount] = useState('');
 
   const {
     data,
@@ -44,7 +47,19 @@ const BusinessPartnerGroup: React.FC = () => {
   useEffect(() => {
     setIsLoading(true);
     callPaginate();
+    fetchGLAccounts();
   }, []);
+
+  const fetchGLAccounts = async () => {
+    try {
+      const response = await generalLedgerGetApi();
+      if (response && response.data) {
+        setGlList(response.data);
+      }
+    } catch (error) {
+      console.error('Error fetching GL accounts:', error);
+    }
+  };
 
   useEffect(() => {
     if (data) {
@@ -61,9 +76,14 @@ const BusinessPartnerGroup: React.FC = () => {
     }
   }, [userPaginateException]);
 
-  const openModal = (groupName = '', groupId: string | null = null) => {
+  const openModal = (
+    groupName = '',
+    groupId: string | null = null,
+    glAccount = ''
+  ) => {
     setBpGroupName(groupName);
     setEditingGroupId(groupId);
+    setSelectedGlAccount(glAccount);
     setIsAddEditModalOpen(true);
     setErrorMessage('');
   };
@@ -72,6 +92,7 @@ const BusinessPartnerGroup: React.FC = () => {
     setIsAddEditModalOpen(false);
     setBpGroupName('');
     setEditingGroupId(null);
+    setSelectedGlAccount('');
   };
 
   const openDeleteModal = (groupId: string) => {
@@ -95,8 +116,12 @@ const BusinessPartnerGroup: React.FC = () => {
 
     try {
       const payload = editingGroupId
-        ? { group_name: bpGroupName, id: editingGroupId }
-        : { group_name: bpGroupName };
+        ? {
+            group_name: bpGroupName,
+            id: editingGroupId,
+            gl_account: selectedGlAccount
+          }
+        : { group_name: bpGroupName, gl_account: selectedGlAccount };
       const response = await bpGroupPostApi(payload);
       if (response.status_code >= 200 && response.status_code < 300) {
         showToast(response.status_message, { type: NotificationType.Success });
@@ -161,7 +186,7 @@ const BusinessPartnerGroup: React.FC = () => {
                       openDeleteModal(group.id);
                     }}
                     setIsEditModalOpen={() => {
-                      openModal(group.group_name, group.id);
+                      openModal(group.group_name, group.id, group.gl_account);
                     }}
                   />
                 </div>
@@ -220,6 +245,19 @@ const BusinessPartnerGroup: React.FC = () => {
                 onChange={handleInputChange}
                 className="my-2 w-full rounded border px-3 py-2 leading-tight text-[#737373] focus:outline-none"
               />
+              <select
+                id="glAccount"
+                value={selectedGlAccount}
+                onChange={e => setSelectedGlAccount(e.target.value)}
+                className="my-2 w-full rounded border px-3 py-2 leading-tight text-[#737373] focus:outline-none"
+              >
+                <option value="">Select General Ledger</option>
+                {glList.map((gl, index) => (
+                  <option key={index} value={gl.id}>
+                    {gl.gl_code} - {gl.gl_name}
+                  </option>
+                ))}
+              </select>
               {errorMessage && (
                 <p className="mt-1 text-sm text-red-500">{errorMessage}</p>
               )}
