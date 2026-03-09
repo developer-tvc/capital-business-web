@@ -37,8 +37,7 @@ const PaymentSchedule = ({ loanId, setRef, setIsUwRepaymentComplete }) => {
   const {
     handleSubmit,
     watch,
-    trigger,
-    formState: { errors }
+    trigger
   } = methods;
 
   const { authenticated } = useAuth();
@@ -61,7 +60,7 @@ const PaymentSchedule = ({ loanId, setRef, setIsUwRepaymentComplete }) => {
     }
   }, [pendingAmount]);
 
-  const currentDynamicPlanFields = methods.getValues('adjustment_plans') || [];
+  const currentDynamicPlanFields = watch('adjustment_plans') || [];
 
   const handleDelete = () => {
     methods.setValue('adjustment_plans', []);
@@ -70,43 +69,133 @@ const PaymentSchedule = ({ loanId, setRef, setIsUwRepaymentComplete }) => {
   useEffect(() => {}, [watch('adjustment_plans')]);
   const { showToast } = useToast();
 
-  const onSubmit = async data => {
-    trigger();
+  const onError = (formErrors) => {
+    console.log('Form Validation Errors:', formErrors);
+    
+    // Helper to extract the first error message from the nested errors object
+    const getFirstError = (errorsObj) => {
+      if (!errorsObj) return null;
+      if (typeof errorsObj === 'string') return errorsObj;
+      if (errorsObj.message) return errorsObj.message;
+      
+      for (const key in errorsObj) {
+        const result = getFirstError(errorsObj[key]);
+        if (result) return result;
+      }
+      return null;
+    };
 
-    if (Object.values(errors).length > 0) {
+    const errorMessage = getFirstError(formErrors);
+    showToast(errorMessage || "Validation failed. Please check the required fields.", { 
+      type: NotificationType.Error,
+      autoClose: 6000 
+    });
+
+    // Automatically open the edit modal for the first entry with a validation error
+    if (formErrors.adjustment_plans) {
+      const plans = methods.getValues('adjustment_plans') || [];
+      // Find the first index that has an error in the adjustment_plans array
+      const errorIndex = formErrors.adjustment_plans.findIndex((err: any) => err !== undefined && err !== null);
+      
+      if (errorIndex !== -1 && plans[errorIndex]) {
+        setTimeout(() => {
+          setEditingSchedule(plans[errorIndex]);
+          setIsModalOpen(true);
+        }, 2000);
+      }
+    }
+  };
+
+  const onSubmit = async (data) => {
+    // 1. Trigger Yup validation
+    const isValid = await trigger();
+    if (!isValid) {
+      // trigger() populates errors in the background, but we already have onError for when handleSubmit fails.
+      // This onSubmit trigger is a fallback.
       return;
+    }
+
+    // 2. Comprehensive manual guard: check all plans for missing/invalid start_date
+    const schedulePlans = data.adjustment_plans || [];
+    
+    let invalidPlan = null;
+    const hasInvalidDate = schedulePlans.some(plan => {
+      const dateVal = plan.start_date;
+      const isInvalid = (
+        dateVal === null || 
+        dateVal === undefined || 
+        dateVal === "" || 
+        dateVal === "null" || 
+        dateVal === "1970-01-01"
+      );
+      if (isInvalid) {
+        invalidPlan = plan;
+      }
+      return isInvalid;
+    });
+
+    if (hasInvalidDate) {
+      showToast("One or more payment schedules are missing a valid Date of Debit. Please select a date for all schedules.", { 
+        type: NotificationType.Error,
+        autoClose: 6000
+      });
+      
+      // Automatically open the edit modal for the first invalid plan after a short delay
+      if (invalidPlan) {
+        setTimeout(() => {
+          setEditingSchedule(invalidPlan);
+          setIsModalOpen(true);
+        }, 1000);
+      }
+      return;
+    }
+
+    // 3. Rounding Logic
+    const weeklyInstallmentValue = methods.getValues('amount_per_week');
+    const weeklyInstallment = parseFloat(Number(weeklyInstallmentValue || 0).toFixed(2));
+    
+    const adjustmentPlansWithRoundedAmounts = schedulePlans.map(plan => ({
+      ...plan,
+      amount: parseFloat(Number(plan.amount).toFixed(2))
+    }));
+    
+    const total = adjustmentPlansWithRoundedAmounts.reduce((sum, plan) => sum + plan.amount, 0);
+    const totalRounded = parseFloat(total.toFixed(2));
+    const difference = parseFloat((weeklyInstallment - totalRounded).toFixed(2));
+    
+    // Adjust the last schedule's amount to match weekly installment exactly
+    if (Math.abs(difference) > 0.001 && adjustmentPlansWithRoundedAmounts.length > 0) {
+      const lastIndex = adjustmentPlansWithRoundedAmounts.length - 1;
+      adjustmentPlansWithRoundedAmounts[lastIndex].amount = parseFloat(
+        (adjustmentPlansWithRoundedAmounts[lastIndex].amount + difference).toFixed(2)
+      );
     }
 
     const tolerance = 1;
     if (Math.abs(pendingAmount) > tolerance) {
       showToast(
-        `Validation failed: Total amount in adjustment plans (${pendingAmount}) does not match the pending due (${totalPendingDueToCollect}).`,
+        `Validation failed: Total amount in adjustment plans does not match the pending due (${totalPendingDueToCollect}).`,
         { type: NotificationType.Error }
       );
       return;
     }
 
     try {
-      // API expects only adjustment_plans array
       const payload = {
-        adjustment_plans: data.adjustment_plans || []
+        adjustment_plans: adjustmentPlansWithRoundedAmounts
       };
       
       const response = await addPaymentScheduleAPI(payload, contractId);
       
       if (response.status_code === 200) {
         setIsUwRepaymentComplete(true);
-        showToast(response?.status_message, { type: NotificationType.Success });
+        showToast(response?.status_message || "Repayment schedule updated successfully", { type: NotificationType.Success });
       } else {
-        showToast('Something went wrong!', { type: NotificationType.Error });
+        showToast(response?.status_message || 'Something went wrong!', { type: NotificationType.Error });
       }
     } catch (error) {
-      showToast(error.message, { type: NotificationType.Error });
+      showToast(error.message || "Failed to update repayment schedule", { type: NotificationType.Error });
     }
-  };
-
-  const onError = () => {
-    // Form validation error
   };
 
   useEffect(() => {
@@ -314,45 +403,7 @@ const PaymentSchedule = ({ loanId, setRef, setIsUwRepaymentComplete }) => {
               <div className="mt-6 flex justify-end">
                 <button
                   type="button"
-                  onClick={async () => {
-                    const { addPaymentScheduleAPI } = await import('../../../api/loanServices');
-                    
-                    // Round amounts to 2 decimal places (backend expects decimals, not integers)
-                    const adjustmentPlansWithRoundedAmounts = currentDynamicPlanFields.map(plan => ({
-                      ...plan,
-                      amount: parseFloat(plan.amount.toFixed(2)) // Round to 2 decimals
-                    }));
-                    
-                    // Calculate total and adjust last amount to match weekly installment exactly
-                    const weeklyInstallment = parseFloat(methods.getValues('amount_per_week').toFixed(2));
-                    const total = adjustmentPlansWithRoundedAmounts.reduce((sum, plan) => sum + plan.amount, 0);
-                    const totalRounded = parseFloat(total.toFixed(2));
-                    const difference = parseFloat((weeklyInstallment - totalRounded).toFixed(2));
-                    
-                    // Adjust the last schedule's amount to match exactly (if needed)
-                    if (Math.abs(difference) > 0.001 && adjustmentPlansWithRoundedAmounts.length > 0) {
-                      const lastIndex = adjustmentPlansWithRoundedAmounts.length - 1;
-                      adjustmentPlansWithRoundedAmounts[lastIndex].amount = parseFloat(
-                        (adjustmentPlansWithRoundedAmounts[lastIndex].amount + difference).toFixed(2)
-                      );
-                    }
-                    
-                    const payload = {
-                      adjustment_plans: adjustmentPlansWithRoundedAmounts
-                    };
-                    
-                    try {
-                      const response = await addPaymentScheduleAPI(payload, loanId);
-                      
-                      if (response.status_code === 200) {
-                        showToast(response.status_message, { type: NotificationType.Success });
-                      } else {
-                        showToast(response.status_message || 'Failed to save payment schedule', { type: NotificationType.Error });
-                      }
-                    } catch (error) {
-                      showToast(error.message || 'Failed to save payment schedule', { type: NotificationType.Error });
-                    }
-                  }}
+                  onClick={() => handleSubmit(onSubmit, onError)()}
                   className="rounded bg-blue-900 px-6 py-2 text-sm font-medium text-white hover:bg-blue-800"
                 >
                   Submit Payment Schedule
