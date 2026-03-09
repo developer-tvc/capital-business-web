@@ -49,13 +49,30 @@ const AddPaymentSchedule = ({
     defaultValues: editingSchedule ? editingSchedule : {} // Initialize with editingSchedule if available
   });
 
+  // Safely parse a date value — treats null, undefined, or 1970 epoch (from backend null) as null.
+  const parseSafeDate = (val: unknown): Date | null => {
+    if (!val) return null;
+    const d = new Date(val as string | number | Date);
+    if (isNaN(d.getTime()) || d.getFullYear() <= 1970) return null;
+    return d;
+  };
+
   const {
     handleSubmit,
     // formState: { errors },
-    setValue // Destructure setValue from methods
+    setValue, // Destructure setValue from methods
+    setError: setFieldError
   } = dynamicPlanMethods;
 
   const onSubmit = data => {
+    // Hard guard: block submission if start_date is null/undefined/empty
+    if (!data.start_date) {
+      setFieldError('start_date', {
+        type: 'manual',
+        message: 'Date of Debit is required'
+      });
+      return;
+    }
     setIsLoading(true);
     const currentDynamicPlanFields =
       methods.getValues('adjustment_plans') || [];
@@ -100,6 +117,8 @@ const AddPaymentSchedule = ({
       // Autofill form fields with editingSchedule data
       setValue('amount', editingSchedule.amount);
       setValue('day_of_debit', editingSchedule.day_of_debit);
+      // Sanitize start_date: don't pre-fill if null or epoch (1970) from backend
+      setValue('start_date', parseSafeDate(editingSchedule.start_date));
     }
   }, [editingSchedule, setValue]);
 
@@ -204,6 +223,7 @@ const AddPaymentSchedule = ({
                     name: `start_date`,
                     // label: 'Date of Debit',
                     type: 'date',
+                    isRequired: true,
                     filterDates: filterDates
                   }}
                 />
