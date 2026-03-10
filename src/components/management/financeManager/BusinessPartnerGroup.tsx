@@ -165,19 +165,31 @@ const BusinessPartnerGroup: React.FC = () => {
 
   const renderTableData = () =>
     data.length > 0 ? (
-      data.map((group, index) => (
-        <div key={index} className="container mx-auto px-2 pt-2">
-          <div className="mb-4 flex items-center justify-between rounded-lg border border-gray-300 bg-white p-4">
-            <div className="font-semibold">{group.group_name}</div>
-            <div className="relative flex gap-2">
-              <img
-                src={threeDots}
-                onClick={() => {
-                  setActionLeadId(group.id);
-                  setIsAction(prevState => !prevState);
-                }}
-                className="cursor-pointer"
-              />
+      data.map((group, index) => {
+        const glDetail = glList.find(gl => gl.id === group.gl_account);
+        return (
+          <div key={index} className="container mx-auto px-2 pt-2">
+            <div className="mb-4 flex items-center justify-between rounded-lg border border-gray-300 bg-white p-4">
+              <div className="flex flex-col">
+                <div className="font-semibold text-[#1A439A]">
+                  {group.group_name}
+                </div>
+                {glDetail && (
+                  <div className="text-[12px] text-gray-500">
+                    {glDetail.gl_code} - {glDetail.gl_name}
+                  </div>
+                )}
+              </div>
+              <div className="relative flex gap-2">
+                <img
+                  src={threeDots}
+                  onClick={() => {
+                    setActionLeadId(group.id);
+                    setIsAction(prevState => !prevState);
+                  }}
+                  className="cursor-pointer"
+                  alt="Actions"
+                />
               {isAction && actionLeadId === group.id && (
                 <div className="absolute right-0 top-0 z-10 mt-8">
                   <ActionModal
@@ -194,8 +206,9 @@ const BusinessPartnerGroup: React.FC = () => {
             </div>
           </div>
         </div>
-      ))
-    ) : (
+      );
+    })
+  ) : (
       <div className="py-4 text-center">{'No data available'}</div>
     );
 
