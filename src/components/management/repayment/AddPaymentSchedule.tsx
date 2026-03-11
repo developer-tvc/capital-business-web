@@ -165,6 +165,22 @@ const AddPaymentSchedule = ({
     }
   }, [watchAmount, pendingAmount]);
 
+  const getMinSelectableDate = (daysCount: number): Date => {
+    let result = new Date();
+    let addedDays = 0;
+    while (addedDays < daysCount) {
+      result.setDate(result.getDate() + 1);
+      const day = result.getDay();
+      if (day !== 0 && day !== 6) {
+        // Skip Sunday (0) and Saturday (6)
+        addedDays++;
+      }
+    }
+    return result;
+  };
+
+  const minDate = getMinSelectableDate(5);
+
   return (
     <FormProvider {...dynamicPlanMethods}>
       <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto overflow-x-hidden bg-black bg-opacity-50">
@@ -224,7 +240,8 @@ const AddPaymentSchedule = ({
                     // label: 'Date of Debit',
                     type: 'date',
                     isRequired: true,
-                    filterDates: filterDates
+                    filterDates: filterDates,
+                    min: minDate
                   }}
                 />
               </div>
