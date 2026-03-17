@@ -27,7 +27,8 @@ const DateController: React.FC<{ metaData: DateControllerProps }> = ({
     max,
     excludeDateIntervals,
     icon,
-    filterDates
+    filterDates,
+    dateFormat
   } = metaData;
   const { showToast } = useToast();
 
@@ -118,6 +119,7 @@ const DateController: React.FC<{ metaData: DateControllerProps }> = ({
                   trigger(name);
                 }}
                 filterDate={filterDates}
+                dateFormat={dateFormat || 'dd/MM/yyyy'}
               />
               <label htmlFor={name} className={`${labelClass} `}>
                 {placeholder}

@@ -454,7 +454,7 @@ const Contract: React.FC<LoanFromCommonProps> = ({
                       ? 'Contract'
                       : 'Send Contract Sign Email and Direct debit'}
                   </span>
-                  {previewData && (isContractSend || isSigned) && (
+                  {previewData && (
                     <p
                       className="flex cursor-pointer items-center text-[12px] font-medium text-[#1A439A]"
                       onClick={(e) => {

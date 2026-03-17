@@ -241,7 +241,8 @@ const AddPaymentSchedule = ({
                     type: 'date',
                     isRequired: true,
                     filterDates: filterDates,
-                    min: minDate
+                    min: minDate,
+                    dateFormat: 'dd/MM/yy'
                   }}
                 />
               </div>

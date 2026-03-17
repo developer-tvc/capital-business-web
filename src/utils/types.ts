@@ -487,6 +487,7 @@ export interface DateControllerProps extends Partial<CommonClassesInterface> {
   excludeDateIntervals?: { start: Date; end: Date }[];
   icon?: () => JSX.Element;
   filterDates?: (date: undefined) => boolean;
+  dateFormat?: string;
 }
 
 export interface TextAreaControllerProps

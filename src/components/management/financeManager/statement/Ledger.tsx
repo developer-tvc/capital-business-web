@@ -189,7 +189,7 @@ const Ledger = () => {
           placeholder: 'from',
           isRequired: true,
           name: 'from_date',
-          label: 'From',
+          label: '',
           type: 'date'
         }}
       />
@@ -201,7 +201,7 @@ const Ledger = () => {
           placeholder: 'to',
           isRequired: true,
           name: 'to_date',
-          label: 'To',
+          label: '',
           type: 'date'
         }}
       />
