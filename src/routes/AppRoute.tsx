@@ -122,6 +122,8 @@ const AppRoute = () => {
   const dashboardRedirect = <Navigate to="/dashboard" />;
   const landingPageRedirect = isDashboardAuthorizedUser ? (
     <Navigate to="/dashboard" />
+  ) : authenticated && role === Roles.Leads ? (
+    <Navigate to="/profile" />
   ) : (
     <LandingPage />
   );

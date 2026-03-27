@@ -5,7 +5,7 @@ import { FaRegBell, FaRegUser } from 'react-icons/fa';
 import { IoIosLogIn } from 'react-icons/io';
 import { MdHomeFilled } from 'react-icons/md';
 import { useSelector } from 'react-redux';
-import { NavLink, useNavigate } from 'react-router-dom';
+import { NavLink, useNavigate, useLocation } from 'react-router-dom';
 
 import Logo from '../../assets/images/Logo.png';
 import userIcon from '../../assets/svg/user.png';
@@ -18,6 +18,9 @@ import { useMediaQuery } from 'react-responsive';
 import Mobilenav from './Mobilenav';
 import { PiSignIn } from 'react-icons/pi';
 import Preloader from './Preloader';
+import { applyNewLoan } from '../../utils/helpers';
+import useToast from '../../utils/hooks/toastify/useToast';
+import { NotificationType } from '../../utils/hooks/toastify/enums';
 import '../../assets/css/bootstrap.min.css';
 import '../../assets/css/all.min.css';
 import '../../assets/style.css';
@@ -36,6 +39,7 @@ const Navbar = ({
   const navRef = useRef(null);
   const { role } = useSelector(authSelector);
   const navigate = useNavigate();
+  const location = useLocation();
   const handleNav = () => {
     if (toggleSidebar) {
       toggleSidebar();
@@ -204,6 +208,18 @@ const Navbar = ({
 
   const handleLogout = () => {
     signOut();
+  };
+
+  const { showToast } = useToast();
+
+  const handleNewLoan = async () => {
+    try {
+      await applyNewLoan(navigate);
+    } catch {
+      showToast('Failed to apply for a new Funding', {
+        type: NotificationType.Error
+      });
+    }
   };
 
   useEffect(() => {
@@ -626,20 +642,26 @@ const Navbar = ({
                           </NavLink>
                         </div>
                       </div>
-                      <div className="col-xl-6 col-lg-6 d-flex justify-content-center">
+                      <div className="col-xl-4 col-lg-4 d-flex justify-content-center">
                         <div className="topbar-left topbar-left2">
-                          <p className="item-paragraph item-paragraph2">
+                          <p
+                            className="item-paragraph item-paragraph2"
+                            style={{ whiteSpace: 'nowrap' }}
+                          >
                             Are you ready to grow up your business?
                           </p>
                           <div className="header-button header-button2">
-                            <NavLink to={'/contact-us'}>
+                            <NavLink
+                              to={'/contact-us'}
+                              style={{ whiteSpace: 'nowrap' }}
+                            >
                               Contact us today{' '}
                               <i className="fas fa-long-arrow-alt-right" />
                             </NavLink>
                           </div>
                         </div>
                       </div>
-                      <div className="col-xl-4 col-lg-4 d-flex justify-content-end">
+                      <div className="col-xl-6 col-lg-6 d-flex justify-content-end">
                         <div className="topbar-right2">
                           <ul>
                             <li>
@@ -648,12 +670,12 @@ const Navbar = ({
                                   <i className="far fa-comments" />
                                 </div>
                                 <div className="media-body">
-                                  <div className="item-label">
+                                  <div className="item-label" style={{ whiteSpace: 'nowrap' }}>
                                     Hotline Number
                                   </div>
                                   <div
                                     className="item-number"
-                                    style={{ fontSize: '1em' }}
+                                    style={{ fontSize: '1em', whiteSpace: 'nowrap' }}
                                   >
                                     020 3691 9423
                                   </div>
@@ -661,10 +683,42 @@ const Navbar = ({
                               </div>
                             </li>
                             <li>
-                              <div className="header-right-button ">
-                                <NavLink to={'/funding-form'}>
-                                  <a className="header-btn">Apply Now</a>
-                                </NavLink>
+                              <div className="header-right-button flex items-center gap-4">
+                                {!(location.pathname === '/profile' && (role === Roles.Leads || role === Roles.Customer)) && (
+                                  <NavLink to={'/funding-form'}>
+                                    <a
+                                      className="header-btn"
+                                      style={{
+                                        display: 'inline-flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        whiteSpace: 'nowrap',
+                                        height: '48px'
+                                      }}
+                                    >
+                                      Apply Now
+                                    </a>
+                                  </NavLink>
+                                )}
+                                {authenticated && (
+                                  <button
+                                    className="header-btn"
+                                    onClick={handleNewLoan}
+                                    style={{
+                                      backgroundImage:
+                                        'linear-gradient(to right, #1A439A, #002D80)',
+                                      borderRadius: '30px',
+                                      whiteSpace: 'nowrap',
+                                      display: 'inline-flex',
+                                      alignItems: 'center',
+                                      justifyContent: 'center',
+                                      height: '48px',
+                                      padding: '0 25px'
+                                    }}
+                                  >
+                                    Renew Funding
+                                  </button>
+                                )}
                               </div>
                             </li>
                           </ul>

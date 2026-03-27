@@ -46,13 +46,16 @@ const CheckBoxController: React.FC<{ metaData: CheckBoxControllerProps }> = ({
         <Controller
           name={name}
           control={control}
+          defaultValue={false}
           render={({ field }) => (
             <input
               {...field}
-              defaultChecked={field.value}
+              // Use checked (not defaultChecked) so React controls the value reactively.
+              // Without this, the checkbox can appear ticked but the form value stays undefined.
+              checked={!!field.value}
               placeholder={placeholder}
               type={type}
-              onClick={e => {
+              onChange={e => {
                 const target = e.target as HTMLInputElement;
                 if (onChange) {
                   onChange(target.checked);
