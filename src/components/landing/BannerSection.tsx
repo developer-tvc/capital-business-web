@@ -204,15 +204,26 @@ const BannerSection: React.FC = () => {
                       <p className="item-subtitle">
                         {slide.title}
 
-                        <button
-                          onClick={() => navigate('/funding-form')}
-                          className="-mx-2 my-2 block rounded-full
-                           bg-gradient-to-r from-orange-500 to-red-500 px-6 text-[10px] 
-                           font-bold text-white shadow-lg transition-all duration-300 ease-in-out
-                            hover:from-orange-600 hover:to-red-600 hover:shadow-xl active:scale-95 lg:hidden mx:block "
-                        >
-                          Apply Now
-                        </button>
+                         <div className="flex flex-wrap gap-3">
+                           <button
+                             onClick={() => navigate('/funding-form')}
+                             className="my-2 inline-flex items-center justify-center rounded-full
+                              bg-gradient-to-r from-orange-500 to-red-500 px-6 py-2 text-[10px] 
+                              font-bold text-white shadow-lg transition-all duration-300 ease-in-out
+                               hover:from-orange-600 hover:to-red-600 hover:shadow-xl active:scale-95 lg:hidden whitespace-nowrap "
+                           >
+                             Apply Now
+                           </button>
+                           <button
+                             onClick={handleNewLoan}
+                             className="my-2 inline-flex items-center justify-center rounded-full
+                              bg-gradient-to-r from-blue-500 to-indigo-500 px-6 py-2 text-[10px] 
+                              font-bold text-white shadow-lg transition-all duration-300 ease-in-out
+                               hover:from-blue-600 hover:to-indigo-600 hover:shadow-xl active:scale-95 lg:hidden whitespace-nowrap"
+                           >
+                             APPLY NEW FUNDING
+                           </button>
+                         </div>
                       </p>
                       {/* <p className="item-subtitle flex items-center gap-3">
                         {slide.title}

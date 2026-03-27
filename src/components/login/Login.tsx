@@ -68,6 +68,7 @@ const Login: React.FC = ({ backHandler }: { backHandler?: () => void }) => {
         switch (resp.status_code) {
           case 200:
           case 201:
+            const userRole = (resp as any).role || role;
             if (
               [
                 Roles.FieldAgent,
@@ -75,9 +76,11 @@ const Login: React.FC = ({ backHandler }: { backHandler?: () => void }) => {
                 Roles.Admin,
                 Roles.UnderWriter,
                 Roles.FinanceManager
-              ].includes(role as Roles)
+              ].includes(userRole as Roles)
             ) {
               navigate('/dashboard');
+            } else if (userRole === Roles.Leads||Roles.Customer) {
+              navigate('/profile');
             } else {
               navigate('/');
             }

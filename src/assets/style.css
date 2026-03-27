@@ -2440,13 +2440,7 @@ header.header {
   position: relative;
 }
 .logo-area2:before {
-  content: "";
-  height: 105px;
-  width: 1px;
-  background-color: #e2e2e2;
-  position: absolute;
-  bottom: -29px;
-  right: -77px;
+  display: none;
 }
 @media only screen and (max-width: 1199px) {
   .logo-area2:before {
@@ -3094,7 +3088,7 @@ nav.template-main-menu > ul > li:hover .template-mega-menu {
 }
 .topbar-right2 {
   display: flex;
-  align-items: baseline;
+  align-items: center;
 }
 .topbar-right2 ul {
   display: flex;
