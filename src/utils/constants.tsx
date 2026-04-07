@@ -331,7 +331,7 @@ export const loanFormPersonalInformation: FundingFormFieldType[] = [
     type: 'textarea',
     placeholder: 'Address',
     rows: 3,
-    isDisabled: true,
+    isDisabled: false,
     icon: () => {
       return (
         <div>
@@ -1994,7 +1994,7 @@ export const loanFormBusinessPremiseDetails: FundingFormFieldType[] = [
     name: 'trading_address.address_line',
     // label: "Address line 1",
     type: 'textarea',
-    isDisabled: true,
+    isDisabled: false,
     rows: 3,
     placeholder: 'Address line*',
     icon: () => {
@@ -2110,7 +2110,7 @@ export const loanFormBusinessPremiseDetails: FundingFormFieldType[] = [
     name: 'registered_address.address_line',
     // label: "Address line 1",
     type: 'textarea',
-    isDisabled: true,
+    isDisabled: false,
     rows: 3,
     placeholder: 'Address line*',
     icon: () => {
