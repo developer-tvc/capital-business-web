@@ -44,7 +44,11 @@ const Login: React.FC = ({ backHandler }: { backHandler?: () => void }) => {
   );
 
   const loginMethods = useForm({
-    resolver: yupResolver(LoginSchema)
+    resolver: yupResolver(LoginSchema),
+    defaultValues: {
+      username: '',
+      password: ''
+    }
   });
 
   const { handleSubmit: handleLoginSubmit, watch } = loginMethods;

@@ -53,13 +53,16 @@ const BusinessPartner: React.FC = () => {
     if (data) {
       const fetchedPartners = data.map(partner => ({
         id: partner.partner_code,
-        group: partner.partner_type.id,
-        groupName: partner.partner_type.group_name,
+        group: partner.partner_type?.id,
+        groupName: partner.partner_type?.group_name,
         name: partner.partner_name,
         email: partner.email,
         mobile: partner.phone_number,
-        glName: `${partner.gl_account.gl_code} - ${partner.gl_account.gl_name}`,
-        glId: partner.gl_account.id
+        gl_code: partner.partner_type?.gl_account_data?.gl_code,
+        glName: partner.partner_type?.gl_account_data
+          ? `${partner.partner_type.gl_account_data.gl_code} - ${partner.partner_type.gl_account_data.gl_name}`
+          : '',
+        glId: partner.partner_type?.gl_account_data?.id
       }));
       setBusinessPartners(fetchedPartners);
       setIsLoading(false);
@@ -157,7 +160,7 @@ const BusinessPartner: React.FC = () => {
                         {partner.groupName}
                       </td>
                       <td className="whitespace-nowrap px-6 py-4">
-                        {partner.glName}
+                        {partner.gl_code}
                       </td>
                     </tr>
                   ))

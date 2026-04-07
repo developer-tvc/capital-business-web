@@ -58,6 +58,7 @@ const InputController: React.FC<{ metaData: InputControllerProps }> = ({
               key={key}
               id={name}
               {...field}
+              value={field.value ?? ''}
               placeholder=" "
               type={type}
               disabled={isDisabled}

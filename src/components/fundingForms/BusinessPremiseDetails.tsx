@@ -616,11 +616,7 @@ const watchedFiles: File[] = Array.isArray(rawWatchedFiles)
                 isDisabled={isLimitedCompany}
               />
             </div>
-            <div className="">
-              {fieldRenderer.renderField(['registered_address.address_line'], {
-                isDisabled: isLimitedCompany
-              })}
-            </div>
+              {fieldRenderer.renderField(['registered_address.address_line'])}
           </div>
 
           {/* <div className="grid grid-cols-1 gap-4 p-2">
