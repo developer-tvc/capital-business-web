@@ -214,7 +214,27 @@ const bulkUploadEntryPostApi = async payload => {
   });
 };
 
+// Bank Account Listing API
+const bankAccountListingApi = () => {
+  const bankAccountUrl = '/finance_manage/bank_account/';
+  console.log('Making API call to:', bankAccountUrl);
+  return Get({
+    url: bankAccountUrl,
+    request: {}
+  });
+};
+
+// Finance Entry API for loan
+const loanFinanceEntryApi = (loanId: string, payload: { bank_account_id: string; partner_type: string }) => {
+  const financeEntryUrl = `/loan/loan_diperce_finance_entry/${loanId}`;
+  return Post({
+    url: financeEntryUrl,
+    request: payload
+  });
+};
+
 export {
+  bankAccountListingApi,
   bpGroupDeleteApi,
   bpGroupGetApi,
   bpGroupPostApi,
@@ -235,6 +255,7 @@ export {
   financePartnerApi,
   generalLedgerGetApi,
   generalLedgerPostApi,
+  loanFinanceEntryApi,
   mainCategoryGetApi,
   subCategoryGetApi,
   subCategoryPostApi
