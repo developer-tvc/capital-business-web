@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { useMediaQuery } from 'react-responsive';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 import { listAndSortCustomerLoanApi } from '../../../api/loanServices';
 import threeDots from '../../../assets/svg/threeDots.svg';
@@ -30,10 +30,16 @@ import Pagination from '../common/Pagination';
 import ActionModal from '../common/ThreeDotAction';
 import usePagination from '../common/usePagination';
 import AddLead from '../customer/AddLead';
+import FinanceEntryModal from './modals/FinanceEntryModal';
 
 const Fundings = () => {
   const { user, unit } = useSelector(managementSliceSelector);
   const { showToast } = useToast();
+  const location = useLocation();
+  
+  // Check if we're on the main funding page or customer funding form
+  const isMainFundingPage = location.pathname === '/funding';
+  const isCustomerFundingForm = location.pathname.includes('/customer/') && location.pathname.includes('/funding-form');
 
   const {
     data,
@@ -67,6 +73,8 @@ const Fundings = () => {
     mode_of_application: [],
     current_status: []
   });
+  const [isFinanceEntryModalOpen, setIsFinanceEntryModalOpen] = useState(false);
+  const [financeEntryLoanId, setFinanceEntryLoanId] = useState(null);
 
   useEffect(() => {
     const checkEligibility = async user_id => {
@@ -340,17 +348,31 @@ const Fundings = () => {
                                 )}
                               </div>
                             ) : (
-                              <button
-                                type="button"
-                                className="mr-2 flex cursor-pointer bg-[#1A439A] px-8 py-2 text-white"
-                                onClick={() => {
-                                  setLoanId(id);
-                                  setActionLeadId(customer.id);
-                                  setIsModalOpen(true);
-                                }}
-                              >
-                                {'View'}
-                              </button>
+                              <div className="flex space-x-2">
+                                <button
+                                  type="button"
+                                  className="flex cursor-pointer bg-[#1A439A] px-6 py-2 text-white text-sm"
+                                  onClick={() => {
+                                    setLoanId(id);
+                                    setActionLeadId(customer.id);
+                                    setIsModalOpen(true);
+                                  }}
+                                >
+                                  {'View'}
+                                </button>
+                                {!isMainFundingPage && isCustomerFundingForm && (
+                                  <button
+                                    type="button"
+                                    className="flex cursor-pointer bg-[#10B981] px-4 py-2 text-white text-sm"
+                                    onClick={() => {
+                                      setFinanceEntryLoanId(id);
+                                      setIsFinanceEntryModalOpen(true);
+                                    }}
+                                  >
+                                    {'Add Finance Entry'}
+                                  </button>
+                                )}
+                              </div>
                             )}
                           </td>
                         </tr>
@@ -465,6 +487,31 @@ const Fundings = () => {
                               />
                             </div>
                           )}
+                          <div className="mt-4 flex space-x-2">
+                            <button
+                              type="button"
+                              className="flex-1 cursor-pointer bg-[#1A439A] px-4 py-2 text-white text-sm"
+                              onClick={() => {
+                                setLoanId(id);
+                                setActionLeadId(customer.id);
+                                setIsModalOpen(true);
+                              }}
+                            >
+                              {'View'}
+                            </button>
+                            {!isMainFundingPage && isCustomerFundingForm && (
+                              <button
+                                type="button"
+                                className="flex-1 cursor-pointer bg-[#10B981] px-4 py-2 text-white text-sm"
+                                onClick={() => {
+                                  setFinanceEntryLoanId(id);
+                                  setIsFinanceEntryModalOpen(true);
+                                }}
+                              >
+                                {'Add Finance Entry'}
+                              </button>
+                            )}
+                          </div>
                         </div>
                       </div>
                     )
@@ -518,6 +565,14 @@ const Fundings = () => {
         <AssignFieldAgentModal
           onClose={handleAssignFieldAgent}
           actionLeadId={actionLeadId}
+        />
+      )}
+
+      {isFinanceEntryModalOpen && (
+        <FinanceEntryModal
+          isOpen={isFinanceEntryModalOpen}
+          onClose={() => setIsFinanceEntryModalOpen(false)}
+          loanId={financeEntryLoanId}
         />
       )}
     </>
