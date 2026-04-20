@@ -130,10 +130,20 @@ const Fundings = () => {
 
   useEffect(() => {
     setIsLoading(true);
-    if (user.id) handleFilter({ customer_id: user.id });
-    else if (unit.id) handleFilter({ company_id: unit.id });
-    else callPaginate();
-  }, [user, unit]);
+    const filterFromState = location.state?.loan_status;
+    if (filterFromState) {
+      setFiltered(prev => ({ ...prev, current_status: filterFromState }));
+      handleFilter({
+        ...(user.id && { customer_id: user.id }),
+        ...(unit.id && { company_id: unit.id }),
+        loan_status: filterFromState
+      });
+    } else {
+      if (user.id) handleFilter({ customer_id: user.id });
+      else if (unit.id) handleFilter({ company_id: unit.id });
+      else callPaginate();
+    }
+  }, [user, unit, location.state]);
 
   // const closeModal = () => {
   //   setIsModalOpen(false);

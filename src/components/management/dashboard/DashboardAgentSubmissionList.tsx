@@ -107,7 +107,7 @@ const DashboardAgentSubmissionList = () => {
             <tbody className="divide-y divide-gray-200 bg-white">
               {funding?.length > 0 ? (
                 funding
-                  .slice(0, 3)
+                  .slice(0, 5)
                   .map(({ id, loan_number, customer, loan_status }, index) => (
                     <tr
                       key={index}
@@ -122,8 +122,8 @@ const DashboardAgentSubmissionList = () => {
                     >
                       <td className="px-6 py-4">{loan_number}</td>
                       <td className="px-6 py-4">
-                        {customer?.company_name.trim().length > 7
-                          ? `${customer.company_name.trim().substring(0, 15)}...`
+                        {customer?.company_name.trim().length > 40
+                          ? `${customer.company_name.trim().substring(0, 40)}...`
                           : customer?.company_name.trim()}
                       </td>
                       <td className="px-6 py-4">

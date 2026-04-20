@@ -4,7 +4,7 @@ import { useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 
 import { authSelector } from '../../../store/auth/userSlice';
-import { Roles } from '../../../utils/enums';
+import { FundingFromCurrentStatus, Roles } from '../../../utils/enums';
 import DashboardAgentSubmissionList from './DashboardAgentSubmissionList';
 import DashboardCreditMonitoring from './DashboardCreditMonitoring';
 import DashboardHeader from './DashboardHeader';
@@ -82,8 +82,8 @@ const Dashboard = () => {
           {isAgent && (
             <>
               <DashboardStatusCard />
-              <div className="my-8 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-2">
-                <div className="mx-auto w-full py-2">
+              <div className="my-8 flex flex-col gap-4">
+                <div className="w-full py-2">
                   <h2 className="mb-4 text-xl font-bold text-gray-800">
                     {'Funding'}
                   </h2>
@@ -122,7 +122,13 @@ const Dashboard = () => {
                     <div className="mt-4 flex justify-center text-center">
                       <button
                         className="flex items-center font-semibold text-[#1A439A]"
-                        onClick={() => navigate('/funding')}
+                        onClick={() =>
+                          navigate('/funding', {
+                            state: {
+                              loan_status: [FundingFromCurrentStatus.Inprogress]
+                            }
+                          })
+                        }
                       >
                         {'VIEW MORE '}
                         <IoIosArrowForward size={20} />
