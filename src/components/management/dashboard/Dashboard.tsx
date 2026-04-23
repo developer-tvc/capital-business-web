@@ -312,7 +312,15 @@ const Dashboard = () => {
                   <div className="mt-4 flex justify-center text-center">
                     <button
                       className="flex items-center font-semibold text-[#1A439A]"
-                      onClick={() => navigate('/funding')}
+                      onClick={() =>
+                        navigate('/funding', {
+                          state: {
+                            loan_status: [
+                              FundingFromCurrentStatus.UnderwriterSubmitted
+                            ]
+                          }
+                        })
+                      }
                     >
                       {'VIEW MORE '}
                       <IoIosArrowForward size={20} />
@@ -409,7 +417,13 @@ const Dashboard = () => {
                   <div className="mt-4 flex justify-center text-center">
                     <button
                       className="flex items-center font-semibold text-[#1A439A]"
-                      onClick={() => navigate('/funding')}
+                      onClick={() =>
+                        navigate('/funding', {
+                          state: {
+                            loan_status: [FundingFromCurrentStatus.Submitted]
+                          }
+                        })
+                      }
                     >
                       {'VIEW MORE '}
                       <IoIosArrowForward size={20} />

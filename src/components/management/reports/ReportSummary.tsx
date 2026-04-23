@@ -91,7 +91,7 @@ const ReportSummary = () => {
     const custFilter = {};
     // if (watchGlCode) custFilter.gl_name = watchGlCode;
     if (watchFromDate)
-      custFilter['date_from '] = convertDateString(watchFromDate);
+      custFilter['date_from'] = convertDateString(watchFromDate);
     if (watchtoDate) custFilter['date_to'] = convertDateString(watchtoDate);
     if (watchFromDate && watchtoDate) {
       setIsLoading(true);
