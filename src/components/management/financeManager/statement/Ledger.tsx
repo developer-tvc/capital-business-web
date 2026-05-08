@@ -310,7 +310,7 @@ const Ledger = () => {
               </div>
             </div>
           </FormProvider>
-          {watchGlCode && (
+          {(watchGlCode || watchBpCode) && (
             <div className="flex h-[75%] flex-1 flex-col overflow-y-auto bg-white max-sm:h-[64vh]">
               <div className="px-2 max-sm:p-4">
                 <div>
