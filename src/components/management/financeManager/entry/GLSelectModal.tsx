@@ -38,6 +38,7 @@ const GLSelectModal: React.FC<GLSelectModalProps> = ({
           )
           .map(ledger => ({
             id: ledger.id,
+            type: 'gl',
             display: `${ledger.gl_code} - ${ledger.gl_name}`,
             partner_code: ledger.gl_code,
             partner_name: ledger.gl_name
@@ -69,10 +70,10 @@ const GLSelectModal: React.FC<GLSelectModalProps> = ({
           )
           .map(partner => ({
             id: partner.id,
+            type: 'bp',
             display: `${partner.partner_code} - ${partner.partner_name}`,
             partner_code: partner.partner_code,
             partner_name: partner.partner_name,
-            type: partner.partner_type.group_name,
             bpId: partner.partner_type.id,
             bpLoanNumber: partner?.loan?.loan_number,
             loanId: partner.loan
@@ -84,7 +85,9 @@ const GLSelectModal: React.FC<GLSelectModalProps> = ({
 
         if (fetchedBpIds.length > 0) {
           setSelectedBpId(fetchedBpIds[0].id); // Set the first BP as selected for demo
-          onLoanIdsReceived(fetchedBpIds); // Pass the loan IDs
+          if (typeof onLoanIdsReceived === 'function') {
+            onLoanIdsReceived(fetchedBpIds); // Pass the loan IDs
+          }
         }
       } else {
         showToast('Failed to fetch Business Partner IDs.', {
@@ -139,7 +142,9 @@ const GLSelectModal: React.FC<GLSelectModalProps> = ({
   const handleBpSelect = bp => {
     setSelectedBpId(bp.id);
     const selectedBpLoanNumber = bpIDs.filter(partner => partner.id === bp.id);
-    onLoanIdsReceived(selectedBpLoanNumber); // Pass the loan IDs of the selected BP
+    if (typeof onLoanIdsReceived === 'function') {
+      onLoanIdsReceived(selectedBpLoanNumber); // Pass the loan IDs of the selected BP
+    }
   };
 
   return (
@@ -168,7 +173,7 @@ const GLSelectModal: React.FC<GLSelectModalProps> = ({
               />
               <p>{'GL'}</p>
             </div>
-            {isForTable && (
+            {(isForTable || setSelectedGl) && (
               <div className="flex items-center gap-1">
                 <input
                   type="radio"

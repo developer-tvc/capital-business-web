@@ -473,67 +473,81 @@ export const tradingPremiseSchema = yup.object().shape({
       ? schema.required('End Date is required')
       : schema.notRequired();
   }),
-  trading_documents: yup.mixed().when('premise_type', ([premise_type], schema) => {
-    if (premise_type === 'Leasehold') {
-      return schema
-        .test('fileFormat', 'Trading documents are required', value => {
-          return Array.isArray(value) && value?.length > 0;
-        })
-        .test(
-          'fileFormat',
-          'Only JPG, GIF, PNG, JPEG, SVG,WebP and PDF formats are accepted',
-          value => {
+  trading_documents: yup
+    .mixed()
+    .when('premise_type', ([premise_type], schema) => {
+      if (premise_type === 'Leasehold') {
+        return schema
+          .test('fileFormat', 'Trading documents are required', value => {
+            return Array.isArray(value) && value?.length > 0;
+          })
+          .test(
+            'fileFormat',
+            'Only JPG, GIF, PNG, JPEG, SVG,WebP and PDF formats are accepted',
+            value => {
+              if (!value || (Array.isArray(value) && value.length === 0)) {
+                return true; // Will be handled by required test
+              }
+              if (Array.isArray(value) && value?.length > 0) {
+                const validTypes = [
+                  ...validMimeTypes.image,
+                  ...validMimeTypes.pdf
+                ];
+                // Check ALL files - return false if ANY file is invalid
+                return value.every(file => validTypes.includes(file?.type));
+              }
+              return false;
+            }
+          )
+          .test('fileSize', 'File Size is too large', value => {
             if (!value || (Array.isArray(value) && value.length === 0)) {
               return true; // Will be handled by required test
             }
             if (Array.isArray(value) && value?.length > 0) {
-              const validTypes = [...validMimeTypes.image, ...validMimeTypes.pdf];
-              // Check ALL files - return false if ANY file is invalid
-              return value.every(file => validTypes.includes(file?.type));
+              // Check ALL files - return false if ANY file is too large
+              return value.every(file => file?.size < MAX_FILE_SIZE_10_MB);
             }
             return false;
-          }
-        )
-        .test('fileSize', 'File Size is too large', value => {
-          if (!value || (Array.isArray(value) && value.length === 0)) {
-            return true; // Will be handled by required test
-          }
-          if (Array.isArray(value) && value?.length > 0) {
-            // Check ALL files - return false if ANY file is too large
-            return value.every(file => file?.size < MAX_FILE_SIZE_10_MB);
-          }
-          return false;
-        });
-    } else {
-      return schema.notRequired();
-    }
-  })
+          });
+      } else {
+        return schema.notRequired();
+      }
+    })
 });
 
-export const BusinessPremiseDetailsSchema = yup.object().shape({
-  registered_address: yup.object().shape({
-    ...addressSchema.fields
-    // ...registeredPremiseSchema.fields
-  }),
-  trading_same_as_registered: yup.boolean(),
-  trading_address: yup
-    .object()
-    .when('trading_same_as_registered', ([trading_same_as_registered]) =>
-      trading_same_as_registered === true
-        ? yup.object().shape({ ...tradingPremiseSchema.fields })
-        : yup.object().shape({
-          ...addressSchema.fields,
-          ...tradingPremiseSchema.fields
-        })
-    )
-}).test('leasehold-documents-required', 'Trading documents are required for leasehold property', function(value: any) {
-  const tradingAddress = value?.trading_address as any;
-  if (tradingAddress?.premise_type === 'Leasehold') {
-    const hasTradingDocuments = Array.isArray(tradingAddress?.trading_documents) && tradingAddress.trading_documents.length > 0;
-    return hasTradingDocuments;
-  }
-  return true;
-});
+export const BusinessPremiseDetailsSchema = yup
+  .object()
+  .shape({
+    registered_address: yup.object().shape({
+      ...addressSchema.fields
+      // ...registeredPremiseSchema.fields
+    }),
+    trading_same_as_registered: yup.boolean(),
+    trading_address: yup
+      .object()
+      .when('trading_same_as_registered', ([trading_same_as_registered]) =>
+        trading_same_as_registered === true
+          ? yup.object().shape({ ...tradingPremiseSchema.fields })
+          : yup.object().shape({
+              ...addressSchema.fields,
+              ...tradingPremiseSchema.fields
+            })
+      )
+  })
+  .test(
+    'leasehold-documents-required',
+    'Trading documents are required for leasehold property',
+    function (value: any) {
+      const tradingAddress = value?.trading_address as any;
+      if (tradingAddress?.premise_type === 'Leasehold') {
+        const hasTradingDocuments =
+          Array.isArray(tradingAddress?.trading_documents) &&
+          tradingAddress.trading_documents.length > 0;
+        return hasTradingDocuments;
+      }
+      return true;
+    }
+  );
 
 export const DirectorOrProprietorDetailsSchema = yup.object().shape({
   directors: yup.array().of(
@@ -590,9 +604,9 @@ export const DirectorOrProprietorDetailsSchema = yup.object().shape({
         .when('owns_other_property', ([owns_other_property], sch) => {
           return owns_other_property === 'Yes'
             ? sch
-              .required('Owned Property Count is required')
-              .positive('Owned Property Count must be positive')
-              .min(1, 'Owned Property Count must be minimum of 1')
+                .required('Owned Property Count is required')
+                .positive('Owned Property Count must be positive')
+                .min(1, 'Owned Property Count must be minimum of 1')
             : sch.notRequired();
         }),
       owned_property: yup.array().of(
@@ -683,10 +697,14 @@ export const DocumentationUploadsSchema = yup.object().shape({
             return isValidMimeType(value.type, ['image', 'pdf']);
           }
         )
-        .test('is-valid-size', 'Max allowed size is 10MB', (value: File | null) => {
-          if (!value) return true;
-          return value.size <= MAX_FILE_SIZE_10_MB;
-        })
+        .test(
+          'is-valid-size',
+          'Max allowed size is 10MB',
+          (value: File | null) => {
+            if (!value) return true;
+            return value.size <= MAX_FILE_SIZE_10_MB;
+          }
+        )
     ),
   passport: yup
     .array()
@@ -703,10 +721,14 @@ export const DocumentationUploadsSchema = yup.object().shape({
             return isValidMimeType(value.type, ['pdf', 'image']);
           }
         )
-        .test('is-valid-size', 'Max allowed size is 10MB', (value: File | null) => {
-          if (!value) return true;
-          return value.size <= MAX_FILE_SIZE_10_MB;
-        })
+        .test(
+          'is-valid-size',
+          'Max allowed size is 10MB',
+          (value: File | null) => {
+            if (!value) return true;
+            return value.size <= MAX_FILE_SIZE_10_MB;
+          }
+        )
     ),
   driving_license: yup
     .array()
@@ -723,10 +745,14 @@ export const DocumentationUploadsSchema = yup.object().shape({
             return isValidMimeType(value.type, ['pdf', 'image']);
           }
         )
-        .test('is-valid-size', 'Max allowed size is 10MB', (value: File | null) => {
-          if (!value) return true;
-          return value.size <= MAX_FILE_SIZE_10_MB;
-        })
+        .test(
+          'is-valid-size',
+          'Max allowed size is 10MB',
+          (value: File | null) => {
+            if (!value) return true;
+            return value.size <= MAX_FILE_SIZE_10_MB;
+          }
+        )
     ),
   utility_bill: yup
     .array()
@@ -743,15 +769,19 @@ export const DocumentationUploadsSchema = yup.object().shape({
             return isValidMimeType(value.type, ['pdf', 'image']);
           }
         )
-        .test('is-valid-size', 'Max allowed size is 10MB', (value: File | null) => {
-          if (!value) return true;
-          return value.size <= MAX_FILE_SIZE_10_MB;
-        })
+        .test(
+          'is-valid-size',
+          'Max allowed size is 10MB',
+          (value: File | null) => {
+            if (!value) return true;
+            return value.size <= MAX_FILE_SIZE_10_MB;
+          }
+        )
     ),
 
   council_tax: yup
     .array()
-        .transform(value => (Array.isArray(value) ? value : []))
+    .transform(value => (Array.isArray(value) ? value : []))
 
     .of(
       yup
@@ -764,10 +794,14 @@ export const DocumentationUploadsSchema = yup.object().shape({
             return isValidMimeType(value.type, ['pdf', 'image']);
           }
         )
-        .test('is-valid-size', 'Max allowed size is 10MB', (value: File | null) => {
-          if (!value) return true;
-          return value.size <= MAX_FILE_SIZE_10_MB;
-        })
+        .test(
+          'is-valid-size',
+          'Max allowed size is 10MB',
+          (value: File | null) => {
+            if (!value) return true;
+            return value.size <= MAX_FILE_SIZE_10_MB;
+          }
+        )
     ),
   lease_deed: yup
     .array()
@@ -784,10 +818,14 @@ export const DocumentationUploadsSchema = yup.object().shape({
             return isValidMimeType(value.type, ['pdf', 'image']);
           }
         )
-        .test('is-valid-size', 'Max allowed size is 10MB', (value: File | null) => {
-          if (!value) return true;
-          return value.size <= MAX_FILE_SIZE_10_MB;
-        })
+        .test(
+          'is-valid-size',
+          'Max allowed size is 10MB',
+          (value: File | null) => {
+            if (!value) return true;
+            return value.size <= MAX_FILE_SIZE_10_MB;
+          }
+        )
     ),
   // business_account_statements: yup
   //   .array()
@@ -837,7 +875,10 @@ export const DocumentationUploadsSchema = yup.object().shape({
         // Validation logic for checkbox value
         // Handles: true, "true", "1", [true], ["true"], ["1"]
         if (Array.isArray(value)) {
-          return value.length > 0 && (value[0] === true || value[0] === 'true' || value[0] === '1');
+          return (
+            value.length > 0 &&
+            (value[0] === true || value[0] === 'true' || value[0] === '1')
+          );
         }
         return value === true || value === 'true' || value === '1';
       }
@@ -964,9 +1005,9 @@ export const GuarantorSchema = yup.object().shape({
         .when('owns_other_property', ([owns_other_property], sch) => {
           return owns_other_property === 'Yes'
             ? sch
-              .required('Owned Property Count is required')
-              .positive('Owned Property Count must be positive')
-              .min(1, 'Owned Property Count must be minimum of 1')
+                .required('Owned Property Count is required')
+                .positive('Owned Property Count must be positive')
+                .min(1, 'Owned Property Count must be minimum of 1')
             : sch.notRequired();
         }),
       owned_property: yup.array().of(
@@ -1486,12 +1527,21 @@ export const cashReceiptSchema = yup.object().shape({
     .required('At least one Failed Mandate is required')
 });
 
-export const ledgerFilterSchema = yup.object().shape({
-  gl_code: yup.string().required('Gl code is required'),
-  gl_name: yup.string().required('Gl Name is required'),
-  from_date: yup.string().required('From date is required'),
-  to_date: yup.string().required('To date is required')
-});
+export const ledgerFilterSchema = yup
+  .object()
+  .shape({
+    gl_code: yup.string().nullable(),
+    bp_code: yup.string().nullable(),
+    gl_name: yup.string().nullable(),
+    bp_name: yup.string().nullable(),
+    from_date: yup.string().required('From date is required'),
+    to_date: yup.string().required('To date is required')
+  })
+  .test(
+    'gl-or-bp-code-required',
+    'Either GL Code or BP Code is required',
+    value => !!(value?.gl_code || value?.bp_code)
+  );
 
 export const summaryFilterSchema = yup.object().shape({
   // gl_code: yup.string().required('Gl code is required'),

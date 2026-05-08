@@ -472,6 +472,7 @@ export interface DropdownControllerProps
   hideLabel?: boolean;
   disabled?: boolean;
   isDeSelectable?: boolean;
+  isEditable?: boolean;
 }
 
 export interface DateControllerProps extends Partial<CommonClassesInterface> {
