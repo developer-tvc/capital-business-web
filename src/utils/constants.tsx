@@ -3731,6 +3731,7 @@ export const loanFormBankDetails: FundingFormFieldType[] = [
     name: 'bank_name',
     // label: "Pincode",
     type: 'dropdown',
+    isEditable: true,
     placeholder: 'Bank Name',
     icon: () => {
       return (
