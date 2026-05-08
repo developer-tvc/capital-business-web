@@ -29,7 +29,7 @@ const DropdownController: React.FC<{ metaData: DropdownControllerProps }> = ({
     control,
     formState: { errors },
     trigger,
-    setValue
+    // setValue
   } = useFormContext();
 
   const [isOpen, setIsOpen] = useState(false);
