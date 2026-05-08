@@ -9,7 +9,6 @@ const DropdownController: React.FC<{ metaData: DropdownControllerProps }> = ({
   metaData
 }) => {
   const {
-    key,
     options,
     name,
     placeholder = 'Select',
@@ -21,15 +20,13 @@ const DropdownController: React.FC<{ metaData: DropdownControllerProps }> = ({
     fieldClass = 'border p-2',
     icon,
     hideLabel = false,
-    isDeSelectable = false,
     isEditable = false
   } = metaData;
 
   const {
     control,
     formState: { errors },
-    trigger,
-    setValue
+    trigger
   } = useFormContext();
 
   const [isOpen, setIsOpen] = useState(false);
