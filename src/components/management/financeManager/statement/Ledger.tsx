@@ -8,7 +8,7 @@ import { useMediaQuery } from 'react-responsive';
 import { financeManagerLedgerApi } from '../../../../api/financeManagerServices';
 import { fieldClass, labelClass } from '../../../../utils/constants';
 import { entryHeaders } from '../../../../utils/data';
-import { EntryType } from '../../../../utils/enums';
+// import { EntryType } from '../../../../utils/enums';
 import {
   convertDateString,
   formatDate,
@@ -355,9 +355,10 @@ const Ledger = () => {
                                   {entry?.transaction_no || 'N/A'}
                                 </td>
                                 <td className="whitespace-nowrap px-6 py-4">
-                                  {entry?.entry_type
+                                  {/* {entry?.entry_type
                                     ? EntryType[entry.entry_type.toLowerCase()]
-                                    : 'N/A'}
+                                    : 'N/A'} */}
+                                        {entry?.transaction_type ||'N/A'}
                                 </td>
                                 {/* <td className="px-6 py-4 whitespace-nowrap">
                                 {entry?.offset_accounts?.[0]?.bp_account
