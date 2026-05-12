@@ -1108,6 +1108,7 @@ export interface StatementBpTrialBalanceProps {
 }
 
 export interface LedgerProps {
+  transaction_type: string;
   date: string;
   transaction_no: string;
   entry_type: string;
