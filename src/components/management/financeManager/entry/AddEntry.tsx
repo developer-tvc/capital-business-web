@@ -191,7 +191,7 @@ export const AddEntry: FC<AddEntryProps> = ({
               partner_name:
                 bp_account?.partner_name || gl_account?.gl_name || null,
               account_name: bp_account
-                ? `${bp_account.partner_code} - ${bp_account.partner_name}`
+                ? `${bp_account.partner_code} - ${bp_account?.partner_name}`
                 : gl_account
                   ? `${gl_account.gl_code} - ${gl_account.gl_name}`
                   : null
@@ -203,8 +203,7 @@ export const AddEntry: FC<AddEntryProps> = ({
         .filter(Boolean);
       reset({
         date: data.date,
-        entryType: entryOptions.filter(item => item.id === data.entry_type)[0]
-          .name,
+        entryType: entryOptions.find(item => item.id === data.entry_type)?.name || '',
         rows
       });
     } catch (error) {

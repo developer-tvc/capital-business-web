@@ -79,6 +79,7 @@ const Ledger = () => {
       if (watchBpCode) customFilter.bp_code = watchBpCode;
       setIsLoading(true);
       handleFilter(customFilter);
+      downloadData();
     }
   }, [watchGlCode, watchBpCode, watchFromDate, watchToDate]);
 
@@ -281,7 +282,6 @@ const Ledger = () => {
                   filename={`Ledger_${date_to}-${date_from}.csv`}
                   target="_blank"
                   onClick={event => {
-                    downloadData();
                     if (transactionData.length === 0 || loans.length === 0) {
                       event.preventDefault();
                       showToast('No data available for download.', {
