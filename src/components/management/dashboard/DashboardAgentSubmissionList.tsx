@@ -42,7 +42,31 @@ const DashboardAgentSubmissionList = () => {
     } else if (role === Roles.FieldAgent) {
       loanStatus = 'Inprogress';
     } else if (role === Roles.UnderWriter) {
-      loanStatus = 'Submitted';
+      // For underwriters, fetch both statuses separately and merge results
+      const fetchBothStatuses = async () => {
+        try {
+          const [submittedResponse, agentSubmittedResponse] = await Promise.all([
+            listAndSortCustomerLoanApi({
+              filter: { loan_status: 'Submitted' }
+            }),
+            listAndSortCustomerLoanApi({
+              filter: { loan_status: 'Agent_Submitted' }
+            })
+          ]);
+          
+          const mergedData = [
+            ...(submittedResponse?.data || []),
+            ...(agentSubmittedResponse?.data || [])
+          ];
+          setFunding(mergedData);
+          setIsLoading(false);
+        } catch (error) {
+          console.error('Error fetching both statuses:', error);
+          setIsLoading(false);
+        }
+      };
+      fetchBothStatuses();
+      return;
     }
     setIsLoading(true);
     handleFilter({ loan_status: loanStatus });

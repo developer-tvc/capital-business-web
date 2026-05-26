@@ -34,6 +34,7 @@ import FinanceEntryModal from './modals/FinanceEntryModal';
 
 const Fundings = () => {
   const { user, unit } = useSelector(managementSliceSelector);
+  const { role } = useSelector(authSelector);
   const { showToast } = useToast();
   const location = useLocation();
   
@@ -131,7 +132,49 @@ const Fundings = () => {
   useEffect(() => {
     setIsLoading(true);
     const filterFromState = location.state?.loan_status;
-    if (filterFromState) {
+    console.log('Current role:', role);
+    console.log('Filter from state:', filterFromState);
+
+    if (filterFromState && role === Roles.UnderWriter) {
+      // When clicking "view more" from dashboard as underwriter, fetch both statuses
+      const fetchBothStatuses = async () => {
+        try {
+          console.log('Fetching both statuses for underwriter from view more...');
+          const [submittedResponse, agentSubmittedResponse] = await Promise.all([
+            listAndSortCustomerLoanApi({
+              filter: {
+                ...(user.id && { customer_id: user.id }),
+                ...(unit.id && { company_id: unit.id }),
+                loan_status: 'Submitted'
+              }
+            }),
+            listAndSortCustomerLoanApi({
+              filter: {
+                ...(user.id && { customer_id: user.id }),
+                ...(unit.id && { company_id: unit.id }),
+                loan_status: 'Agent_Submitted'
+              }
+            })
+          ]);
+          
+          console.log('Submitted response:', submittedResponse);
+          console.log('Agent Submitted response:', agentSubmittedResponse);
+          
+          const mergedData = [
+            ...(submittedResponse?.data || []),
+            ...(agentSubmittedResponse?.data || [])
+          ];
+          console.log('Merged data:', mergedData);
+          setLoans(mergedData);
+          setIsLoading(false);
+        } catch (error) {
+          console.error('Error fetching both statuses:', error);
+          setIsLoading(false);
+        }
+      };
+      fetchBothStatuses();
+    } else if (filterFromState) {
+      // For other roles with filter from state
       setFiltered(prev => ({ ...prev, current_status: filterFromState }));
       handleFilter({
         ...(user.id && { customer_id: user.id }),
@@ -139,11 +182,17 @@ const Fundings = () => {
         loan_status: filterFromState
       });
     } else {
-      if (user.id) handleFilter({ customer_id: user.id });
-      else if (unit.id) handleFilter({ company_id: unit.id });
-      else callPaginate();
+      // Direct navigation to funding page - show all statuses
+      console.log('Direct navigation - showing all statuses');
+      if (user.id) {
+        handleFilter({ customer_id: user.id });
+      } else if (unit.id) {
+        handleFilter({ company_id: unit.id });
+      } else {
+        callPaginate();
+      }
     }
-  }, [user, unit, location.state]);
+  }, [user, unit, location.state, role]);
 
   // const closeModal = () => {
   //   setIsModalOpen(false);
@@ -194,7 +243,6 @@ const Fundings = () => {
       navigate(`/funding/${loanId}`);
     }
   }, [isModalOpen]);
-  const { role } = useSelector(authSelector);
 
   const handleFilterChange = newFilters => {
     setFiltered(newFilters);
