@@ -3,7 +3,7 @@ import { FiChevronLeft, FiChevronRight } from 'react-icons/fi';
 import { MdChatBubbleOutline, MdOutlineHome } from 'react-icons/md';
 import { useDispatch, useSelector } from 'react-redux';
 import { useMediaQuery } from 'react-responsive';
-import { NavLink, useNavigate, useParams } from 'react-router-dom';
+import { NavLink, useNavigate, useParams, useLocation } from 'react-router-dom';
 
 import {
   customerLoanApi,
@@ -29,6 +29,7 @@ import useToast from '../../utils/hooks/toastify/useToast';
 import useAuth from '../../utils/hooks/useAuth';
 import { LoanData, personalInformationType } from '../../utils/types';
 import FormTestinomial from '../login/FormTestinomial';
+import Loader from '../Loader';
 import BusinessDetails from './BusinessDetails';
 import BusinessPremiseDetails from './BusinessPremiseDetails';
 import DirectorOrProprietorDetails from './DirectorOrProprietorDetails';
@@ -52,9 +53,15 @@ const CustomerFundingApplication: React.FC = ({
   const { authenticated } = useAuth();
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const location = useLocation();
 
   const NumberOfForms = 9;
   const { query_params_loanId } = useParams();
+
+  // Renew Funding Mode state
+  const [isRenewFundingMode, setIsRenewFundingMode] = useState(false);
+  const [renewFundingCompanyId, setRenewFundingCompanyId] = useState<string | null>(null);
+  const [renewFundingCompanyName, setRenewFundingCompanyName] = useState<string | null>(null);
 
   const [formRef, setFormRef] = useState<HTMLFormElement | null>(null);
   const { currentStage } = useSelector(fundingStateSliceSelector);
@@ -83,6 +90,15 @@ const CustomerFundingApplication: React.FC = ({
     useState<FundingFromUpcomingStatus>(
       FundingFromUpcomingStatus.GocardlessConsentWaiting
     );
+
+  // Check for renew funding mode from location state
+  useEffect(() => {
+    if (location.state?.isRenewFunding) {
+      setIsRenewFundingMode(true);
+      setRenewFundingCompanyId(location.state.companyId);
+      setRenewFundingCompanyName(location.state.companyName);
+    }
+  }, [location.state]);
 
   const fetchCustomerLoans = async query_params_loanId => {
     try {
@@ -329,6 +345,20 @@ const CustomerFundingApplication: React.FC = ({
             loanId={loanId}
             setLoan={setLoan}
             setIsRepAssigned={setIsRepAssigned}
+            isRenewFundingMode={isRenewFundingMode}
+            renewFundingCompanyId={renewFundingCompanyId}
+            renewFundingCompanyName={renewFundingCompanyName}
+            onLoanCreated={(newLoanId) => {
+              // Update the loan ID after creation
+              navigate(`/funding-form/${newLoanId}`, {
+                state: {
+                  isRenewFunding: true,
+                  companyId: renewFundingCompanyId,
+                  companyName: renewFundingCompanyName
+                },
+                replace: true
+              });
+            }}
           />
         );
       case 2:
@@ -384,14 +414,21 @@ const CustomerFundingApplication: React.FC = ({
                     <ProgressCircle currentStep={activeStage} totalSteps={9} />
                   </div>
 
-                  <p className="my-2 text-[14px] font-light text-[#1A439A] sm:mb-4">
-                    {activeStage <= 9 && (
-                      <a className="ml-1 font-bold text-[#02002E]">
-                        {'Application Form -'}
-                      </a>
-                    )}
-                    {LoanWizardStages.find(e => e.id === activeStage).label}
-                  </p>
+                  <div className="flex flex-col">
+                    <p className="my-2 text-[14px] font-light text-[#1A439A] sm:mb-4">
+                      {isRenewFundingMode && renewFundingCompanyName && (
+                        <span className="mb-1 block text-xs font-semibold text-green-600">
+                          Renew Funding: {renewFundingCompanyName}
+                        </span>
+                      )}
+                      {activeStage <= 9 && (
+                        <a className="ml-1 font-bold text-[#02002E]">
+                          {'Application Form -'}
+                        </a>
+                      )}
+                      {LoanWizardStages.find(e => e.id === activeStage).label}
+                    </p>
+                  </div>
                 </div>
                 <span className="mx-[1%] flex items-center gap-2 sm:mb-4">
                   {authenticated && (
@@ -443,6 +480,11 @@ const CustomerFundingApplication: React.FC = ({
                   </span>
 
                   <span className="ml-4 mt-4 text-[14px] font-light text-[#1A439A] max-sm:text-[10px]">
+                    {isRenewFundingMode && renewFundingCompanyName && (
+                      <span className="mb-1 block text-xs font-semibold text-green-600">
+                        Renew Funding: {renewFundingCompanyName}
+                      </span>
+                    )}
                     {activeStage <= 9 && (
                       <a className="font-bold text-[#02002E]">
                         {'Application Form -'}
@@ -491,7 +533,21 @@ const CustomerFundingApplication: React.FC = ({
           </div>
 
           <div className="hide-scrollbar flex-1 overflow-auto">
-            {renderStageComponent(loan?.id)}
+            {isRenewFundingMode && !loan?.id ? (
+              <div className="flex h-full items-center justify-center">
+                <div className="text-center">
+                  <Loader />
+                  <p className="mt-4 text-lg font-medium text-gray-900">
+                    Preparing your funding application...
+                  </p>
+                  <p className="mt-2 text-sm text-gray-600">
+                    Loading company details...
+                  </p>
+                </div>
+              </div>
+            ) : (
+              renderStageComponent(loan?.id)
+            )}
           </div>
 
           <div className="sticky bottom-0 z-10 mb-4 bg-white">

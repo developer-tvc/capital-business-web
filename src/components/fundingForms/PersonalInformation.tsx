@@ -11,9 +11,11 @@ import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 
 import {
+  applyNewLoaApi,
   personalInformationGetAPI,
   personalInformationPostAPI
 } from '../../api/loanServices';
+import { userProfileApi } from '../../api/userServices';
 import { resendOtpAPI, signUpAPI } from '../../api/userAuthServices';
 import eye from '../../assets/svg/eye.svg';
 import quest from '../../assets/svg/ph_question.svg';
@@ -56,13 +58,21 @@ interface PersonalInformationProps extends LoanFromCommonProps {
   setLoan?: Dispatch<SetStateAction<Partial<LoanData>>>;
   setIsRepAssigned?: Dispatch<SetStateAction<Partial<boolean>>>;
   isRepAssigned?: boolean;
+  isRenewFundingMode?: boolean;
+  renewFundingCompanyId?: string | null;
+  renewFundingCompanyName?: string | null;
+  onLoanCreated?: (loanId: string) => void;
 }
 
 const PersonalInformation: React.FC<PersonalInformationProps> = ({
   setRef,
   loanId,
   setLoan,
-  setIsRepAssigned
+  setIsRepAssigned,
+  isRenewFundingMode = false,
+  renewFundingCompanyId = null,
+  renewFundingCompanyName = null,
+  onLoanCreated
 }) => {
   const [isEligibleNewLoan, setIsEligibleNewLoan] = useState<{
     isApplicableForNewLoan: boolean;
@@ -113,10 +123,69 @@ const PersonalInformation: React.FC<PersonalInformationProps> = ({
   });
   const { handleSubmit, watch, setValue, formState, trigger, reset } = methods;
 
+  // Clear form when in renew funding mode to start fresh, but keep company name
+  useEffect(() => {
+    if (isRenewFundingMode) {
+      reset({
+        company: {
+          company_name: renewFundingCompanyName || '',
+          company_status: '',
+          company_number: '',
+          company_address: {},
+          business_type: undefined,
+          trading_style: '',
+          funding_purpose: undefined,
+          other_funding_purpose: ''
+        }
+      });
+    }
+  }, [isRenewFundingMode, renewFundingCompanyName, reset]);
+
   const { role } = useSelector(authSelector);
   const { verifyOtp, authenticated } = useAuth();
   const dispatch = useDispatch();
   const { showToast } = useToast();
+
+  // Fetch user profile data and auto-fill personal details in renew funding mode
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+      if (isRenewFundingMode && authenticated) {
+        try {
+          const response = await userProfileApi();
+          if (response?.status_code === 200 && response?.data) {
+            const userData = response.data;
+            console.log('User profile data:', userData); // Debug log
+
+            // Extract postcode from address (format: "address, postcode")
+            let extractedPostcode = '';
+            if (userData.address) {
+              const addressParts = userData.address.split(',').map(part => part.trim());
+              const lastPart = addressParts[addressParts.length - 1];
+              // UK postcode pattern: AA9A 9AA or A9A 9AA
+              const postcodeMatch = lastPart.match(/[A-Z]{1,2}[0-9][A-Z0-9]? [0-9][A-Z]{2}/i);
+              if (postcodeMatch) {
+                extractedPostcode = postcodeMatch[0].toUpperCase();
+              }
+            }
+
+            // Auto-fill personal details from user profile
+            setValue('title', userData.title || '');
+            setValue('first_name', userData.first_name || '');
+            setValue('last_name', userData.last_name || '');
+            setValue('email', userData.email || '');
+            setValue('phone_number', userData.phone_number || '');
+            setValue('pincode', extractedPostcode || '');
+            setValue('address', userData.address || '');
+            setValue('is_major', userData.is_18_plus || userData.is_major || false);
+          }
+        } catch (error) {
+          console.error('Failed to fetch user profile:', error);
+        }
+      }
+    };
+
+    fetchUserProfile();
+  }, [isRenewFundingMode, authenticated, setValue]);
 
   useEffect(() => {
     if (timeLeft) {
@@ -154,18 +223,18 @@ const PersonalInformation: React.FC<PersonalInformationProps> = ({
   };
 
   useEffect(() => {
-    if (authenticated && loanId) {
+    if (authenticated && loanId && !isRenewFundingMode) {
       fetchDataFromApi(loanId);
     }
-  }, [loanId]);
+  }, [loanId, isRenewFundingMode]);
 
   useEffect(() => {
-    if (Object.keys(personalInfo).length > 0) {
+    if (Object.keys(personalInfo).length > 0 && !isRenewFundingMode) {
       if (!otp) {
         reset(personalInfo);
       }
     }
-  }, [personalInfo]);
+  }, [personalInfo, isRenewFundingMode]);
 
   useEffect(() => {
     if (address) {
@@ -181,7 +250,53 @@ const PersonalInformation: React.FC<PersonalInformationProps> = ({
   const onSubmit: SubmitHandler<personalInformationType> = async data => {
     setIsLoading(true);
     try {
-      if (
+      // Handle renew funding mode - create loan first if needed
+      if (isRenewFundingMode && !loanId && renewFundingCompanyId) {
+        try {
+          const response = await applyNewLoaApi(renewFundingCompanyId);
+          if (response?.status_code >= 200 && response?.status_code < 300) {
+            if (response?.data?.id) {
+              // Call the callback to update the loan ID in parent
+              onLoanCreated?.(response.data.id);
+              // Now submit the personal information with the new loan ID
+              const personalInformationPostAPIResponse =
+                await personalInformationPostAPI(data, response.data.id);
+              if (
+                personalInformationPostAPIResponse.status_code >= 200 &&
+                personalInformationPostAPIResponse.status_code < 300
+              ) {
+                showToast(personalInformationPostAPIResponse.status_message, {
+                  type: NotificationType.Success
+                });
+                await fetchFilledForms(response.data.id);
+                updateFilledForms(response.data.id, {
+                  complete_personal_detail: true
+                });
+                setTimeout(() => {
+                  dispatch(updateCurrentStage(2));
+                }, 1500);
+              } else {
+                showToast(personalInformationPostAPIResponse.status_message, {
+                  type: NotificationType.Error
+                });
+              }
+            } else {
+              showToast('Failed to create loan application', {
+                type: NotificationType.Error
+              });
+            }
+          } else {
+            showToast('Failed to create loan application', {
+              type: NotificationType.Error
+            });
+          }
+        } catch (error) {
+          console.error('Error creating loan for renewal:', error);
+          showToast('Failed to create loan application', {
+            type: NotificationType.Error
+          });
+        }
+      } else if (
         data.company.business_type === 'Limited Company' &&
         data.company.company_status === 'Dissolved'
       ) {
@@ -235,7 +350,7 @@ const PersonalInformation: React.FC<PersonalInformationProps> = ({
       showToast('something wrong!', { type: NotificationType.Error });
     } finally {
       setTimeout(() => {
-        setIsLoading(false); // Reset loading state when done submitting
+        setIsLoading(false);
       }, 1500);
     }
   };

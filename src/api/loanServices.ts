@@ -546,6 +546,10 @@ const listCompaniesApi = async QueryObject => {
   const companyUrl = urlQueryCreate(`${baseUrl}/company`, QueryObject);
   return Get({ url: companyUrl, request: {} });
 };
+const listCompaniesApiNew = async QueryObject => {
+  const companyUrl = urlQueryCreate(`${baseUrl}/company_list`, QueryObject);
+  return Get({ url: companyUrl, request: {} });
+};
 
 const companyDetailsApi = async (unitId?: string) => {
   return Get({
@@ -1356,5 +1360,6 @@ export {
   corporateGuarantorPropertyGetAPI,
   getLoanStatement,
   resentRequisitionAPI,
-  skipPapContractApi
+  skipPapContractApi,
+  listCompaniesApiNew
 };
