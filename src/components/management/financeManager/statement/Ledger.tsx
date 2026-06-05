@@ -36,7 +36,6 @@ const Ledger = () => {
     goToPrevPage,
     goToPage,
     handleFilter,
-    callPaginate,
     userPaginateException
   } = usePagination(financeManagerLedgerApi);
 
@@ -80,6 +79,11 @@ const Ledger = () => {
       setIsLoading(true);
       handleFilter(customFilter);
       downloadData();
+    } else if (!watchGlCode && !watchBpCode) {
+      // Clear data when no GL/BP is selected
+      setList([]);
+      setLoans([]);
+      setTransactionData([]);
     }
   }, [watchGlCode, watchBpCode, watchFromDate, watchToDate]);
 
@@ -134,9 +138,10 @@ const Ledger = () => {
               id="gl_name"
               type="text"
               placeholder=" "
-              value={selectedGl?.partner_name}
+              value={watch('gl_name') || watch('bp_name') || selectedGl?.partner_name || ''}
               className={fieldClass}
               onClick={() => setShowModal(true)}
+              readOnly
             />
             <label htmlFor="gl_name" className={labelClass}>
               {selectedGl?.type === 'bp' ? 'BP Name' : 'GL Name'}
@@ -170,11 +175,6 @@ const Ledger = () => {
     if (data) setLoans(data);
   }, [data]);
 
-  useEffect(() => {
-    setIsLoading(true);
-    callPaginate();
-    downloadData();
-  }, []);
 
   const downloadData = () => {
     const fromDate = getValues('from_date');
@@ -310,8 +310,7 @@ const Ledger = () => {
               </div>
             </div>
           </FormProvider>
-          {(watchGlCode || watchBpCode) && (
-            <div className="flex h-[75%] flex-1 flex-col overflow-y-auto bg-white max-sm:h-[64vh]">
+          <div className="flex h-[75%] flex-1 flex-col overflow-y-auto bg-white max-sm:h-[64vh]">
               <div className="px-2 max-sm:p-4">
                 <div>
                   {(isLaptop || isTablet) && (
@@ -512,7 +511,6 @@ const Ledger = () => {
                 </div>
               </div>
             </div>
-          )}
         </div>
       ) : (
         <AddEntry

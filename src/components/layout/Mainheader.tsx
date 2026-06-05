@@ -18,9 +18,7 @@ import { useMediaQuery } from 'react-responsive';
 import Mobilenav from './Mobilenav';
 import { PiSignIn } from 'react-icons/pi';
 import Preloader from './Preloader';
-import { applyNewLoan } from '../../utils/helpers';
-import useToast from '../../utils/hooks/toastify/useToast';
-import { NotificationType } from '../../utils/hooks/toastify/enums';
+import RenewFundingModal from './RenewFundingModal';
 import '../../assets/css/bootstrap.min.css';
 import '../../assets/css/all.min.css';
 import '../../assets/style.css';
@@ -210,16 +208,10 @@ const Navbar = ({
     signOut();
   };
 
-  const { showToast } = useToast();
+  const [isRenewFundingModalOpen, setIsRenewFundingModalOpen] = useState(false);
 
-  const handleNewLoan = async () => {
-    try {
-      await applyNewLoan(navigate);
-    } catch {
-      showToast('Failed to apply for a new Funding', {
-        type: NotificationType.Error
-      });
-    }
+  const handleRenewFunding = () => {
+    setIsRenewFundingModalOpen(true);
   };
 
   useEffect(() => {
@@ -703,7 +695,7 @@ const Navbar = ({
                                 {authenticated && (
                                   <button
                                     className="header-btn"
-                                    onClick={handleNewLoan}
+                                    onClick={handleRenewFunding}
                                     style={{
                                       backgroundImage:
                                         'linear-gradient(to right, #1A439A, #002D80)',
@@ -1008,6 +1000,11 @@ const Navbar = ({
           </div>
         </div>
       )}
+      
+      <RenewFundingModal
+        isOpen={isRenewFundingModalOpen}
+        onClose={() => setIsRenewFundingModalOpen(false)}
+      />
     </div>
   );
 };
