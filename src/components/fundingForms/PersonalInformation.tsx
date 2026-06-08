@@ -123,7 +123,7 @@ const PersonalInformation: React.FC<PersonalInformationProps> = ({
   });
   const { handleSubmit, watch, setValue, formState, trigger, reset } = methods;
 
-  const { role } = useSelector(authSelector);
+  const { role, id: customerId } = useSelector(authSelector);
   const { verifyOtp, authenticated } = useAuth();
   const dispatch = useDispatch();
   const { showToast } = useToast();
@@ -266,17 +266,18 @@ const PersonalInformation: React.FC<PersonalInformationProps> = ({
   const onSubmit: SubmitHandler<personalInformationType> = async data => {
     setIsLoading(true);
     try {
-      // Handle renew funding mode - create loan first if needed
-      if (isRenewFundingMode && !loanId && renewFundingCompanyId) {
+      // Create loan first if loanId is undefined (both for renew funding and normal new applications)
+      if (!loanId) {
         try {
-          const response = await applyNewLoaApi(renewFundingCompanyId);
+          const response = await applyNewLoaApi(customerId?.toString(), renewFundingCompanyId);
           if (response?.status_code >= 200 && response?.status_code < 300) {
-            if (response?.data?.id) {
+            const newLoanId = response?.data?.id;
+            if (newLoanId) {
               // Call the callback to update the loan ID in parent
-              onLoanCreated?.(response.data.id);
+              onLoanCreated?.(newLoanId);
               // Now submit the personal information with the new loan ID
               const personalInformationPostAPIResponse =
-                await personalInformationPostAPI(data, response.data.id);
+                await personalInformationPostAPI(data, newLoanId);
               if (
                 personalInformationPostAPIResponse.status_code >= 200 &&
                 personalInformationPostAPIResponse.status_code < 300
@@ -284,8 +285,8 @@ const PersonalInformation: React.FC<PersonalInformationProps> = ({
                 showToast(personalInformationPostAPIResponse.status_message, {
                   type: NotificationType.Success
                 });
-                await fetchFilledForms(response.data.id);
-                updateFilledForms(response.data.id, {
+                await fetchFilledForms(newLoanId);
+                updateFilledForms(newLoanId, {
                   complete_personal_detail: true
                 });
                 setTimeout(() => {
@@ -297,17 +298,19 @@ const PersonalInformation: React.FC<PersonalInformationProps> = ({
                 });
               }
             } else {
-              showToast('Failed to create loan application', {
+              console.error('Loan ID not found in response. Full response:', response);
+              showToast('Failed to create loan application - no loan ID returned', {
                 type: NotificationType.Error
               });
             }
           } else {
+            console.error('Loan creation failed. Status:', response?.status_code, 'Message:', response?.status_message);
             showToast('Failed to create loan application', {
               type: NotificationType.Error
             });
           }
         } catch (error) {
-          console.error('Error creating loan for renewal:', error);
+          console.error('Error creating loan:', error);
           showToast('Failed to create loan application', {
             type: NotificationType.Error
           });
