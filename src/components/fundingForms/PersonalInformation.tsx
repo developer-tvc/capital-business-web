@@ -123,7 +123,13 @@ const PersonalInformation: React.FC<PersonalInformationProps> = ({
   });
   const { handleSubmit, watch, setValue, formState, trigger, reset } = methods;
 
+  const { role } = useSelector(authSelector);
+  const { verifyOtp, authenticated } = useAuth();
+  const dispatch = useDispatch();
+  const { showToast } = useToast();
+
   // Clear form when in renew funding mode to start fresh, but keep company name
+  // Also clear company details for new loan applications (no loanId)
   useEffect(() => {
     if (isRenewFundingMode) {
       reset({
@@ -138,18 +144,28 @@ const PersonalInformation: React.FC<PersonalInformationProps> = ({
           other_funding_purpose: ''
         }
       });
+    } else if (!loanId && authenticated) {
+      // For new loan applications, clear all company details
+      reset({
+        company: {
+          company_name: '',
+          company_status: '',
+          company_number: '',
+          company_address: {},
+          business_type: undefined,
+          trading_style: '',
+          funding_purpose: undefined,
+          other_funding_purpose: ''
+        }
+      });
     }
-  }, [isRenewFundingMode, renewFundingCompanyName, reset]);
+  }, [isRenewFundingMode, renewFundingCompanyName, loanId, authenticated, reset]);
 
-  const { role } = useSelector(authSelector);
-  const { verifyOtp, authenticated } = useAuth();
-  const dispatch = useDispatch();
-  const { showToast } = useToast();
-
-  // Fetch user profile data and auto-fill personal details in renew funding mode
+  // Fetch user profile data and auto-fill personal details in renew funding mode or new loan application
   useEffect(() => {
     const fetchUserProfile = async () => {
-      if (isRenewFundingMode && authenticated) {
+      // Pre-fill personal details for both renew funding mode and new loan applications (no loanId)
+      if ((isRenewFundingMode || !loanId) && authenticated) {
         try {
           const response = await userProfileApi();
           if (response?.status_code === 200 && response?.data) {
@@ -185,7 +201,7 @@ const PersonalInformation: React.FC<PersonalInformationProps> = ({
     };
 
     fetchUserProfile();
-  }, [isRenewFundingMode, authenticated, setValue]);
+  }, [isRenewFundingMode, loanId, authenticated, setValue]);
 
   useEffect(() => {
     if (timeLeft) {

@@ -29,7 +29,6 @@ import useToast from '../../utils/hooks/toastify/useToast';
 import useAuth from '../../utils/hooks/useAuth';
 import { LoanData, personalInformationType } from '../../utils/types';
 import FormTestinomial from '../login/FormTestinomial';
-import Loader from '../Loader';
 import BusinessDetails from './BusinessDetails';
 import BusinessPremiseDetails from './BusinessPremiseDetails';
 import DirectorOrProprietorDetails from './DirectorOrProprietorDetails';
@@ -176,17 +175,21 @@ const CustomerFundingApplication: React.FC = ({
 
   useEffect(() => {
     if (authenticated) {
-      // if(query_params_loanId){
-      fetchCustomerLoans(query_params_loanId);
-      // }else{
-      //   dispatch(resetFundingState())
-      // }
+      // Only fetch existing loan data if query_params_loanId is provided (editing existing loan)
+      // For new loan applications (no loanId), don't fetch existing data to keep form clean
+      if (query_params_loanId) {
+        fetchCustomerLoans(query_params_loanId);
+      }
     }
   }, [query_params_loanId, isModalOpen, authenticated]);
 
   useEffect(() => {
     if (authenticated) {
-      fetchCustomerLoansOnly(query_params_loanId);
+      // Only fetch existing loan data if query_params_loanId is provided (editing existing loan)
+      // For new loan applications (no loanId), don't fetch existing data to keep form clean
+      if (query_params_loanId) {
+        fetchCustomerLoansOnly(query_params_loanId);
+      }
     }
   }, [query_params_loanId, isModalOpen, authenticated, statueUpdate]);
   useEffect(() => {
@@ -533,21 +536,7 @@ const CustomerFundingApplication: React.FC = ({
           </div>
 
           <div className="hide-scrollbar flex-1 overflow-auto">
-            {isRenewFundingMode && !loan?.id ? (
-              <div className="flex h-full items-center justify-center">
-                <div className="text-center">
-                  <Loader />
-                  <p className="mt-4 text-lg font-medium text-gray-900">
-                    Preparing your funding application...
-                  </p>
-                  <p className="mt-2 text-sm text-gray-600">
-                    Loading company details...
-                  </p>
-                </div>
-              </div>
-            ) : (
-              renderStageComponent(loan?.id)
-            )}
+            {renderStageComponent(loan?.id)}
           </div>
 
           <div className="sticky bottom-0 z-10 mb-4 bg-white">
