@@ -629,12 +629,12 @@ const uwVerifyPostApi = (loanId: string, payload) => {
   });
 };
 
-const applyNewLoaApi = customerId => {
+const applyNewLoaApi = (customerId?: string, companyId?: string) => {
   return Post({
     url: customerId
       ? `${applyNewLoanUrl}?customer_id=${customerId}`
       : applyNewLoanUrl,
-    request: {}
+    request: companyId ? { company_id: companyId } : {}
   });
 };
 

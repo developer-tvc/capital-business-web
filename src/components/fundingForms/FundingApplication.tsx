@@ -263,10 +263,9 @@ const CustomerFundingApplication: React.FC = ({
     ].includes(fundingFormStatus);
     const isSubmissionWaiting =
       fundingUpcomingFormStatus === FundingFromUpcomingStatus.SubmissionWaiting;
-    const filledforms = Math.min(
-      loan.loan_status.filled_forms_count,
-      NumberOfForms
-    );
+    const filledforms = loan?.loan_status?.filled_forms_count
+      ? Math.min(loan.loan_status.filled_forms_count, NumberOfForms)
+      : 0;
 
     if (isRepAssigned) {
       //is representative assigned then skip step
