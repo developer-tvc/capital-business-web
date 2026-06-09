@@ -117,6 +117,7 @@ const PersonalInformation: React.FC<PersonalInformationProps> = ({
   const [isAssignedAgent, setIsAssignedAgent] = useState(false);
   const [isRepAssignedRemind, setIsRepAssignedRemind] = useState(false);
 
+
   const methods = useForm({
     resolver: yupResolver(PersonalInformationSchema),
     defaultValues: personalInfo
@@ -285,12 +286,22 @@ const PersonalInformation: React.FC<PersonalInformationProps> = ({
                 showToast(personalInformationPostAPIResponse.status_message, {
                   type: NotificationType.Success
                 });
-                await fetchFilledForms(newLoanId);
+                const filledForms = await fetchFilledForms(newLoanId);
                 updateFilledForms(newLoanId, {
                   complete_personal_detail: true
                 });
-                setTimeout(() => {
-                  dispatch(updateCurrentStage(2));
+                setTimeout(async () => {
+                  if (
+                    (data.mode_of_application === ModeOfApplication.Representative &&
+                      filledForms === 0) ||
+                    ([Roles.Customer, Roles.Leads].includes(role) &&
+                      personalInfo.mode_of_application === ModeOfApplication.Self &&
+                      data.mode_of_application === ModeOfApplication.Representative)
+                  ) {
+                    setIsRepAssignedRemind(true);
+                  } else {
+                    dispatch(updateCurrentStage(2));
+                  }
                 }, 1500);
               } else {
                 showToast(personalInformationPostAPIResponse.status_message, {

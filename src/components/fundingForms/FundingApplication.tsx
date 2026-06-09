@@ -351,15 +351,8 @@ const CustomerFundingApplication: React.FC = ({
             renewFundingCompanyId={renewFundingCompanyId}
             renewFundingCompanyName={renewFundingCompanyName}
             onLoanCreated={(newLoanId) => {
-              // Update the loan ID after creation
-              navigate(`/funding-form/${newLoanId}`, {
-                state: {
-                  isRenewFunding: true,
-                  companyId: renewFundingCompanyId,
-                  companyName: renewFundingCompanyName
-                },
-                replace: true
-              });
+              // Update the loan ID after creation - don't navigate, let the modal handle redirect
+              setLoan({ id: newLoanId });
             }}
           />
         );
