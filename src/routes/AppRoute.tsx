@@ -106,6 +106,7 @@ import Services from '../pages/Services';
 import DutyStatementPage from '../pages/DutyStatementPage';
 import DataProtectionPolicyPage from '../pages/DataProtectionPolicyPage';
 import TermsandConditionPage from '../pages/TermsandConditionPage';
+import ResetPasswordPage from '../pages/ResetPasswordPage';
 
 const AppRoute = () => {
   const { authenticated } = useAuth();
@@ -308,6 +309,7 @@ const AppRoute = () => {
         />
       </Route>
       <Route path="/" element={landingPage} />
+      <Route path="/reset-password" element={<ResetPasswordPage />} />
       {!isDashboardAuthorizedUser && (
         <>
           <Route path="/login" element={<Login />} />
