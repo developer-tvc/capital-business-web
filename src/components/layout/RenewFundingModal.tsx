@@ -127,16 +127,39 @@ const RenewFundingModal: React.FC<RenewFundingModalProps> = ({
       <div
         className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50"
         aria-hidden="true"
+        onClick={onClose}
       >
-        <div className="relative w-full max-w-md rounded-lg bg-white p-6 shadow-xl">
+        <div className="relative w-full max-w-md rounded-lg bg-white p-6 shadow-xl" onClick={e => e.stopPropagation()}>
           {/* Header */}
-          <div className="mb-6">
-            <h2 className="text-2xl font-bold text-gray-900">
-              Renew Funding
-            </h2>
-            <p className="mt-2 text-sm text-gray-600">
-              Select the company for which you want to renew funding.
-            </p>
+          <div className="mb-6 flex items-start justify-between">
+            <div>
+              <h2 className="text-2xl font-bold text-gray-900">
+                Renew Funding
+              </h2>
+              <p className="mt-2 text-sm text-gray-600">
+                Select the company for which you want to renew funding.
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={onClose}
+              className="ml-4 rounded-md p-2 text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <svg
+                className="h-6 w-6"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M6 18L18 6M6 6l12 12"
+                />
+              </svg>
+            </button>
           </div>
 
           {/* Loading State */}
