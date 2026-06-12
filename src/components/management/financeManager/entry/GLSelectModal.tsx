@@ -76,9 +76,7 @@ const GLSelectModal: React.FC<GLSelectModalProps> = ({
             partner_name: partner.partner_name,
             bpId: partner.partner_type.id,
             bpLoanNumber: partner?.loan?.loan_number,
-            loanId: partner.loan
-              ? partner.loan.customer.loan_details[0].loan_id
-              : null
+            loanId: partner.loan?.id || null
           }));
 
         setBpIds(fetchedBpIds);
