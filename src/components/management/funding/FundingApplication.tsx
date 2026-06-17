@@ -1880,6 +1880,11 @@ const ManagementFundingApplication = () => {
           />
         </span>
         <span className="flex items-center gap-6 max-sm:gap-2">
+          {loan?.customer?.company_name && (
+            <span className="text-xs font-semibold text-[#1A439A] max-sm:text-[9px]">
+              {loan?.customer?.company_name}
+            </span>
+          )}
           <a
             className="flex cursor-pointer items-center gap-1 font-semibold text-gray-900"
             onClick={toggleComments}

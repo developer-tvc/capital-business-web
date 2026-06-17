@@ -650,19 +650,20 @@ const PersonalInformation: React.FC<PersonalInformationProps> = ({
                         ? isEligibleNewLoan?.loanCount
                           ? {
                               type: 'tel',
-                              isDisabled: false,
+                              isDisabled: isRenewFundingMode,
                               fieldClass: `peer bg-transparent h-12 w-full rounded-lg 
                                       text-black  placeholder-transparent  px-8 
                                       focus:outline-none focus:border-gray-500 border border-stone-300`
                             }
                           : {
                               type: 'tel',
-                              isDisabled: false,
+                              isDisabled: isRenewFundingMode,
                               fieldClass: `peer bg-transparent h-12 w-full rounded-l-lg 
                                       text-black  placeholder-transparent  px-8 
                                       focus:outline-none focus:border-gray-500 border border-stone-300`
                             }
                         : {
+                            isDisabled: isRenewFundingMode,
                             fieldClass: `peer bg-transparent h-12 w-full rounded-l-lg 
                                       text-black  placeholder-transparent  px-8 
                                       focus:outline-none focus:border-gray-500 border border-stone-300`

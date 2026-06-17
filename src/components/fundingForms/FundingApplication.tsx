@@ -426,6 +426,11 @@ const CustomerFundingApplication: React.FC = ({
                   </div>
                 </div>
                 <span className="mx-[1%] flex items-center gap-2 sm:mb-4">
+                  {(isRenewFundingMode && renewFundingCompanyName) || loan?.customer?.company_name || personalInfo?.company?.company_name ? (
+                    <span className="text-xs font-semibold text-[#1A439A]">
+                      {isRenewFundingMode ? renewFundingCompanyName : (loan?.customer?.company_name || personalInfo?.company?.company_name)}
+                    </span>
+                  ) : null}
                   {authenticated && (
                     <a
                       onClick={toggleComments}
@@ -500,6 +505,11 @@ const CustomerFundingApplication: React.FC = ({
                   </span>
                 </div>
                 <span className="mx-[1%] my-2 flex items-center justify-end gap-2">
+                  {(isRenewFundingMode && renewFundingCompanyName) || loan?.customer?.company_name || personalInfo?.company?.company_name ? (
+                    <span className="text-xs font-semibold text-[#1A439A] max-lg:text-[10px] max-sm:text-[9px]">
+                      {isRenewFundingMode ? renewFundingCompanyName : (loan?.customer?.company_name || personalInfo?.company?.company_name)}
+                    </span>
+                  ) : null}
                   {authenticated && (
                     <a
                       onClick={toggleComments}

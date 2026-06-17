@@ -2514,7 +2514,7 @@ export const PermittedRoutes = {
     '/notification',
     '/funding-form/:id'
   ],
-  [Roles.Leads]: ['/profile'],
+  [Roles.Leads]: ['/profile', '/funding', '/funding/:id'],
   [Roles.Customer]: [
     '/profile/',
     '/profile/funding-form',
@@ -3228,6 +3228,11 @@ export const roleTabs = {
       name: 'profileDetails',
       label: 'Profile Details',
       icon: CgProfile
+    },
+    {
+      name: 'funding',
+      label: 'Funding',
+      icon: GiCash
     },
     {
       name: 'identityVerification',
