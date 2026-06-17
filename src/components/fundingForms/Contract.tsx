@@ -13,6 +13,7 @@ import {
   sendContractEmailApi,
   sendDirectDebitLinkApi
 } from '../../api/loanServices';
+import { loanFinanceEntryApi } from '../../api/financeManagerServices';
 import eye from '../../assets/svg/eye.svg';
 import { authSelector } from '../../store/auth/userSlice';
 import { updateIsContractSend } from '../../store/fundingStateReducer';
@@ -31,6 +32,7 @@ import { LoanFromCommonProps } from '../../utils/types';
 import Loader from '../Loader';
 import ContractSignConfirmation from './modals/ContractSignConfirmationModal';
 import AgreementPreviewModal from './modals/AgreementPreviewModal';
+import BankSelectModal from './modals/BankSelectModal';
 
 export const badgeClassesHead = [
   {
@@ -154,6 +156,7 @@ const Contract: React.FC<LoanFromCommonProps> = ({
   const [isRegenerating, setIsRegenerating] = useState(false);
   const [lastRegeneratedAt, setLastRegeneratedAt] = useState(null);
   const regenerateTimeoutRef = useRef(null);
+  const [isBankModalOpen, setIsBankModalOpen] = useState(false);
   console.log('contractApiStatus', contractApiStatus);
 
   const fetchDebitApi = async (loanId: string) => {
@@ -303,70 +306,93 @@ const Contract: React.FC<LoanFromCommonProps> = ({
 
   const handleSignContract = async () => {
     setIsContractSendConfirmModal(false);
+    // Show bank selection modal instead of directly calling the API
+    setIsBankModalOpen(true);
+  };
+
+  const handleBankSelect = async (bankAccountId: string) => {
+    setIsLoading(true);
 
     try {
-      // if(envelopeStatus !== contractStatus.signedByAll){
-      //   showToast("Need to sign Contract!", { type: NotificationType.Error });
-      // }
-      setIsLoading(true);
-      if (
-        isContractSend ||
-        (contractResponse &&
-          [contractStatus.resent, contractStatus.sent].includes(
-            contractResponse.envelope_status
-          ))
-      ) {
-        const reSendContractEmailApiResponse = await reSendContractEmailApi(
-          loanId || loan.id
-        );
-
-        if (
-          reSendContractEmailApiResponse.status_code >= 200 &&
-          reSendContractEmailApiResponse.status_code < 300
-        ) {
-          setIsContractSend(true);
-          showToast(reSendContractEmailApiResponse.status_message, {
-            type: NotificationType.Success
-          });
-          updateFilledForms(loanId, {
-            complete_contract: true
-          }); // update filled forms
-        } else {
-          showToast(reSendContractEmailApiResponse.status_message, {
-            type: NotificationType.Error
-          });
+      // First call the bank selection API
+      const bankSelectionResponse = await loanFinanceEntryApi(
+        loanId || loan.id,
+        {
+          bank_account_id: bankAccountId,
+          partner_type: 'Customer'
         }
-      } else {
-        const sendContractEmailApiResponse = await sendContractEmailApi(
-          loanId || loan.id
-        );
+      );
 
+      if (bankSelectionResponse.status_code >= 200 && bankSelectionResponse.status_code < 300) {
+        showToast('Bank account selected successfully', {
+          type: NotificationType.Success
+        });
+
+        // Then call the original contract sending API
         if (
-          sendContractEmailApiResponse.status_code >= 200 &&
-          sendContractEmailApiResponse.status_code < 300
+          isContractSend ||
+          (contractResponse &&
+            [contractStatus.resent, contractStatus.sent].includes(
+              contractResponse.envelope_status
+            ))
         ) {
-          showToast(sendContractEmailApiResponse.status_message, {
-            type: NotificationType.Success
-          });
-          if (!(isContractSend || isSigned)) {
-            // send not resend
-            sendDirectDebitLinkApi({}, loanId || loan.id);
+          const reSendContractEmailApiResponse = await reSendContractEmailApi(
+            loanId || loan.id
+          );
+
+          if (
+            reSendContractEmailApiResponse.status_code >= 200 &&
+            reSendContractEmailApiResponse.status_code < 300
+          ) {
+            setIsContractSend(true);
+            showToast(reSendContractEmailApiResponse.status_message, {
+              type: NotificationType.Success
+            });
             updateFilledForms(loanId, {
               complete_contract: true
             }); // update filled forms
+          } else {
+            showToast(reSendContractEmailApiResponse.status_message, {
+              type: NotificationType.Error
+            });
           }
-          setIsContractSend(true);
         } else {
-          showToast(sendContractEmailApiResponse.status_message, {
-            type: NotificationType.Error
-          });
+          const sendContractEmailApiResponse = await sendContractEmailApi(
+            loanId || loan.id
+          );
+
+          if (
+            sendContractEmailApiResponse.status_code >= 200 &&
+            sendContractEmailApiResponse.status_code < 300
+          ) {
+            showToast(sendContractEmailApiResponse.status_message, {
+              type: NotificationType.Success
+            });
+            if (!(isContractSend || isSigned)) {
+              // send not resend
+              sendDirectDebitLinkApi({}, loanId || loan.id);
+              updateFilledForms(loanId, {
+                complete_contract: true
+              }); // update filled forms
+            }
+            setIsContractSend(true);
+          } else {
+            showToast(sendContractEmailApiResponse.status_message, {
+              type: NotificationType.Error
+            });
+          }
         }
+      } else {
+        showToast(bankSelectionResponse.status_message || 'Failed to select bank account', {
+          type: NotificationType.Error
+        });
       }
     } catch (error) {
       console.log('Exception', error);
       showToast('something wrong!', { type: NotificationType.Error });
+    } finally {
+      setIsLoading(false);
     }
-    setIsLoading(false);
   };
 
   useEffect(() => {
@@ -728,6 +754,11 @@ const Contract: React.FC<LoanFromCommonProps> = ({
         isOpen={isPreviewModalOpen}
         onClose={() => setIsPreviewModalOpen(false)}
         data={previewData}
+      />
+      <BankSelectModal
+        isOpen={isBankModalOpen}
+        close={() => setIsBankModalOpen(false)}
+        onBankSelect={handleBankSelect}
       />
     </>
   );
