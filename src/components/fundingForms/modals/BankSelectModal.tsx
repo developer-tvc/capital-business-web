@@ -51,6 +51,8 @@ const BankSelectModal: React.FC<BankSelectModalProps> = ({
   useEffect(() => {
     if (isOpen) {
       fetchBankAccounts();
+    } else {
+      setSelectedBankId(null);
     }
   }, [isOpen]);
 
