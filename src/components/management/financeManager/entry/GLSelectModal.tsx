@@ -14,7 +14,7 @@ const GLSelectModal: React.FC<GLSelectModalProps> = ({
   close,
   getValues,
   update,
-  onLoanIdsReceived,
+  // onLoanIdsReceived,
   clearErrors,
   isForTable = true,
   setSelectedGl
