@@ -6,6 +6,7 @@ import {
   SubmitHandler,
   useForm
 } from 'react-hook-form';
+import { FiEye } from 'react-icons/fi';
 import { IoMdClose } from 'react-icons/io';
 import { PiFilesLight } from 'react-icons/pi';
 import { useDispatch } from 'react-redux';
@@ -49,6 +50,60 @@ const EMPTY_TRADING_ADDRESS = {
   trading_documents: []
 };
 
+type PreviewableDocument =
+  | File
+  | string
+  | {
+      file?: string;
+      name?: string;
+      size?: number;
+      type?: string;
+      url?: string;
+    };
+
+const getDocumentUrl = (document: PreviewableDocument) => {
+  if (typeof document === 'string') return document;
+  if (document instanceof File) return '';
+
+  return document.url || document.file || '';
+};
+
+const getDocumentName = (document: PreviewableDocument) => {
+  if (typeof document === 'string') {
+    return document.split('/').pop() || 'Document';
+  }
+
+  return (
+    document.name ||
+    getDocumentUrl(document).split('/').pop() ||
+    'Document'
+  );
+};
+
+const getDocumentSize = (document: PreviewableDocument) =>
+  typeof document === 'string' ? 0 : document.size || 0;
+
+const getDocumentType = (document: PreviewableDocument) =>
+  typeof document === 'string' ? '' : document.type || '';
+
+const getDocumentExtension = (document: PreviewableDocument) => {
+  const documentType = getDocumentType(document);
+  if (documentType.includes('/')) {
+    return documentType.split('/').pop()?.toUpperCase() || 'FILE';
+  }
+
+  const documentName = getDocumentName(document);
+  return documentName.includes('.')
+    ? documentName.split('.').pop()?.toUpperCase() || 'FILE'
+    : 'FILE';
+};
+
+const isImageDocument = (document: PreviewableDocument) => {
+  const documentType = getDocumentType(document);
+  if (documentType.startsWith('image/')) return true;
+
+  return /\.(jpe?g|png|gif|svg|webp)$/i.test(getDocumentName(document));
+};
 
 const BusinessPremiseDetails: React.FC<LoanFromCommonProps> = ({
   setRef,
@@ -418,20 +473,42 @@ const BusinessPremiseDetails: React.FC<LoanFromCommonProps> = ({
 
     const fieldName = itemName;
     const rawWatchedFiles = watch(fieldName);
-const watchedFiles: File[] = Array.isArray(rawWatchedFiles)
-  ? rawWatchedFiles
-  : rawWatchedFiles
-  ? [rawWatchedFiles]
-  : [];
+    const watchedFiles: PreviewableDocument[] = Array.isArray(rawWatchedFiles)
+      ? rawWatchedFiles
+      : rawWatchedFiles
+        ? [rawWatchedFiles]
+        : [];
 
     const fieldError = getNestedError(formState?.errors, fieldName);
 
-    const handleClose = (fileName) => {
+    const handleClose = (fileName: string) => {
       const file = watchedFiles.filter(
-        word => word.name !== fileName
+        document => getDocumentName(document) !== fileName
       );
       setValue(fieldName, file);
       trigger(fieldName);
+    };
+
+    const handleDocumentPreview = (document: PreviewableDocument) => {
+      let previewUrl = getDocumentUrl(document);
+      const shouldRevokeUrl = !previewUrl && document instanceof File;
+
+      if (shouldRevokeUrl) {
+        previewUrl = URL.createObjectURL(document);
+      }
+
+      if (!previewUrl) {
+        showToast('Document preview is not available', {
+          type: NotificationType.Error
+        });
+        return;
+      }
+
+      window.open(previewUrl, '_blank', 'noopener,noreferrer');
+
+      if (shouldRevokeUrl) {
+        window.setTimeout(() => URL.revokeObjectURL(previewUrl), 60000);
+      }
     };
 
 
@@ -473,8 +550,14 @@ const watchedFiles: File[] = Array.isArray(rawWatchedFiles)
             {watchedFiles.length > 0 && (
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-5">
                 {watchedFiles.map((file, fileId) => {
-                  const isImage = file.type && file.type.startsWith('image/');
-                  const previewUrl = file instanceof File ? URL.createObjectURL(file) : (file as any).url;
+                  const fileName = getDocumentName(file);
+                  const fileSize = getDocumentSize(file);
+                  const isImage = isImageDocument(file);
+                  const previewUrl = isImage
+                    ? file instanceof File
+                      ? URL.createObjectURL(file)
+                      : getDocumentUrl(file)
+                    : '';
                   
                   return (
                     <div 
@@ -493,7 +576,7 @@ const watchedFiles: File[] = Array.isArray(rawWatchedFiles)
                           <div className="flex flex-col items-center justify-center">
                             <PiFilesLight size={24} className="text-[#1A439A]" />
                             <span className="text-[9px] font-extrabold text-[#1A439A]/40 mt-0.5 uppercase">
-                              {file.type?.split('/')[1] || 'PDF'}
+                              {getDocumentExtension(file)}
                             </span>
                           </div>
                         )}
@@ -501,19 +584,29 @@ const watchedFiles: File[] = Array.isArray(rawWatchedFiles)
                       
                       <div className="flex-grow min-w-0">
                         <p className="text-[13px] font-bold text-gray-800 truncate leading-tight">
-                          {file.name}
+                          {fileName}
                         </p>
                         <div className="flex items-center gap-2 mt-1.5">
                           {/* <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span> */}
                           <span className="text-[10px] text-gray-400 font-medium font-mono">
-                            {(file.size / (1024 * 1024)).toFixed(2)} MB
+                            {fileSize
+                              ? `${(fileSize / (1024 * 1024)).toFixed(2)} MB`
+                              : 'Ready to preview'}
                           </span>
                         </div>
+                        <button
+                          type="button"
+                          onClick={() => handleDocumentPreview(file)}
+                          className="mt-2 inline-flex items-center gap-1 text-[11px] font-semibold text-[#1A439A] transition hover:text-[#14357b]"
+                        >
+                          <FiEye size={13} />
+                          Document Preview
+                        </button>
                       </div>
 
                       <button 
                         type="button"
-                        onClick={() => handleClose(file.name)}
+                        onClick={() => handleClose(fileName)}
                         className="flex-shrink-0 p-2 rounded-full hover:bg-red-50 text-gray-200 hover:text-red-500 transition-all opacity-0 group-hover:opacity-100 scale-90 group-hover:scale-100"
                         title="Remove file"
                       >
