@@ -76,14 +76,14 @@ const ManagementFundingApplication = () => {
   const maxFormsByRole = {
     [Roles.FieldAgent]: 9,
     [Roles.FinanceManager]: 9,
-    [Roles.UnderWriter]: 12,
+    [Roles.UnderWriter]: 14,
     [Roles.Manager]: 14,
     [Roles.Admin]: 14
   };
   const NumberOfForms = [Roles.Admin, Roles.Manager].includes(role)
     ? 14
     : [Roles.UnderWriter].includes(role)
-      ? 12
+      ? 14
       : 9;
 
   const [fundingFormStatus, setFundingFormStatus] =
@@ -278,8 +278,14 @@ const ManagementFundingApplication = () => {
 
   const handleStageChange = (stage: number) => {
     if (stage <= NumberOfForms) {
-      dispatch(updateCurrentStage(stage));
-      setActiveStage(stage);
+      // For UnderWriter, skip stage 13 (Disbursement Advice) and go to stage 14 (Contract)
+      if (role === Roles.UnderWriter && stage === 13) {
+        dispatch(updateCurrentStage(14));
+        setActiveStage(14);
+      } else {
+        dispatch(updateCurrentStage(stage));
+        setActiveStage(stage);
+      }
     }
   };
 
@@ -292,7 +298,7 @@ const ManagementFundingApplication = () => {
   const wizardTabs = [Roles.Admin, Roles.Manager].includes(role)
     ? LoanWizardStages
     : Roles.UnderWriter === role
-      ? LoanWizardStages.slice(0, -2) // hide contract tab and disbursement tab
+      ? LoanWizardStages.slice(0, 12).concat(LoanWizardStages.slice(-1)) // show stages 1-12 and contract (stage 14), skip disbursement (stage 13)
       : LoanWizardStages.slice(0, -4); //  hide contract tab and disbursement tab affordability tab
 
   const submitApiCall = async (remark: string) => {
