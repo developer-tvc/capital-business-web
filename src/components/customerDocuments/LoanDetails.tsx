@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
-import { useNavigate } from 'react-router-dom';
 
 import { loanGetApi } from '../../api/loanServices';
 import { authSelector } from '../../store/auth/userSlice';
@@ -8,6 +7,7 @@ import { FundingFromCurrentStatus, Roles } from '../../utils/enums';
 import { NotificationType } from '../../utils/hooks/toastify/enums';
 import useToast from '../../utils/hooks/toastify/useToast';
 import { LoanData } from '../../utils/types';
+import RepresentativeAccessDeniedModal from '../fundingForms/modals/RepresentativeAccessDeniedModal';
 
 interface Detail {
   label: string;
@@ -60,6 +60,7 @@ const LoanDetails: React.FC<{
   const { showToast } = useToast();
 
   const [loan, setLoan] = useState<Partial<LoanData>>({});
+  const [isRepresentativeAccessDeniedOpen, setIsRepresentativeAccessDeniedOpen] = useState(false);
 
   const fetchLoan = async () => {
     try {
@@ -166,7 +167,6 @@ const LoanDetails: React.FC<{
     role === Roles.Customer
       ? [...details.common, ...details[Roles.Customer]]
       : [...details.common, ...details[Roles.Leads]];
-  const navigate = useNavigate();
 
   return (
     <div className="container bg-white">
@@ -175,7 +175,7 @@ const LoanDetails: React.FC<{
           type="button"
           className="mr-4 cursor-pointer rounded-lg bg-[#BABABA] px-4 py-2 text-white hover:bg-[#1A439A]"
           onClick={() => {
-            navigate(`/funding-form/${loan.id}`);
+            setIsRepresentativeAccessDeniedOpen(true);
           }}
         >
           {'Go to Application'}
@@ -195,6 +195,10 @@ const LoanDetails: React.FC<{
           </div>
         </div>
       </div>
+      <RepresentativeAccessDeniedModal
+        isOpen={isRepresentativeAccessDeniedOpen}
+        onClose={() => setIsRepresentativeAccessDeniedOpen(false)}
+      />
     </div>
   );
 };
