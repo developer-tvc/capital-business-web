@@ -31,16 +31,19 @@ import ActionModal from '../common/ThreeDotAction';
 import usePagination from '../common/usePagination';
 import AddLead from '../customer/AddLead';
 import FinanceEntryModal from './modals/FinanceEntryModal';
+import RepresentativeAccessDeniedModal from '../../fundingForms/modals/RepresentativeAccessDeniedModal';
 
 const Fundings = () => {
   const { user, unit } = useSelector(managementSliceSelector);
   const { role } = useSelector(authSelector);
   const { showToast } = useToast();
   const location = useLocation();
-  
+
   // Check if we're on the main funding page or customer funding form
   const isMainFundingPage = location.pathname === '/funding';
-  const isCustomerFundingForm = location.pathname.includes('/customer/') && location.pathname.includes('/funding-form');
+  const isCustomerFundingForm =
+    location.pathname.includes('/customer/') &&
+    location.pathname.includes('/funding-form');
 
   const {
     data,
@@ -76,6 +79,10 @@ const Fundings = () => {
   });
   const [isFinanceEntryModalOpen, setIsFinanceEntryModalOpen] = useState(false);
   const [financeEntryLoanId, setFinanceEntryLoanId] = useState(null);
+  const [
+    isRepresentativeAccessDeniedOpen,
+    setIsRepresentativeAccessDeniedOpen
+  ] = useState(false);
 
   useEffect(() => {
     const checkEligibility = async user_id => {
@@ -139,27 +146,31 @@ const Fundings = () => {
       // When clicking "view more" from dashboard as underwriter, fetch both statuses
       const fetchBothStatuses = async () => {
         try {
-          console.log('Fetching both statuses for underwriter from view more...');
-          const [submittedResponse, agentSubmittedResponse] = await Promise.all([
-            listAndSortCustomerLoanApi({
-              filter: {
-                ...(user.id && { customer_id: user.id }),
-                ...(unit.id && { company_id: unit.id }),
-                loan_status: 'Submitted'
-              }
-            }),
-            listAndSortCustomerLoanApi({
-              filter: {
-                ...(user.id && { customer_id: user.id }),
-                ...(unit.id && { company_id: unit.id }),
-                loan_status: 'Agent_Submitted'
-              }
-            })
-          ]);
-          
+          console.log(
+            'Fetching both statuses for underwriter from view more...'
+          );
+          const [submittedResponse, agentSubmittedResponse] = await Promise.all(
+            [
+              listAndSortCustomerLoanApi({
+                filter: {
+                  ...(user.id && { customer_id: user.id }),
+                  ...(unit.id && { company_id: unit.id }),
+                  loan_status: 'Submitted'
+                }
+              }),
+              listAndSortCustomerLoanApi({
+                filter: {
+                  ...(user.id && { customer_id: user.id }),
+                  ...(unit.id && { company_id: unit.id }),
+                  loan_status: 'Agent_Submitted'
+                }
+              })
+            ]
+          );
+
           console.log('Submitted response:', submittedResponse);
           console.log('Agent Submitted response:', agentSubmittedResponse);
-          
+
           const mergedData = [
             ...(submittedResponse?.data || []),
             ...(agentSubmittedResponse?.data || [])
@@ -409,27 +420,35 @@ const Fundings = () => {
                               <div className="flex space-x-2">
                                 <button
                                   type="button"
-                                  className="flex cursor-pointer bg-[#1A439A] px-6 py-2 text-white text-sm"
+                                  className="flex cursor-pointer bg-[#1A439A] px-6 py-2 text-sm text-white"
                                   onClick={() => {
-                                    setLoanId(id);
-                                    setActionLeadId(customer.id);
-                                    setIsModalOpen(true);
+                                    if (
+                                      customer.mode_of_application ===
+                                      ModeOfApplication.Representative
+                                    ) {
+                                      setIsRepresentativeAccessDeniedOpen(true);
+                                    } else {
+                                      setLoanId(id);
+                                      setActionLeadId(customer.id);
+                                      setIsModalOpen(true);
+                                    }
                                   }}
                                 >
                                   {'View'}
                                 </button>
-                                {!isMainFundingPage && isCustomerFundingForm && (
-                                  <button
-                                    type="button"
-                                    className="flex cursor-pointer bg-[#10B981] px-4 py-2 text-white text-sm"
-                                    onClick={() => {
-                                      setFinanceEntryLoanId(id);
-                                      setIsFinanceEntryModalOpen(true);
-                                    }}
-                                  >
-                                    {'Add Finance Entry'}
-                                  </button>
-                                )}
+                                {!isMainFundingPage &&
+                                  isCustomerFundingForm && (
+                                    <button
+                                      type="button"
+                                      className="flex cursor-pointer bg-[#10B981] px-4 py-2 text-sm text-white"
+                                      onClick={() => {
+                                        setFinanceEntryLoanId(id);
+                                        setIsFinanceEntryModalOpen(true);
+                                      }}
+                                    >
+                                      {'Add Finance Entry'}
+                                    </button>
+                                  )}
                               </div>
                             )}
                           </td>
@@ -548,11 +567,18 @@ const Fundings = () => {
                           <div className="mt-4 flex space-x-2">
                             <button
                               type="button"
-                              className="flex-1 cursor-pointer bg-[#1A439A] px-4 py-2 text-white text-sm"
+                              className="flex-1 cursor-pointer bg-[#1A439A] px-4 py-2 text-sm text-white"
                               onClick={() => {
-                                setLoanId(id);
-                                setActionLeadId(customer.id);
-                                setIsModalOpen(true);
+                                if (
+                                  customer.mode_of_application ===
+                                  ModeOfApplication.Representative
+                                ) {
+                                  setIsRepresentativeAccessDeniedOpen(true);
+                                } else {
+                                  setLoanId(id);
+                                  setActionLeadId(customer.id);
+                                  setIsModalOpen(true);
+                                }
                               }}
                             >
                               {'View'}
@@ -560,7 +586,7 @@ const Fundings = () => {
                             {!isMainFundingPage && isCustomerFundingForm && (
                               <button
                                 type="button"
-                                className="flex-1 cursor-pointer bg-[#10B981] px-4 py-2 text-white text-sm"
+                                className="flex-1 cursor-pointer bg-[#10B981] px-4 py-2 text-sm text-white"
                                 onClick={() => {
                                   setFinanceEntryLoanId(id);
                                   setIsFinanceEntryModalOpen(true);
@@ -633,6 +659,11 @@ const Fundings = () => {
           loanId={financeEntryLoanId}
         />
       )}
+
+      <RepresentativeAccessDeniedModal
+        isOpen={isRepresentativeAccessDeniedOpen}
+        onClose={() => setIsRepresentativeAccessDeniedOpen(false)}
+      />
     </>
   );
 };

@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { listAndSortCustomerLoanApi } from '../../../api/loanServices';
 import { ApplicationStatusBadgeClasses } from '../../../utils/data';
 import build from '../../../assets/svg/unit-company.svg';
-import { FundingFromStatusEnum } from '../../../utils/enums';
+import { FundingFromStatusEnum, ModeOfApplication } from '../../../utils/enums';
 import usePagination from '../../../components/management/common/usePagination';
 import { useNavigate } from 'react-router-dom';
 import { applyNewLoan, chkCustNewLoan } from '../../../utils/helpers';
@@ -11,6 +11,7 @@ import useToast from '../../../utils/hooks/toastify/useToast';
 import ConfirmModal from '../../../components/fundingForms/modals/ConfirmModal';
 import Loader from '../../../components/Loader';
 import { FundingCardProps } from '../../../utils/types';
+import RepresentativeAccessDeniedModal from '../../../components/fundingForms/modals/RepresentativeAccessDeniedModal';
 
 const FundingCard: React.FC<FundingCardProps> = ({
   customerId,
@@ -34,6 +35,10 @@ const FundingCard: React.FC<FundingCardProps> = ({
   }>(null);
   const [newLoanModalOpen, setNewLoanModalOpen] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [
+    isRepresentativeAccessDeniedOpen,
+    setIsRepresentativeAccessDeniedOpen
+  ] = useState(false);
 
   useEffect(() => {
     if (data) {
@@ -53,8 +58,18 @@ const FundingCard: React.FC<FundingCardProps> = ({
   }, [userPaginateException]);
 
   const handleCardClick = id => {
-    setSelectedFundingId(id);
     const selectedFUnding = data.find(item => item.id === id);
+
+    // Check if mode is Representative
+    if (
+      selectedFUnding?.customer.mode_of_application ===
+      ModeOfApplication.Representative
+    ) {
+      setIsRepresentativeAccessDeniedOpen(true);
+      return;
+    }
+
+    setSelectedFundingId(id);
     setSelectedCompanyId(selectedFUnding.unit.id);
 
     setMenuHistory(prev => {
@@ -212,6 +227,10 @@ const FundingCard: React.FC<FundingCardProps> = ({
           content="Are you sure you want to proceed with applying for new funding?"
         />
       )}
+      <RepresentativeAccessDeniedModal
+        isOpen={isRepresentativeAccessDeniedOpen}
+        onClose={() => setIsRepresentativeAccessDeniedOpen(false)}
+      />
     </>
   );
 };
