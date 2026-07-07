@@ -65,6 +65,7 @@ import DisbursementAdvice from '../dashboard/DisbursementAdvice';
 import FundingTab from './FundingTab';
 import Repayment from '../repayment/PaymentSchedule';
 import CorporateGuarantor from '../../fundingForms/corporateGuarantor';
+import RepresentativeAccessDeniedModal from '../../fundingForms/modals/RepresentativeAccessDeniedModal';
 
 const ManagementFundingApplication = () => {
   const { role } = useSelector(authSelector);
@@ -118,6 +119,10 @@ const ManagementFundingApplication = () => {
   const [affordabilityActiveStage, setAffordabilityActiveStage] =
     useState('general_form');
   const [uwVerifyData, setUwVerifyData] = useState<Record<string, boolean>>({});
+  const [
+    isRepresentativeAccessDeniedOpen,
+    setIsRepresentativeAccessDeniedOpen
+  ] = useState(false);
 
   const isSigned = !!(
     contractResponse?.signed_pdf && contractResponse?.signed_pdf !== ''
@@ -159,6 +164,16 @@ const ManagementFundingApplication = () => {
       dispatch(updateCurrentStage(activeStage));
     }
   }, [activeStage]);
+
+  useEffect(() => {
+    // Check if Customer role is trying to access Representative mode funding
+    if (
+      role === Roles.Customer &&
+      loan?.customer?.mode_of_application === ModeOfApplication.Representative
+    ) {
+      setIsRepresentativeAccessDeniedOpen(true);
+    }
+  }, [loan, role]);
 
   useEffect(() => {
     fetchCustomerLoans(loan.id);
@@ -277,6 +292,15 @@ const ManagementFundingApplication = () => {
   };
 
   const handleStageChange = (stage: number) => {
+    // Check if Customer role is trying to access Representative mode funding
+    if (
+      role === Roles.Customer &&
+      loan?.customer?.mode_of_application === ModeOfApplication.Representative
+    ) {
+      setIsRepresentativeAccessDeniedOpen(true);
+      return;
+    }
+
     if (stage <= NumberOfForms) {
       // For UnderWriter, skip stage 13 (Disbursement Advice) and go to stage 14 (Contract)
       if (role === Roles.UnderWriter && stage === 13) {
@@ -818,7 +842,9 @@ const ManagementFundingApplication = () => {
                   value: 'Next',
                   onClick: () => {
                     if (formRef.current) {
-                      const submitButton = formRef.current.querySelector('button[type="submit"]');
+                      const submitButton = formRef.current.querySelector(
+                        'button[type="submit"]'
+                      );
                       if (submitButton) {
                         submitButton.click();
                       } else {
@@ -906,7 +932,9 @@ const ManagementFundingApplication = () => {
                   value: 'Next',
                   onClick: () => {
                     if (formRef.current) {
-                      const submitButton = formRef.current.querySelector('button[type="submit"]');
+                      const submitButton = formRef.current.querySelector(
+                        'button[type="submit"]'
+                      );
                       if (submitButton) submitButton.click();
                     }
                   },
@@ -928,7 +956,9 @@ const ManagementFundingApplication = () => {
                       value: 'Next',
                       onClick: () => {
                         if (formRef.current) {
-                          const submitButton = formRef.current.querySelector('button[type="submit"]');
+                          const submitButton = formRef.current.querySelector(
+                            'button[type="submit"]'
+                          );
                           if (submitButton) submitButton.click();
                         }
                       },
@@ -1005,7 +1035,9 @@ const ManagementFundingApplication = () => {
                       value: 'Next',
                       onClick: () => {
                         if (formRef.current) {
-                          const submitButton = formRef.current.querySelector('button[type="submit"]');
+                          const submitButton = formRef.current.querySelector(
+                            'button[type="submit"]'
+                          );
                           if (submitButton) submitButton.click();
                         }
                       },
@@ -1083,7 +1115,9 @@ const ManagementFundingApplication = () => {
                       value: 'Next',
                       onClick: () => {
                         if (formRef.current) {
-                          const submitButton = formRef.current.querySelector('button[type="submit"]');
+                          const submitButton = formRef.current.querySelector(
+                            'button[type="submit"]'
+                          );
                           if (submitButton) submitButton.click();
                         }
                       },
@@ -1127,7 +1161,9 @@ const ManagementFundingApplication = () => {
                 onClick: () => {
                   console.log('🔵 Next clicked (Admin default)!');
                   if (formRef.current) {
-                    const submitButton = formRef.current.querySelector('button[type="submit"]');
+                    const submitButton = formRef.current.querySelector(
+                      'button[type="submit"]'
+                    );
                     if (submitButton) submitButton.click();
                   }
                 },
@@ -1142,9 +1178,13 @@ const ManagementFundingApplication = () => {
                 {
                   value: 'Next',
                   onClick: () => {
-                    console.log('🔵 Next clicked (Repayment Schedule - default case)!');
+                    console.log(
+                      '🔵 Next clicked (Repayment Schedule - default case)!'
+                    );
                     if (formRef.current) {
-                      const submitButton = formRef.current.querySelector('button[type="submit"]');
+                      const submitButton = formRef.current.querySelector(
+                        'button[type="submit"]'
+                      );
                       if (submitButton) {
                         console.log('✅ Clicking submit button...');
                         submitButton.click();
@@ -1159,7 +1199,7 @@ const ManagementFundingApplication = () => {
                 }
               ]);
             }
-            
+
             if (activeStage === 10) {
               switch (affordabilityActiveStage) {
                 case 'general_form':
@@ -1268,9 +1308,8 @@ const ManagementFundingApplication = () => {
             ]);
           case Roles.Manager:
             console.log('11111111111activeStage', activeStage);
-            console.log("11111111111number of forms", NumberOfForms);
-            
-            
+            console.log('11111111111number of forms', NumberOfForms);
+
             if (activeStage === 10) {
               switch (affordabilityActiveStage) {
                 case 'general_form':
@@ -2204,6 +2243,10 @@ const ManagementFundingApplication = () => {
         }}
         head="Funding Application Returned!"
         content="Funding application has been Returned."
+      />
+      <RepresentativeAccessDeniedModal
+        isOpen={isRepresentativeAccessDeniedOpen}
+        onClose={() => setIsRepresentativeAccessDeniedOpen(false)}
       />
     </div>
   );

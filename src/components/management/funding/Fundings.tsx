@@ -31,7 +31,6 @@ import ActionModal from '../common/ThreeDotAction';
 import usePagination from '../common/usePagination';
 import AddLead from '../customer/AddLead';
 import FinanceEntryModal from './modals/FinanceEntryModal';
-import RepresentativeAccessDeniedModal from '../../fundingForms/modals/RepresentativeAccessDeniedModal';
 
 const Fundings = () => {
   const { user, unit } = useSelector(managementSliceSelector);
@@ -79,10 +78,6 @@ const Fundings = () => {
   });
   const [isFinanceEntryModalOpen, setIsFinanceEntryModalOpen] = useState(false);
   const [financeEntryLoanId, setFinanceEntryLoanId] = useState(null);
-  const [
-    isRepresentativeAccessDeniedOpen,
-    setIsRepresentativeAccessDeniedOpen
-  ] = useState(false);
 
   useEffect(() => {
     const checkEligibility = async user_id => {
@@ -422,16 +417,9 @@ const Fundings = () => {
                                   type="button"
                                   className="flex cursor-pointer bg-[#1A439A] px-6 py-2 text-sm text-white"
                                   onClick={() => {
-                                    if (
-                                      customer.mode_of_application ===
-                                      ModeOfApplication.Representative
-                                    ) {
-                                      setIsRepresentativeAccessDeniedOpen(true);
-                                    } else {
-                                      setLoanId(id);
-                                      setActionLeadId(customer.id);
-                                      setIsModalOpen(true);
-                                    }
+                                    setLoanId(id);
+                                    setActionLeadId(customer.id);
+                                    setIsModalOpen(true);
                                   }}
                                 >
                                   {'View'}
@@ -569,16 +557,9 @@ const Fundings = () => {
                               type="button"
                               className="flex-1 cursor-pointer bg-[#1A439A] px-4 py-2 text-sm text-white"
                               onClick={() => {
-                                if (
-                                  customer.mode_of_application ===
-                                  ModeOfApplication.Representative
-                                ) {
-                                  setIsRepresentativeAccessDeniedOpen(true);
-                                } else {
-                                  setLoanId(id);
-                                  setActionLeadId(customer.id);
-                                  setIsModalOpen(true);
-                                }
+                                setLoanId(id);
+                                setActionLeadId(customer.id);
+                                setIsModalOpen(true);
                               }}
                             >
                               {'View'}
@@ -659,11 +640,6 @@ const Fundings = () => {
           loanId={financeEntryLoanId}
         />
       )}
-
-      <RepresentativeAccessDeniedModal
-        isOpen={isRepresentativeAccessDeniedOpen}
-        onClose={() => setIsRepresentativeAccessDeniedOpen(false)}
-      />
     </>
   );
 };
