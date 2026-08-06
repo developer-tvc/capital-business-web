@@ -135,8 +135,7 @@ const CustomerFundingApplication: React.FC = ({
           type: NotificationType.Error
         });
       }
-    } catch (error) {
-      console.log('Exception', error);
+    } catch (_error) {
       showToast('something wrong!', { type: NotificationType.Error });
     }
   };
@@ -167,8 +166,7 @@ const CustomerFundingApplication: React.FC = ({
           type: NotificationType.Error
         });
       }
-    } catch (error) {
-      console.log('Exception', error);
+    } catch (_error) {
       showToast('something wrong!', { type: NotificationType.Error });
     }
   };
@@ -238,10 +236,7 @@ const CustomerFundingApplication: React.FC = ({
           PersonalInfoApiResponse.data.mode_of_application ===
           ModeOfApplication.Representative
         ) {
-          setIsRepAssigned(
-            PersonalInfoApiResponse.data.mode_of_application ===
-              ModeOfApplication.Representative
-          );
+          setIsRepAssigned(true);
           return true;
         }
       } else {
@@ -249,8 +244,7 @@ const CustomerFundingApplication: React.FC = ({
           type: NotificationType.Error
         });
       }
-    } catch (error) {
-      console.log('Exception', error);
+    } catch (_error) {
       showToast('something wrong!', { type: NotificationType.Error });
     }
   };
@@ -637,14 +631,6 @@ const CustomerFundingApplication: React.FC = ({
               ? "After the agent confirmation we'll proceed further and "
               : "We'll "
           } get back to you soon.`}
-      />
-      <NotEligibleModal
-        isOpen={isRepAssignedRemind}
-        onClose={() => {
-          setIsRepAssignedRemind(false);
-        }}
-        head="Notice"
-        content="You assigned to an agent, you can no longer continue with the application. Only the agent has the ability to fill out the form."
       />
       <NotEligibleModal
         isOpen={isRepAssignedRemind}

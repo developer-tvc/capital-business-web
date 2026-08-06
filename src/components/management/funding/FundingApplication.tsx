@@ -33,12 +33,12 @@ import {
   FundingFromCurrentStatus,
   FundingFromStatusEnum,
   FundingFromUpcomingStatus,
-  ModeOfApplication,
   Roles
 } from '../../../utils/enums';
 import {
   AffordabilityNextTab,
   AffordabilityPrevTab,
+  isRepresentativeModeOfApplication,
   updateFilledForms
 } from '../../../utils/helpers';
 import { NotificationType } from '../../../utils/hooks/toastify/enums';
@@ -169,7 +169,7 @@ const ManagementFundingApplication = () => {
     // Check if Customer role is trying to access Representative mode funding
     if (
       role === Roles.Customer &&
-      loan?.customer?.mode_of_application === ModeOfApplication.Representative
+      isRepresentativeModeOfApplication(loan?.customer?.mode_of_application)
     ) {
       setIsRepresentativeAccessDeniedOpen(true);
     }
@@ -207,8 +207,7 @@ const ManagementFundingApplication = () => {
           type: NotificationType.Error
         });
       }
-    } catch (error) {
-      console.log('Exception', error);
+    } catch (_error) {
       showToast('something wrong!', { type: NotificationType.Error });
     }
   };
@@ -236,8 +235,7 @@ const ManagementFundingApplication = () => {
           type: NotificationType.Error
         });
       }
-    } catch (error) {
-      console.log('Exception', error);
+    } catch (_error) {
       showToast('something wrong!', { type: NotificationType.Error });
     }
   };
@@ -265,19 +263,6 @@ const ManagementFundingApplication = () => {
         const maxForms = maxFormsByRole[role];
         filledForms = Math.min(filledForms, maxForms);
         const NextForm = Math.min(filledForms + 1, NumberOfForms);
-        console.log('loanGetApiResponse', loanGetApiResponse.data.loan_status);
-
-        console.log(
-          'nextForm',
-          NextForm,
-          'Max',
-          maxForms,
-          'Fill',
-          filledForms,
-          'NoF',
-          NumberOfForms
-        );
-
         setActiveStage(NextForm);
         dispatch(updateCurrentStage(NextForm));
       } else {
@@ -285,8 +270,7 @@ const ManagementFundingApplication = () => {
           type: NotificationType.Error
         });
       }
-    } catch (error) {
-      console.log('Exception', error);
+    } catch (_error) {
       showToast('something wrong!', { type: NotificationType.Error });
     }
   };
@@ -295,7 +279,7 @@ const ManagementFundingApplication = () => {
     // Check if Customer role is trying to access Representative mode funding
     if (
       role === Roles.Customer &&
-      loan?.customer?.mode_of_application === ModeOfApplication.Representative
+      isRepresentativeModeOfApplication(loan?.customer?.mode_of_application)
     ) {
       setIsRepresentativeAccessDeniedOpen(true);
       return;
@@ -606,7 +590,7 @@ const ManagementFundingApplication = () => {
       case FundingFromCurrentStatus.Inprogress:
       case FundingFromCurrentStatus.UnderwriterReturned:
         if (
-          loan.customer.mode_of_application === ModeOfApplication.Representative
+          isRepresentativeModeOfApplication(loan?.customer?.mode_of_application)
         ) {
           switch (role) {
             case Roles.FieldAgent:
@@ -686,7 +670,7 @@ const ManagementFundingApplication = () => {
 
       case FundingFromCurrentStatus.Submitted:
         if (
-          loan.customer.mode_of_application === ModeOfApplication.Representative
+          isRepresentativeModeOfApplication(loan?.customer?.mode_of_application)
         ) {
           switch (role) {
             case Roles.FieldAgent:
@@ -1159,7 +1143,6 @@ const ManagementFundingApplication = () => {
               {
                 value: 'Next',
                 onClick: () => {
-                  console.log('🔵 Next clicked (Admin default)!');
                   if (formRef.current) {
                     const submitButton = formRef.current.querySelector(
                       'button[type="submit"]'
@@ -1178,21 +1161,13 @@ const ManagementFundingApplication = () => {
                 {
                   value: 'Next',
                   onClick: () => {
-                    console.log(
-                      '🔵 Next clicked (Repayment Schedule - default case)!'
-                    );
                     if (formRef.current) {
                       const submitButton = formRef.current.querySelector(
                         'button[type="submit"]'
                       );
                       if (submitButton) {
-                        console.log('✅ Clicking submit button...');
                         submitButton.click();
-                      } else {
-                        console.log('❌ Submit button not found!');
                       }
-                    } else {
-                      console.log('❌ Form ref is null!');
                     }
                   },
                   style: 'next'
@@ -1307,9 +1282,6 @@ const ManagementFundingApplication = () => {
               }
             ]);
           case Roles.Manager:
-            console.log('11111111111activeStage', activeStage);
-            console.log('11111111111number of forms', NumberOfForms);
-
             if (activeStage === 10) {
               switch (affordabilityActiveStage) {
                 case 'general_form':
@@ -1829,8 +1801,7 @@ const ManagementFundingApplication = () => {
       handleApiResponse(response, () => {
         setUwVerifyData(response?.data?.underwriter_verified_forms || {});
       });
-    } catch (error) {
-      console.error('Fetch UwVerify Error:', error);
+    } catch (_error) {
       showToast('Something went wrong!', { type: NotificationType.Error });
     }
   };
@@ -1866,8 +1837,7 @@ const ManagementFundingApplication = () => {
             type: NotificationType.Success
           });
         });
-      } catch (error) {
-        console.error('Checkbox Change Error:', error);
+      } catch (_error) {
         showToast('Something went wrong!', { type: NotificationType.Error });
       }
     };
