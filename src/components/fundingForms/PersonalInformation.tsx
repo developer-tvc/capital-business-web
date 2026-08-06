@@ -84,8 +84,7 @@ const PersonalInformation: React.FC<PersonalInformationProps> = ({
       try {
         const eligibility = await chkCustNewLoan();
         setIsEligibleNewLoan(eligibility);
-      } catch (error) {
-        console.error('Failed to check eligibility:', error);
+      } catch (_error) {
         setIsEligibleNewLoan(null); // or handle error state
       }
     };
@@ -171,7 +170,6 @@ const PersonalInformation: React.FC<PersonalInformationProps> = ({
           const response = await userProfileApi();
           if (response?.status_code === 200 && response?.data) {
             const userData = response.data;
-            console.log('User profile data:', userData); // Debug log
 
             // Extract postcode from address (format: "address, postcode")
             let extractedPostcode = '';
@@ -195,8 +193,8 @@ const PersonalInformation: React.FC<PersonalInformationProps> = ({
             setValue('address', userData.address || '');
             setValue('is_major', userData.is_18_plus || userData.is_major || false);
           }
-        } catch (error) {
-          console.error('Failed to fetch user profile:', error);
+        } catch (_error) {
+          // Silently handle profile fetch errors
         }
       }
     };
@@ -233,8 +231,7 @@ const PersonalInformation: React.FC<PersonalInformationProps> = ({
           type: NotificationType.Error
         });
       }
-    } catch (error) {
-      console.log('Exception', error);
+    } catch (_error) {
       showToast('something wrong!', { type: NotificationType.Error });
     }
   };
@@ -309,19 +306,16 @@ const PersonalInformation: React.FC<PersonalInformationProps> = ({
                 });
               }
             } else {
-              console.error('Loan ID not found in response. Full response:', response);
               showToast('Failed to create loan application - no loan ID returned', {
                 type: NotificationType.Error
               });
             }
           } else {
-            console.error('Loan creation failed. Status:', response?.status_code, 'Message:', response?.status_message);
             showToast('Failed to create loan application', {
               type: NotificationType.Error
             });
           }
-        } catch (error) {
-          console.error('Error creating loan:', error);
+        } catch (_error) {
           showToast('Failed to create loan application', {
             type: NotificationType.Error
           });
@@ -335,7 +329,7 @@ const PersonalInformation: React.FC<PersonalInformationProps> = ({
         if (data.representatives === '') {
           delete data.representatives;
         }
-        if (data.mode_of_application === 'Self') {
+        if (data.mode_of_application === ModeOfApplication.Self) {
           delete data.representatives;
           delete data.agree_authorization;
           delete data.is_pending_threatened_or_recently;
@@ -376,7 +370,6 @@ const PersonalInformation: React.FC<PersonalInformationProps> = ({
         }
       }
     } catch (error) {
-      console.log('Exception', error);
       showToast('something wrong!', { type: NotificationType.Error });
     } finally {
       setTimeout(() => {
@@ -385,11 +378,10 @@ const PersonalInformation: React.FC<PersonalInformationProps> = ({
     }
   };
 
-  const onError: SubmitErrorHandler<personalInformationType> = error => {
+  const onError: SubmitErrorHandler<personalInformationType> = _error => {
     showToast('Please check the validation error!', {
       type: NotificationType.Error
     });
-    console.log('error', error);
   };
 
   // const watchFundRequest = watch("fund_request_amount", 0);
@@ -441,8 +433,7 @@ const PersonalInformation: React.FC<PersonalInformationProps> = ({
           } else {
             showToast(resp.status_message, { type: NotificationType.Error });
           }
-        } catch (error) {
-          console.log('Exception', error);
+        } catch (_error) {
           showToast('something wrong!', { type: NotificationType.Error });
         } finally {
           setIsLoading(false);
@@ -478,8 +469,7 @@ const PersonalInformation: React.FC<PersonalInformationProps> = ({
       } else {
         setOtpVerifyError("verify otp can't be empty ");
       }
-    } catch (error) {
-      console.log('Exception', error);
+    } catch (_error) {
       showToast('something wrong!', { type: NotificationType.Error });
     } finally {
       setIsLoading(false);
