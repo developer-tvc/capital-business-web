@@ -7,7 +7,7 @@ import {
   filledFormsGetApi,
   updateFilledFormsApi
 } from '../api/loanServices';
-import { FundingFromCurrentStatus } from './enums';
+import { FundingFromCurrentStatus, ModeOfApplication } from './enums';
 import { NotificationType } from './hooks/toastify/enums';
 import { QueryObject } from './types';
 
@@ -198,6 +198,18 @@ export const truncateString = (str: string, limit: number): string => {
     ? str.trim().substring(0, limit) + '...'
     : str.trim();
 };
+
+export const normalizeModeOfApplication = (mode?: string | null): string =>
+  typeof mode === 'string' ? mode.trim().toLowerCase() : '';
+
+export const isSelfModeOfApplication = (mode?: string | null): boolean =>
+  normalizeModeOfApplication(mode) === ModeOfApplication.Self.toLowerCase();
+
+export const isRepresentativeModeOfApplication = (
+  mode?: string | null
+): boolean =>
+  normalizeModeOfApplication(mode) ===
+  ModeOfApplication.Representative.toLowerCase();
 
 export const setFieldValuesForDisbursementAdvice = (data, setValue) => {
   setValue('unitName', data?.customer?.company_name);
