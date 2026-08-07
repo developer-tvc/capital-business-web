@@ -710,6 +710,23 @@ const ManagementFundingApplication = () => {
         } else {
           switch (role) {
             case Roles.UnderWriter:
+              if (activeStage === 12) {
+                return renderActionButtons([
+                  {
+                    value: 'Submit',
+                    onClick: () => handleUwSubmit(),
+                    style: 'submit',
+                    disabled: ![
+                      FundingFromUpcomingStatus.UnderwriterSubmissionWaiting
+                    ].includes(fundingUpcomingFormStatus)
+                  },
+                  {
+                    value: 'Return',
+                    onClick: () => setIsReturnConfirmModal(true),
+                    style: 'reject'
+                  }
+                ]);
+              }
               if (activeStage === NumberOfForms) {
                 if (isUwRepaymentComplete) {
                   return renderActionButtons([
@@ -785,6 +802,23 @@ const ManagementFundingApplication = () => {
                       }
                     ]);
                 }
+              }
+              if (activeStage === 12) {
+                return renderActionButtons([
+                  {
+                    value: 'Submit',
+                    onClick: () => handleUwSubmit(),
+                    style: 'submit',
+                    disabled: ![
+                      FundingFromUpcomingStatus.UnderwriterSubmissionWaiting
+                    ].includes(fundingUpcomingFormStatus)
+                  },
+                  {
+                    value: 'Return',
+                    onClick: () => setIsReturnConfirmModal(true),
+                    style: 'reject'
+                  }
+                ]);
               }
               return renderActionButtons([
                 {
@@ -893,6 +927,23 @@ const ManagementFundingApplication = () => {
               }
             ]);
           case Roles.UnderWriter:
+            if (activeStage === 12) {
+              return renderActionButtons([
+                {
+                  value: 'Submit',
+                  onClick: () => handleUwSubmit(),
+                  style: 'submit',
+                  disabled: ![
+                    FundingFromUpcomingStatus.UnderwriterSubmissionWaiting
+                  ].includes(fundingUpcomingFormStatus)
+                },
+                {
+                  value: 'Return',
+                  onClick: () => setIsReturnConfirmModal(true),
+                  style: 'reject'
+                }
+              ]);
+            }
             if (activeStage === NumberOfForms) {
               if (isUwRepaymentComplete) {
                 return renderActionButtons([
@@ -995,6 +1046,23 @@ const ManagementFundingApplication = () => {
                   ]);
               }
             }
+            if (activeStage === 12) {
+              return renderActionButtons([
+                {
+                  value: 'Submit',
+                  onClick: () => handleUwSubmit(),
+                  style: 'submit',
+                  disabled: ![
+                    FundingFromUpcomingStatus.UnderwriterSubmissionWaiting
+                  ].includes(fundingUpcomingFormStatus)
+                },
+                {
+                  value: 'Return',
+                  onClick: () => setIsReturnConfirmModal(true),
+                  style: 'reject'
+                }
+              ]);
+            }
             return renderActionButtons([
               {
                 value: 'Next',
@@ -1080,6 +1148,23 @@ const ManagementFundingApplication = () => {
                 }
               ]);
             }
+            if (activeStage === 12) {
+              return renderActionButtons([
+                {
+                  value: 'Submit',
+                  onClick: () => handleUwSubmit(),
+                  style: 'submit',
+                  disabled: ![
+                    FundingFromUpcomingStatus.UnderwriterSubmissionWaiting
+                  ].includes(fundingUpcomingFormStatus)
+                },
+                {
+                  value: 'Return',
+                  onClick: () => setIsReturnConfirmModal(true),
+                  style: 'reject'
+                }
+              ]);
+            }
             return renderActionButtons([
               {
                 value: 'Next',
@@ -1136,6 +1221,23 @@ const ManagementFundingApplication = () => {
                   onClick: () => handleAdminDisbursal(),
                   style: 'approve',
                   disabled: true
+                }
+              ]);
+            }
+            if (activeStage === 12) {
+              return renderActionButtons([
+                {
+                  value: 'Submit',
+                  onClick: () => handleUwSubmit(),
+                  style: 'submit',
+                  disabled: ![
+                    FundingFromUpcomingStatus.UnderwriterSubmissionWaiting
+                  ].includes(fundingUpcomingFormStatus)
+                },
+                {
+                  value: 'Return',
+                  onClick: () => setIsReturnConfirmModal(true),
+                  style: 'reject'
                 }
               ]);
             }
@@ -1237,6 +1339,23 @@ const ManagementFundingApplication = () => {
               }
             ]);
           case Roles.UnderWriter:
+            if (activeStage === 12) {
+              return renderActionButtons([
+                {
+                  value: 'Submit',
+                  onClick: () => handleUwSubmit(),
+                  style: 'submit',
+                  disabled: ![
+                    FundingFromUpcomingStatus.UnderwriterSubmissionWaiting
+                  ].includes(fundingUpcomingFormStatus)
+                },
+                {
+                  value: 'Return',
+                  onClick: () => setIsReturnConfirmModal(true),
+                  style: 'reject'
+                }
+              ]);
+            }
             if (activeStage === NumberOfForms) {
               return renderSubmitButton('Submitted', null, true);
             }

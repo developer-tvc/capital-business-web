@@ -565,7 +565,7 @@ const Contract: React.FC<LoanFromCommonProps> = ({
             )}
           </div>
         )}
-        {[Roles.Admin, Roles.Manager].includes(role) && isContractSend && (
+        {[Roles.Admin, Roles.Manager, Roles.UnderWriter].includes(role) && isContractSend && (
           <>
             {isSigned && openContract && <ViewContract />}
 
