@@ -418,7 +418,7 @@ const Contract: React.FC<LoanFromCommonProps> = ({
           <div className="flex items-center justify-between">
             <h2 className="mb-4 text-[16px] font-bold">{'Contract'}</h2>
             <div className="flex gap-4">
-              {previewData && (
+              {(previewData || role === Roles.UnderWriter) && (
                 <p
                   className="flex cursor-pointer items-center pr-4 text-[12px] font-medium text-[#1A439A]"
                   onClick={() => {
@@ -484,7 +484,7 @@ const Contract: React.FC<LoanFromCommonProps> = ({
                       ? 'Contract'
                       : 'Send Contract Sign Email and Direct debit'}
                   </span>
-                  {previewData && (
+                  {(previewData || role === Roles.UnderWriter) && (
                     <p
                       className="flex cursor-pointer items-center text-[12px] font-medium text-[#1A439A]"
                       onClick={(e) => {
@@ -510,53 +510,57 @@ const Contract: React.FC<LoanFromCommonProps> = ({
                         <span>Last regenerated: {lastRegeneratedAt.toLocaleTimeString()}</span>
                       )}
                     </div>
-                    <div className="flex gap-2">
-                      <button
-                        type="button"
-                        className={`flex items-center gap-2 rounded border px-3 py-2 text-sm font-medium transition-colors ${
-                          isRegenerating
-                            ? 'border-gray-300 bg-gray-100 text-gray-500 cursor-not-allowed'
-                            : 'border-blue-500 bg-blue-50 text-blue-700 hover:bg-blue-100'
-                        }`}
-                        onClick={() => regenerateData('manual')}
-                        disabled={isRegenerating}
-                      >
-                        <IoRefresh className={isRegenerating ? 'animate-spin' : ''} size={16} />
-                        {isRegenerating ? 'Regenerating...' : 'Regenerate'}
-                      </button>
-                    <button
-                      type="button"
-                      className={`bg-white ${[FundingFromCurrentStatus.UnderwriterSubmitted].includes(fundingFormStatus) ? 'text-[#1A439A]' : 'text-[#BABABA]'} cursor-pointer text-[14px] font-semibold uppercase max-sm:text-[10px]`}
-                      disabled={
-                        ![
-                          FundingFromCurrentStatus.UnderwriterSubmitted
-                        ].includes(fundingFormStatus)
-                      }
-                      onClick={() => {
-                        setIsContractSendConfirmModal(true);
-                      }}
-                    >
-                      {'RESEND'}
-                    </button>
-                    </div>
+                    {![Roles.UnderWriter].includes(role) && (
+                      <div className="flex gap-2">
+                        <button
+                          type="button"
+                          className={`flex items-center gap-2 rounded border px-3 py-2 text-sm font-medium transition-colors ${
+                            isRegenerating
+                              ? 'border-gray-300 bg-gray-100 text-gray-500 cursor-not-allowed'
+                              : 'border-blue-500 bg-blue-50 text-blue-700 hover:bg-blue-100'
+                          }`}
+                          onClick={() => regenerateData('manual')}
+                          disabled={isRegenerating}
+                        >
+                          <IoRefresh className={isRegenerating ? 'animate-spin' : ''} size={16} />
+                          {isRegenerating ? 'Regenerating...' : 'Regenerate'}
+                        </button>
+                        <button
+                          type="button"
+                          className={`bg-white ${[FundingFromCurrentStatus.UnderwriterSubmitted].includes(fundingFormStatus) ? 'text-[#1A439A]' : 'text-[#BABABA]'} cursor-pointer text-[14px] font-semibold uppercase max-sm:text-[10px]`}
+                          disabled={
+                            ![
+                              FundingFromCurrentStatus.UnderwriterSubmitted
+                            ].includes(fundingFormStatus)
+                          }
+                          onClick={() => {
+                            setIsContractSendConfirmModal(true);
+                          }}
+                        >
+                          {'RESEND'}
+                        </button>
+                      </div>
+                    )}
                     </div>
                   )
                 ) : (
                   <span>
-                    <button
-                      type="button"
-                      className={`bg-white ${[FundingFromCurrentStatus.UnderwriterSubmitted].includes(fundingFormStatus) ? 'text-[#1A439A]' : 'text-[#BABABA]'} cursor-pointer text-[14px] font-semibold uppercase max-sm:text-[10px]`}
-                      disabled={
-                        ![
-                          FundingFromCurrentStatus.UnderwriterSubmitted
-                        ].includes(fundingFormStatus)
-                      }
-                      onClick={() => {
-                        setIsContractSendConfirmModal(true);
-                      }}
-                    >
-                      {'SEND'}
-                    </button>
+                    {![Roles.UnderWriter].includes(role) && (
+                      <button
+                        type="button"
+                        className={`bg-white ${[FundingFromCurrentStatus.UnderwriterSubmitted].includes(fundingFormStatus) ? 'text-[#1A439A]' : 'text-[#BABABA]'} cursor-pointer text-[14px] font-semibold uppercase max-sm:text-[10px]`}
+                        disabled={
+                          ![
+                            FundingFromCurrentStatus.UnderwriterSubmitted
+                          ].includes(fundingFormStatus)
+                        }
+                        onClick={() => {
+                          setIsContractSendConfirmModal(true);
+                        }}
+                      >
+                        {'SEND'}
+                      </button>
+                    )}
                   </span>
                 )}
               </div>
@@ -709,29 +713,31 @@ const Contract: React.FC<LoanFromCommonProps> = ({
                     </div>
                   )}
                   <div className="mt-6 flex items-center justify-between gap-4">
-                  
-                      <div className="mt-4 flex justify-end">
-                    <button
-                      type="button"
-                      className={`bg-white ${
-                        [
-                          FundingFromCurrentStatus.UnderwriterSubmitted
-                        ].includes(fundingFormStatus)
-                          ? 'text-[#1A439A]'
-                          : 'text-[#BABABA]'
-                      } cursor-pointer text-[14px] font-semibold uppercase max-sm:text-[10px]`}
-                      onClick={() =>
-                        sendDirectDebitLinkApi(
-                          {
-                            resend: true
-                          },
-                          loanId || loan.id
-                        )
-                      }
-                    >
-                      RESEND
-                    </button>
-                    </div>
+
+                      {![Roles.UnderWriter].includes(role) && (
+                        <div className="mt-4 flex justify-end">
+                      <button
+                        type="button"
+                        className={`bg-white ${
+                          [
+                            FundingFromCurrentStatus.UnderwriterSubmitted
+                          ].includes(fundingFormStatus)
+                            ? 'text-[#1A439A]'
+                            : 'text-[#BABABA]'
+                        } cursor-pointer text-[14px] font-semibold uppercase max-sm:text-[10px]`}
+                        onClick={() =>
+                          sendDirectDebitLinkApi(
+                            {
+                              resend: true
+                            },
+                            loanId || loan.id
+                          )
+                        }
+                      >
+                        RESEND
+                      </button>
+                        </div>
+                      )}
                   </div>
                 </div>
               )}
