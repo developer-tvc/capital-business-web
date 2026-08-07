@@ -401,7 +401,11 @@ const Contract: React.FC<LoanFromCommonProps> = ({
       fetchDebitApi(loanId || loan.id);
       fetchPreviewContractApi(loanId || loan.id);
     }
-  }, [loanId, loan.id]);
+    // Also load preview data for underwriters specifically
+    if (role === Roles.UnderWriter) {
+      fetchPreviewContractApi(loanId || loan.id);
+    }
+  }, [loanId, loan.id, role]);
 
   useEffect(() => {
     dispatch(updateIsContractSend(isContractSend));
@@ -414,17 +418,17 @@ const Contract: React.FC<LoanFromCommonProps> = ({
           <div className="flex items-center justify-between">
             <h2 className="mb-4 text-[16px] font-bold">{'Contract'}</h2>
             <div className="flex gap-4">
-              {/* {previewUrl && (
+              {previewData && (
                 <p
                   className="flex cursor-pointer items-center pr-4 text-[12px] font-medium text-[#1A439A]"
                   onClick={() => {
-                    window.open(previewUrl, '_blank');
+                    setIsPreviewModalOpen(true);
                   }}
                 >
                   <img src={eye} alt="eye" className="px-2" />
                   {'PREVIEW'}
                 </p>
-              )} */}
+              )}
               <p
                  className="flex pr-4 text-[12px] font-medium text-[#1A439A]"
                 onClick={() => {
@@ -454,7 +458,7 @@ const Contract: React.FC<LoanFromCommonProps> = ({
             <Loader />
           </div>
         )}
-        {[Roles.Admin, Roles.Manager].includes(role as Roles) && (
+        {[Roles.Admin, Roles.Manager, Roles.UnderWriter].includes(role as Roles) && (
           <div className="flex flex-col pb-8">
             <div
               className={`items-center rounded-lg border border-[#D4D4D4] px-2 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 ${
