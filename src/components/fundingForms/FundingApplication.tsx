@@ -3,7 +3,7 @@ import { FiChevronLeft, FiChevronRight } from 'react-icons/fi';
 import { MdChatBubbleOutline, MdOutlineHome } from 'react-icons/md';
 import { useDispatch, useSelector } from 'react-redux';
 import { useMediaQuery } from 'react-responsive';
-import { NavLink, useNavigate, useParams } from 'react-router-dom';
+import { NavLink, useNavigate, useParams, useLocation } from 'react-router-dom';
 
 import {
   customerLoanApi,
@@ -52,9 +52,15 @@ const CustomerFundingApplication: React.FC = ({
   const { authenticated } = useAuth();
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const location = useLocation();
 
   const NumberOfForms = 9;
   const { query_params_loanId } = useParams();
+
+  // Renew Funding Mode state
+  const [isRenewFundingMode, setIsRenewFundingMode] = useState(false);
+  const [renewFundingCompanyId, setRenewFundingCompanyId] = useState<string | null>(null);
+  const [renewFundingCompanyName, setRenewFundingCompanyName] = useState<string | null>(null);
 
   const [formRef, setFormRef] = useState<HTMLFormElement | null>(null);
   const { currentStage } = useSelector(fundingStateSliceSelector);
@@ -83,6 +89,15 @@ const CustomerFundingApplication: React.FC = ({
     useState<FundingFromUpcomingStatus>(
       FundingFromUpcomingStatus.GocardlessConsentWaiting
     );
+
+  // Check for renew funding mode from location state
+  useEffect(() => {
+    if (location.state?.isRenewFunding) {
+      setIsRenewFundingMode(true);
+      setRenewFundingCompanyId(location.state.companyId);
+      setRenewFundingCompanyName(location.state.companyName);
+    }
+  }, [location.state]);
 
   const fetchCustomerLoans = async query_params_loanId => {
     try {
@@ -120,8 +135,7 @@ const CustomerFundingApplication: React.FC = ({
           type: NotificationType.Error
         });
       }
-    } catch (error) {
-      console.log('Exception', error);
+    } catch (_error) {
       showToast('something wrong!', { type: NotificationType.Error });
     }
   };
@@ -152,25 +166,28 @@ const CustomerFundingApplication: React.FC = ({
           type: NotificationType.Error
         });
       }
-    } catch (error) {
-      console.log('Exception', error);
+    } catch (_error) {
       showToast('something wrong!', { type: NotificationType.Error });
     }
   };
 
   useEffect(() => {
     if (authenticated) {
-      // if(query_params_loanId){
-      fetchCustomerLoans(query_params_loanId);
-      // }else{
-      //   dispatch(resetFundingState())
-      // }
+      // Only fetch existing loan data if query_params_loanId is provided (editing existing loan)
+      // For new loan applications (no loanId), don't fetch existing data to keep form clean
+      if (query_params_loanId) {
+        fetchCustomerLoans(query_params_loanId);
+      }
     }
   }, [query_params_loanId, isModalOpen, authenticated]);
 
   useEffect(() => {
     if (authenticated) {
-      fetchCustomerLoansOnly(query_params_loanId);
+      // Only fetch existing loan data if query_params_loanId is provided (editing existing loan)
+      // For new loan applications (no loanId), don't fetch existing data to keep form clean
+      if (query_params_loanId) {
+        fetchCustomerLoansOnly(query_params_loanId);
+      }
     }
   }, [query_params_loanId, isModalOpen, authenticated, statueUpdate]);
   useEffect(() => {
@@ -219,10 +236,7 @@ const CustomerFundingApplication: React.FC = ({
           PersonalInfoApiResponse.data.mode_of_application ===
           ModeOfApplication.Representative
         ) {
-          setIsRepAssigned(
-            PersonalInfoApiResponse.data.mode_of_application ===
-              ModeOfApplication.Representative
-          );
+          setIsRepAssigned(true);
           return true;
         }
       } else {
@@ -230,8 +244,7 @@ const CustomerFundingApplication: React.FC = ({
           type: NotificationType.Error
         });
       }
-    } catch (error) {
-      console.log('Exception', error);
+    } catch (_error) {
       showToast('something wrong!', { type: NotificationType.Error });
     }
   };
@@ -244,10 +257,9 @@ const CustomerFundingApplication: React.FC = ({
     ].includes(fundingFormStatus);
     const isSubmissionWaiting =
       fundingUpcomingFormStatus === FundingFromUpcomingStatus.SubmissionWaiting;
-    const filledforms = Math.min(
-      loan.loan_status.filled_forms_count,
-      NumberOfForms
-    );
+    const filledforms = loan?.loan_status?.filled_forms_count
+      ? Math.min(loan.loan_status.filled_forms_count, NumberOfForms)
+      : 0;
 
     if (isRepAssigned) {
       //is representative assigned then skip step
@@ -329,6 +341,13 @@ const CustomerFundingApplication: React.FC = ({
             loanId={loanId}
             setLoan={setLoan}
             setIsRepAssigned={setIsRepAssigned}
+            isRenewFundingMode={isRenewFundingMode}
+            renewFundingCompanyId={renewFundingCompanyId}
+            renewFundingCompanyName={renewFundingCompanyName}
+            onLoanCreated={(newLoanId) => {
+              // Update the loan ID after creation - don't navigate, let the modal handle redirect
+              setLoan({ id: newLoanId });
+            }}
           />
         );
       case 2:
@@ -384,16 +403,28 @@ const CustomerFundingApplication: React.FC = ({
                     <ProgressCircle currentStep={activeStage} totalSteps={9} />
                   </div>
 
-                  <p className="my-2 text-[14px] font-light text-[#1A439A] sm:mb-4">
-                    {activeStage <= 9 && (
-                      <a className="ml-1 font-bold text-[#02002E]">
-                        {'Application Form -'}
-                      </a>
-                    )}
-                    {LoanWizardStages.find(e => e.id === activeStage).label}
-                  </p>
+                  <div className="flex flex-col">
+                    <p className="my-2 text-[14px] font-light text-[#1A439A] sm:mb-4">
+                      {isRenewFundingMode && renewFundingCompanyName && (
+                        <span className="mb-1 block text-xs font-semibold text-green-600">
+                          Renew Funding: {renewFundingCompanyName}
+                        </span>
+                      )}
+                      {activeStage <= 9 && (
+                        <a className="ml-1 font-bold text-[#02002E]">
+                          {'Application Form -'}
+                        </a>
+                      )}
+                      {LoanWizardStages.find(e => e.id === activeStage).label}
+                    </p>
+                  </div>
                 </div>
                 <span className="mx-[1%] flex items-center gap-2 sm:mb-4">
+                  {(isRenewFundingMode && renewFundingCompanyName) || loan?.customer?.company_name || personalInfo?.company?.company_name ? (
+                    <span className="text-xs font-semibold text-[#1A439A]">
+                      {isRenewFundingMode ? renewFundingCompanyName : (loan?.customer?.company_name || personalInfo?.company?.company_name)}
+                    </span>
+                  ) : null}
                   {authenticated && (
                     <a
                       onClick={toggleComments}
@@ -443,6 +474,11 @@ const CustomerFundingApplication: React.FC = ({
                   </span>
 
                   <span className="ml-4 mt-4 text-[14px] font-light text-[#1A439A] max-sm:text-[10px]">
+                    {isRenewFundingMode && renewFundingCompanyName && (
+                      <span className="mb-1 block text-xs font-semibold text-green-600">
+                        Renew Funding: {renewFundingCompanyName}
+                      </span>
+                    )}
                     {activeStage <= 9 && (
                       <a className="font-bold text-[#02002E]">
                         {'Application Form -'}
@@ -463,6 +499,11 @@ const CustomerFundingApplication: React.FC = ({
                   </span>
                 </div>
                 <span className="mx-[1%] my-2 flex items-center justify-end gap-2">
+                  {(isRenewFundingMode && renewFundingCompanyName) || loan?.customer?.company_name || personalInfo?.company?.company_name ? (
+                    <span className="text-xs font-semibold text-[#1A439A] max-lg:text-[10px] max-sm:text-[9px]">
+                      {isRenewFundingMode ? renewFundingCompanyName : (loan?.customer?.company_name || personalInfo?.company?.company_name)}
+                    </span>
+                  ) : null}
                   {authenticated && (
                     <a
                       onClick={toggleComments}
@@ -590,14 +631,6 @@ const CustomerFundingApplication: React.FC = ({
               ? "After the agent confirmation we'll proceed further and "
               : "We'll "
           } get back to you soon.`}
-      />
-      <NotEligibleModal
-        isOpen={isRepAssignedRemind}
-        onClose={() => {
-          setIsRepAssignedRemind(false);
-        }}
-        head="Notice"
-        content="You assigned to an agent, you can no longer continue with the application. Only the agent has the ability to fill out the form."
       />
       <NotEligibleModal
         isOpen={isRepAssignedRemind}

@@ -41,7 +41,11 @@ const PaymentHistoryCard = ({
                 <div className="text-sm font-medium">
                   {historyItem.status === 'failed'
                     ? 'Payment Failed'
-                    : historyItem.description}
+                    : historyItem.status === 'cancelled'
+                    ? 'Payment Cancelled'
+                    : historyItem.description ||
+                      historyItem.status.charAt(0).toUpperCase() +
+                        historyItem.status.slice(1)}
                   <div className="mt-1 text-xs font-normal text-gray-400">
                     {historyItem.emi_date}
                   </div>

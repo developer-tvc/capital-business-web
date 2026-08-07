@@ -51,7 +51,7 @@ const ReceiptCreateView = ({ setShowCreateView }) => {
       if (response.status_code === 200) {
         const { data } = response;
         const arr = data
-          ?.filter(item => item.mandate.status === 'failed')
+          // ?.filter(item => item.mandate.status === 'failed')
           .map(i => {
             return {
               id: i.mandate.id,

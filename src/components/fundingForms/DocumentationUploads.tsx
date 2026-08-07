@@ -39,12 +39,12 @@ const FileUploadOption = ({ name, item, handleFileUpload, errors }) => (
   <div
     className={`flex w-full items-center justify-center ${
       errors[name] && 'border-red-500'
-    }`}
+      }`}
   >
     <label
       className={`flex h-32 w-full flex-col border-[2px] border-dashed border-[#B7B7B7] ${
         errors[name] && 'border-red-500'
-      }`}
+        }`}
     >
       <div className="flex flex-col items-center justify-center pt-7">
         <input
@@ -70,7 +70,7 @@ const FileUploadOption = ({ name, item, handleFileUpload, errors }) => (
           xmlns="http://www.w3.org/2000/svg"
           className={`h-8 w-8 ${
             errors[name] ? 'text-red-500' : 'text-[#1A439A]'
-          }`}
+            }`}
           fill="none"
           viewBox="0 0 24 24"
           stroke="currentColor"
@@ -86,7 +86,7 @@ const FileUploadOption = ({ name, item, handleFileUpload, errors }) => (
         <p
           className={`text-[12px] ${
             errors[name] ? 'text-red-500' : 'text-[#1A449A]'
-          } max-sm:text-[9px]`}
+            } max-sm:text-[9px]`}
         >
           {'Upload Document'}
           {/* <a className="text-black"> or drag and drop </a> */}
@@ -143,6 +143,13 @@ const DocumentationUploads: React.FC<LoanFromCommonProps> = ({
       const response = await documentUploadGetAPI(loanId);
       if (response.status_code >= 200 && response.status_code < 300) {
         const modifiedData = await fetchAndConvertFiles(response.data);
+        // Sync checkbox with backend data; default to false if not present
+        const declarationValue = response.data?.document_upload_self_declaration;
+        modifiedData.document_upload_self_declaration = 
+          declarationValue === '1' || 
+          declarationValue === 'true' || 
+          declarationValue === true;
+          
         setPersonalInfo(modifiedData);
         reset(modifiedData);
       } else {
@@ -166,23 +173,36 @@ const DocumentationUploads: React.FC<LoanFromCommonProps> = ({
 
     try {
       const formData = new FormData();
-      if (data?.photo?.[0]) {
-        formData.append('photo', data?.photo?.[0]);
+      if (data?.photo) {
+        data?.photo.forEach(file => {
+          formData.append('photo', file);
+        });
       }
+
       if (data?.passport?.[0]) {
-        formData.append('passport', data?.passport?.[0]);
+        data?.passport.forEach(file => {
+          formData.append('passport', file);
+        });
       }
       if (data?.driving_license?.[0]) {
-        formData.append('driving_license', data?.driving_license?.[0]);
+        data?.driving_license.forEach(file => {
+          formData.append('driving_license', file);
+        });
       }
       if (data?.utility_bill?.[0]) {
-        formData.append('utility_bill', data?.utility_bill?.[0]);
+        data?.utility_bill.forEach(file => {
+          formData.append('utility_bill', file);
+        });
       }
       if (data?.council_tax?.[0]) {
-        formData.append('council_tax', data?.council_tax?.[0]);
+        data?.council_tax.forEach(file => {
+          formData.append('council_tax', file);
+        });
       }
       if (data?.lease_deed?.[0]) {
-        formData.append('lease_deed', data?.lease_deed?.[0]);
+        data?.lease_deed.forEach(file => {
+          formData.append('lease_deed', file);
+        });
       }
       // if (data?.business_account_statements) {
       //   data?.business_account_statements.forEach((file) => {
@@ -194,11 +214,21 @@ const DocumentationUploads: React.FC<LoanFromCommonProps> = ({
           formData.append('other_files', file);
         });
       }
-      if (data?.document_upload_self_declaration) {
-        formData.append(
-          'document_upload_self_declaration',
-          JSON.stringify(data?.document_upload_self_declaration)
-        );
+      if (data?.document_upload_self_declaration !== undefined) {
+        // Handle various input types: boolean, array, string, number
+        let booleanValue = data?.document_upload_self_declaration;
+        
+        // Extract from array if needed
+        if (Array.isArray(booleanValue)) {
+          booleanValue = booleanValue.length > 0 ? booleanValue[0] : false;
+        }
+        
+        // Convert to boolean (handles string "true"/"false", numbers 1/0, etc.)
+        const finalBooleanValue = Boolean(booleanValue);
+        
+        // Send as string '1'/'0' for current backend compatibility
+        // Note: Change to `finalBooleanValue` if backend starts accepting booleans
+        formData.append('document_upload_self_declaration', finalBooleanValue ? '1' : '0');
       }
       const response = await documentUploadPostAPI(formData, loanId);
       if (response.status_code >= 200 && response.status_code < 300) {
@@ -307,15 +337,15 @@ const DocumentationUploads: React.FC<LoanFromCommonProps> = ({
                 className={`accordion-title flex cursor-pointer justify-between py-2 ${
                   watchedFieldValues[item.name] &&
                   watchedFieldValues[item.name].length > 0
-                    ? errors?.[item?.name]
-                      ? 'text-[#F44336]'
-                      : 'border border-[#50C878] bg-[#EAF8EE] text-[#00CC08]'
-                    : ''
+                  ? errors?.[item?.name]
+                    ? 'text-[#F44336]'
+                    : 'border border-[#50C878] bg-[#EAF8EE] text-[#00CC08]'
+                  : ''
                 } ${
                   isOpenIndex === index
                     ? 'mt-1 rounded-t-lg border-l border-r border-t'
                     : 'rounded-lg border'
-                }`}
+                  }`}
                 onClick={() => {
                   toggleAccordion(index);
                   setIsOpenIndex(isOpenIndex === index ? null : index);
@@ -344,7 +374,7 @@ const DocumentationUploads: React.FC<LoanFromCommonProps> = ({
                 <div className="accordion-content rounded-b-lg border border-t-0 bg-white py-1">
                   <div className="flex flex-wrap gap-6 p-4 text-[12px] font-normal text-[#929292]">
                     {Array.isArray(watchedFieldValues[item.name]) &&
-                    watchedFieldValues[item.name].length > 0 ? (
+                      watchedFieldValues[item.name].length > 0 ? (
                       watchedFieldValues[item.name].map((file, fileId) => {
                         return (
                           <span

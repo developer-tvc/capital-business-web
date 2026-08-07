@@ -5,9 +5,14 @@ import { useNavigate } from 'react-router-dom';
 import { loanGetApi } from '../../api/loanServices';
 import { authSelector } from '../../store/auth/userSlice';
 import { FundingFromCurrentStatus, Roles } from '../../utils/enums';
+import {
+  isRepresentativeModeOfApplication,
+  isSelfModeOfApplication
+} from '../../utils/helpers';
 import { NotificationType } from '../../utils/hooks/toastify/enums';
 import useToast from '../../utils/hooks/toastify/useToast';
 import { LoanData } from '../../utils/types';
+import RepresentativeAccessDeniedModal from '../fundingForms/modals/RepresentativeAccessDeniedModal';
 
 interface Detail {
   label: string;
@@ -56,30 +61,65 @@ const LoanDetails: React.FC<{
   setFunding?: React.Dispatch<React.SetStateAction<Partial<LoanData>>>;
 }> = ({ fundingId, setFunding }) => {
   const { role } = useSelector(authSelector);
+  const navigate = useNavigate();
 
   const { showToast } = useToast();
 
   const [loan, setLoan] = useState<Partial<LoanData>>({});
+  const [
+    isRepresentativeAccessDeniedOpen,
+    setIsRepresentativeAccessDeniedOpen
+  ] = useState(false);
+  const [isApplicationFlowLoading, setIsApplicationFlowLoading] =
+    useState(false);
 
   const fetchLoan = async () => {
     try {
       const loanGetApiResponse = await loanGetApi(fundingId);
       if (loanGetApiResponse?.status_code == 200) {
         setLoan(loanGetApiResponse.data);
-        setFunding(loanGetApiResponse.data);
+        setFunding?.(loanGetApiResponse.data);
       } else {
         showToast(loanGetApiResponse.status_message, {
           type: NotificationType.Error
         });
       }
-    } catch (error) {
+    } catch (_error) {
       showToast('Something went wrong!', { type: NotificationType.Error });
-      console.log('error', error);
     }
   };
   useEffect(() => {
     fetchLoan();
   }, []);
+
+  const handleGoToApplication = async () => {
+    if (!fundingId || isApplicationFlowLoading) {
+      return;
+    }
+
+    setIsApplicationFlowLoading(true);
+
+    try {
+      const mode = loan?.customer?.mode_of_application;
+
+      if (isSelfModeOfApplication(mode)) {
+        navigate(`/funding-form/${fundingId}`);
+        return;
+      }
+
+      if (isRepresentativeModeOfApplication(mode)) {
+        setIsRepresentativeAccessDeniedOpen(true);
+        return;
+      }
+
+      setIsRepresentativeAccessDeniedOpen(true);
+    } catch (_error) {
+      showToast('Something went wrong!', { type: NotificationType.Error });
+      setIsRepresentativeAccessDeniedOpen(true);
+    } finally {
+      setIsApplicationFlowLoading(false);
+    }
+  };
 
   const loanStatus = loan?.loan_status;
 
@@ -166,17 +206,19 @@ const LoanDetails: React.FC<{
     role === Roles.Customer
       ? [...details.common, ...details[Roles.Customer]]
       : [...details.common, ...details[Roles.Leads]];
-  const navigate = useNavigate();
 
   return (
     <div className="container bg-white">
       <div className="flex justify-end">
         <button
           type="button"
-          className="mr-4 cursor-pointer rounded-lg bg-[#BABABA] px-4 py-2 text-white hover:bg-[#1A439A]"
-          onClick={() => {
-            navigate(`/funding-form/${loan.id}`);
-          }}
+          className={`mr-4 rounded-lg px-4 py-2 text-white hover:bg-[#1A439A] ${
+            isApplicationFlowLoading
+              ? 'cursor-not-allowed bg-[#BABABA]'
+              : 'cursor-pointer bg-[#BABABA]'
+          }`}
+          onClick={handleGoToApplication}
+          disabled={isApplicationFlowLoading}
         >
           {'Go to Application'}
         </button>
@@ -195,6 +237,10 @@ const LoanDetails: React.FC<{
           </div>
         </div>
       </div>
+      <RepresentativeAccessDeniedModal
+        isOpen={isRepresentativeAccessDeniedOpen}
+        onClose={() => setIsRepresentativeAccessDeniedOpen(false)}
+      />
     </div>
   );
 };

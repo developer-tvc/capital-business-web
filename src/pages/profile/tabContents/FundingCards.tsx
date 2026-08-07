@@ -53,8 +53,9 @@ const FundingCard: React.FC<FundingCardProps> = ({
   }, [userPaginateException]);
 
   const handleCardClick = id => {
-    setSelectedFundingId(id);
     const selectedFUnding = data.find(item => item.id === id);
+
+    setSelectedFundingId(id);
     setSelectedCompanyId(selectedFUnding.unit.id);
 
     setMenuHistory(prev => {

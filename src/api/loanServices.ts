@@ -30,16 +30,19 @@ const rejectLoanUrl = `${baseUrl}/reject_loan/`;
 const assignAgentUrl = `${baseUrl}/assign_agent/`;
 const gocardlessBankListUrl = `${baseUrl}/banks/`;
 const createRequisitionLinkUrl = `${baseUrl}/requisition/`;
+const resentRequisitionUrl = `${baseUrl}/resent-requisition/`;
 const confirmBankAccountUrl = `${baseUrl}/confirm_bank_account/`;
 const gocardlessStatementUrl = `${baseUrl}/gocardless_statement/`;
 const gocardlessStatementGroupedUrl = `${baseUrl}/process_transactions/`;
 const updateContinueWithGocardlessUri = `${baseUrl}/update_continue_with_gocardless/`;
 const affordabilityUrl = `${baseUrl}/affordability/`;
 const sendContractEmailUrl = `${baseUrl}/send_contract_email/`;
+const regenerateAndSendContractEmailUrl = `${baseUrl}/regenerate_and_send_contract_email/`;
 const sendDirectDebitLinkUrl = `${baseUrl}/direct_debit_email/`;
 const reSendContractEmailUrl = `${baseUrl}/send_contract_reminder_email/`;
 const getContractUrl = `${baseUrl}/contract/`;
 const getDebitUrl = `${baseUrl}/direct_debit_detail/`;
+const previewContractUrl = `${baseUrl}/preview_contract/`;
 const paymentUrl = `${baseUrl}/payments/`;
 // const companyUrl = `${baseUrl}/company/`;
 const companyDetailsUrl = `${baseUrl}/company/`;
@@ -101,6 +104,7 @@ const addressProofRejectUrl = `${baseUrl}/address-proof-changes-approval/`;
 const unitProfileRejectUrl = `${baseUrl}/company_approval/`;
 const transactionCategoryUrl = `${baseUrl}/transaction_category/`;
 const sendPapContractUrl = `${manageLoanBaseUrl}/send_pap_contract_email/`;
+const skipPapContractUrl = `${manageLoanBaseUrl}/skip_pap_contract/`;
 const downloadBankStatementUrl = `${baseUrl}/download_transactions/`;
 const bpAddRemoveUrl = `${baseUrl}/add_remove_unit_customers/`;
 const addMandateSubscriptionUrl = `${manageLoanBaseUrl}/add_gocardless_subscription/`; //need to change the url
@@ -467,6 +471,13 @@ const reSendContractEmailApi = (loanId: string) => {
   });
 };
 
+const regenerateAndSendContractEmailApi = (loanId: string) => {
+  return Post({
+    url: `${regenerateAndSendContractEmailUrl}${loanId}/`,
+    request: {}
+  });
+};
+
 const sendDirectDebitLinkApi = (payload, loanId: string) => {
   return Post({
     url: `${sendDirectDebitLinkUrl}${loanId}/`,
@@ -484,6 +495,13 @@ const getContractApi = (loanId: string) => {
 const getDebitApi = (loanId: string) => {
   return Get({
     url: `${getDebitUrl}${loanId}`,
+    request: {}
+  });
+};
+
+const getPreviewContractApi = (loanId: string) => {
+  return Get({
+    url: `${previewContractUrl}${loanId}/`,
     request: {}
   });
 };
@@ -526,6 +544,10 @@ const getLoanIds = (query: string) => {
 // company list api
 const listCompaniesApi = async QueryObject => {
   const companyUrl = urlQueryCreate(`${baseUrl}/company`, QueryObject);
+  return Get({ url: companyUrl, request: {} });
+};
+const listCompaniesApiNew = async QueryObject => {
+  const companyUrl = urlQueryCreate(`${baseUrl}/company_list`, QueryObject);
   return Get({ url: companyUrl, request: {} });
 };
 
@@ -607,12 +629,12 @@ const uwVerifyPostApi = (loanId: string, payload) => {
   });
 };
 
-const applyNewLoaApi = customerId => {
+const applyNewLoaApi = (customerId?: string, companyId?: string) => {
   return Post({
     url: customerId
       ? `${applyNewLoanUrl}?customer_id=${customerId}`
       : applyNewLoanUrl,
-    request: {}
+    request: companyId ? { company_id: companyId } : {}
   });
 };
 
@@ -1111,8 +1133,18 @@ const sendPapContractApi = loanId => {
   });
 };
 
-const downloadBankStatementApi = statementId => {
-  return Get({ url: `${downloadBankStatementUrl}${statementId}`, request: {} });
+const skipPapContractApi = loanId => {
+  return Post({
+    url: `${skipPapContractUrl}${loanId}/`,
+    request: {}
+  });
+};
+
+const downloadBankStatementApi = (statementId, type?: string) => {
+  const url = type 
+    ? `${downloadBankStatementUrl}${statementId}/?type=${type}`
+    : `${downloadBankStatementUrl}${statementId}`;
+  return Get({ url, request: {} });
 };
 
 const bpAddRemoveApi = async payload => {
@@ -1120,7 +1152,7 @@ const bpAddRemoveApi = async payload => {
 };
 
 const addPaymentScheduleAPI = (payload, loanId: string) => {
-  const data = Post({
+  const data = Put({
     url: `${paymentScheduleUrl}${loanId}/`,
     request: payload
   });
@@ -1146,6 +1178,25 @@ const loanSummaryByCustomer = (loanId: string) => {
   return Get({
     url: `${customerSummaryUrl}?customer_id=${loanId}`,
     request: {}
+  });
+};
+
+const getLoanStatement = (loanId: string) => {
+  return Get({
+    url: `/manage_loan/statement/${loanId}/`,
+    request: {},
+  });
+};
+
+const resentRequisitionAPI = (loanId: string, payload: {
+  institution_id: string;
+  bank_name: string;
+  requisition_id: string;
+  reason: string;
+}) => {
+  return Post({
+    url: `${resentRequisitionUrl}${loanId}/?request_from=customer`,
+    request: payload
   });
 };
 
@@ -1267,6 +1318,7 @@ export {
   rejectLoanApi,
   renewFailedMandate,
   reSendContractEmailApi,
+  regenerateAndSendContractEmailApi,
   retrieveDirectorGetAPI,
   sendContractEmailApi,
   sendFundLoanCommentsApi,
@@ -1300,9 +1352,14 @@ export {
   customersGetList,
   sendDirectDebitLinkApi,
   getDebitApi,
+  getPreviewContractApi,
   loanSummaryByCustomer,
   corporateGuarantorGetAPI,
   corporateGuarantorPostAPI,
   corporateGuarantorPropertyPostAPI,
-  corporateGuarantorPropertyGetAPI
+  corporateGuarantorPropertyGetAPI,
+  getLoanStatement,
+  resentRequisitionAPI,
+  skipPapContractApi,
+  listCompaniesApiNew
 };

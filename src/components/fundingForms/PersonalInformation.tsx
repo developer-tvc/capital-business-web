@@ -11,9 +11,11 @@ import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 
 import {
+  applyNewLoaApi,
   personalInformationGetAPI,
   personalInformationPostAPI
 } from '../../api/loanServices';
+import { userProfileApi } from '../../api/userServices';
 import { resendOtpAPI, signUpAPI } from '../../api/userAuthServices';
 import eye from '../../assets/svg/eye.svg';
 import quest from '../../assets/svg/ph_question.svg';
@@ -56,13 +58,21 @@ interface PersonalInformationProps extends LoanFromCommonProps {
   setLoan?: Dispatch<SetStateAction<Partial<LoanData>>>;
   setIsRepAssigned?: Dispatch<SetStateAction<Partial<boolean>>>;
   isRepAssigned?: boolean;
+  isRenewFundingMode?: boolean;
+  renewFundingCompanyId?: string | null;
+  renewFundingCompanyName?: string | null;
+  onLoanCreated?: (loanId: string) => void;
 }
 
 const PersonalInformation: React.FC<PersonalInformationProps> = ({
   setRef,
   loanId,
   setLoan,
-  setIsRepAssigned
+  setIsRepAssigned,
+  isRenewFundingMode = false,
+  renewFundingCompanyId = null,
+  renewFundingCompanyName = null,
+  onLoanCreated
 }) => {
   const [isEligibleNewLoan, setIsEligibleNewLoan] = useState<{
     isApplicableForNewLoan: boolean;
@@ -74,8 +84,7 @@ const PersonalInformation: React.FC<PersonalInformationProps> = ({
       try {
         const eligibility = await chkCustNewLoan();
         setIsEligibleNewLoan(eligibility);
-      } catch (error) {
-        console.error('Failed to check eligibility:', error);
+      } catch (_error) {
         setIsEligibleNewLoan(null); // or handle error state
       }
     };
@@ -107,16 +116,91 @@ const PersonalInformation: React.FC<PersonalInformationProps> = ({
   const [isAssignedAgent, setIsAssignedAgent] = useState(false);
   const [isRepAssignedRemind, setIsRepAssignedRemind] = useState(false);
 
+
   const methods = useForm({
     resolver: yupResolver(PersonalInformationSchema),
     defaultValues: personalInfo
   });
   const { handleSubmit, watch, setValue, formState, trigger, reset } = methods;
 
-  const { role } = useSelector(authSelector);
+  const { role, id: customerId } = useSelector(authSelector);
   const { verifyOtp, authenticated } = useAuth();
   const dispatch = useDispatch();
   const { showToast } = useToast();
+
+  // Clear form when in renew funding mode to start fresh, but keep company name
+  // Also clear company details for new loan applications (no loanId)
+  useEffect(() => {
+    if (isRenewFundingMode) {
+      reset({
+        company: {
+          company_name: renewFundingCompanyName || '',
+          company_status: '',
+          company_number: '',
+          company_address: {},
+          business_type: undefined,
+          trading_style: '',
+          funding_purpose: undefined,
+          other_funding_purpose: ''
+        }
+      });
+    } else if (!loanId && authenticated) {
+      // For new loan applications, clear all company details
+      reset({
+        company: {
+          company_name: '',
+          company_status: '',
+          company_number: '',
+          company_address: {},
+          business_type: undefined,
+          trading_style: '',
+          funding_purpose: undefined,
+          other_funding_purpose: ''
+        }
+      });
+    }
+  }, [isRenewFundingMode, renewFundingCompanyName, loanId, authenticated, reset]);
+
+  // Fetch user profile data and auto-fill personal details in renew funding mode or new loan application
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+      // Pre-fill personal details for both renew funding mode and new loan applications (no loanId)
+      if ((isRenewFundingMode || !loanId) && authenticated) {
+        try {
+          const response = await userProfileApi();
+          if (response?.status_code === 200 && response?.data) {
+            const userData = response.data;
+
+            // Extract postcode from address (format: "address, postcode")
+            let extractedPostcode = '';
+            if (userData.address) {
+              const addressParts = userData.address.split(',').map(part => part.trim());
+              const lastPart = addressParts[addressParts.length - 1];
+              // UK postcode pattern: AA9A 9AA or A9A 9AA
+              const postcodeMatch = lastPart.match(/[A-Z]{1,2}[0-9][A-Z0-9]? [0-9][A-Z]{2}/i);
+              if (postcodeMatch) {
+                extractedPostcode = postcodeMatch[0].toUpperCase();
+              }
+            }
+
+            // Auto-fill personal details from user profile
+            setValue('title', userData.title || '');
+            setValue('first_name', userData.first_name || '');
+            setValue('last_name', userData.last_name || '');
+            setValue('email', userData.email || '');
+            setValue('phone_number', userData.phone_number || '');
+            setValue('pincode', extractedPostcode || '');
+            setValue('address', userData.address || '');
+            setValue('is_major', userData.is_18_plus || userData.is_major || false);
+          }
+        } catch (_error) {
+          // Silently handle profile fetch errors
+        }
+      }
+    };
+
+    fetchUserProfile();
+  }, [isRenewFundingMode, loanId, authenticated, setValue]);
 
   useEffect(() => {
     if (timeLeft) {
@@ -147,25 +231,24 @@ const PersonalInformation: React.FC<PersonalInformationProps> = ({
           type: NotificationType.Error
         });
       }
-    } catch (error) {
-      console.log('Exception', error);
+    } catch (_error) {
       showToast('something wrong!', { type: NotificationType.Error });
     }
   };
 
   useEffect(() => {
-    if (authenticated && loanId) {
+    if (authenticated && loanId && !isRenewFundingMode) {
       fetchDataFromApi(loanId);
     }
-  }, [loanId]);
+  }, [loanId, isRenewFundingMode]);
 
   useEffect(() => {
-    if (Object.keys(personalInfo).length > 0) {
+    if (Object.keys(personalInfo).length > 0 && !isRenewFundingMode) {
       if (!otp) {
         reset(personalInfo);
       }
     }
-  }, [personalInfo]);
+  }, [personalInfo, isRenewFundingMode]);
 
   useEffect(() => {
     if (address) {
@@ -181,7 +264,63 @@ const PersonalInformation: React.FC<PersonalInformationProps> = ({
   const onSubmit: SubmitHandler<personalInformationType> = async data => {
     setIsLoading(true);
     try {
-      if (
+      // Create loan first if loanId is undefined (both for renew funding and normal new applications)
+      if (!loanId) {
+        try {
+          const response = await applyNewLoaApi(customerId?.toString(), renewFundingCompanyId);
+          if (response?.status_code >= 200 && response?.status_code < 300) {
+            const newLoanId = response?.data?.id;
+            if (newLoanId) {
+              // Call the callback to update the loan ID in parent
+              onLoanCreated?.(newLoanId);
+              // Now submit the personal information with the new loan ID
+              const personalInformationPostAPIResponse =
+                await personalInformationPostAPI(data, newLoanId);
+              if (
+                personalInformationPostAPIResponse.status_code >= 200 &&
+                personalInformationPostAPIResponse.status_code < 300
+              ) {
+                showToast(personalInformationPostAPIResponse.status_message, {
+                  type: NotificationType.Success
+                });
+                const filledForms = await fetchFilledForms(newLoanId);
+                updateFilledForms(newLoanId, {
+                  complete_personal_detail: true
+                });
+                setTimeout(async () => {
+                  if (
+                    (data.mode_of_application === ModeOfApplication.Representative &&
+                      filledForms === 0) ||
+                    ([Roles.Customer, Roles.Leads].includes(role) &&
+                      personalInfo.mode_of_application === ModeOfApplication.Self &&
+                      data.mode_of_application === ModeOfApplication.Representative)
+                  ) {
+                    setIsRepAssignedRemind(true);
+                  } else {
+                    dispatch(updateCurrentStage(2));
+                  }
+                }, 1500);
+              } else {
+                showToast(personalInformationPostAPIResponse.status_message, {
+                  type: NotificationType.Error
+                });
+              }
+            } else {
+              showToast('Failed to create loan application - no loan ID returned', {
+                type: NotificationType.Error
+              });
+            }
+          } else {
+            showToast('Failed to create loan application', {
+              type: NotificationType.Error
+            });
+          }
+        } catch (_error) {
+          showToast('Failed to create loan application', {
+            type: NotificationType.Error
+          });
+        }
+      } else if (
         data.company.business_type === 'Limited Company' &&
         data.company.company_status === 'Dissolved'
       ) {
@@ -190,7 +329,7 @@ const PersonalInformation: React.FC<PersonalInformationProps> = ({
         if (data.representatives === '') {
           delete data.representatives;
         }
-        if (data.mode_of_application === 'Self') {
+        if (data.mode_of_application === ModeOfApplication.Self) {
           delete data.representatives;
           delete data.agree_authorization;
           delete data.is_pending_threatened_or_recently;
@@ -231,20 +370,18 @@ const PersonalInformation: React.FC<PersonalInformationProps> = ({
         }
       }
     } catch (error) {
-      console.log('Exception', error);
       showToast('something wrong!', { type: NotificationType.Error });
     } finally {
       setTimeout(() => {
-        setIsLoading(false); // Reset loading state when done submitting
+        setIsLoading(false);
       }, 1500);
     }
   };
 
-  const onError: SubmitErrorHandler<personalInformationType> = error => {
+  const onError: SubmitErrorHandler<personalInformationType> = _error => {
     showToast('Please check the validation error!', {
       type: NotificationType.Error
     });
-    console.log('error', error);
   };
 
   // const watchFundRequest = watch("fund_request_amount", 0);
@@ -296,8 +433,7 @@ const PersonalInformation: React.FC<PersonalInformationProps> = ({
           } else {
             showToast(resp.status_message, { type: NotificationType.Error });
           }
-        } catch (error) {
-          console.log('Exception', error);
+        } catch (_error) {
           showToast('something wrong!', { type: NotificationType.Error });
         } finally {
           setIsLoading(false);
@@ -333,8 +469,7 @@ const PersonalInformation: React.FC<PersonalInformationProps> = ({
       } else {
         setOtpVerifyError("verify otp can't be empty ");
       }
-    } catch (error) {
-      console.log('Exception', error);
+    } catch (_error) {
       showToast('something wrong!', { type: NotificationType.Error });
     } finally {
       setIsLoading(false);
@@ -505,19 +640,20 @@ const PersonalInformation: React.FC<PersonalInformationProps> = ({
                         ? isEligibleNewLoan?.loanCount
                           ? {
                               type: 'tel',
-                              isDisabled: false,
+                              isDisabled: isRenewFundingMode,
                               fieldClass: `peer bg-transparent h-12 w-full rounded-lg 
                                       text-black  placeholder-transparent  px-8 
                                       focus:outline-none focus:border-gray-500 border border-stone-300`
                             }
                           : {
                               type: 'tel',
-                              isDisabled: false,
+                              isDisabled: isRenewFundingMode,
                               fieldClass: `peer bg-transparent h-12 w-full rounded-l-lg 
                                       text-black  placeholder-transparent  px-8 
                                       focus:outline-none focus:border-gray-500 border border-stone-300`
                             }
                         : {
+                            isDisabled: isRenewFundingMode,
                             fieldClass: `peer bg-transparent h-12 w-full rounded-l-lg 
                                       text-black  placeholder-transparent  px-8 
                                       focus:outline-none focus:border-gray-500 border border-stone-300`

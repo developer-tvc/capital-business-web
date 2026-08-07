@@ -35,7 +35,7 @@ const SidebarLayout: React.FC<SidebarLayoutProps> = ({ children, menus }) => {
             <div className="w-[15.5%] flex-shrink-0 flex-grow-0 max-lg:w-[11%]">
               <Sidebar menus={menus} />
             </div>
-            <main className="w-[84.5%] flex-grow overflow-auto bg-[#FFFFFF] p-4 max-lg:w-[88%]">
+            <main className="w-[84.5%] flex-grow overflow-auto bg-[#FFFFFF] p-4 max-lg:w-[88%] dashboard-main">
               {children}
             </main>
           </div>

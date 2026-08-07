@@ -48,6 +48,9 @@ const GoCardlessModal = ({
   const [openChipInput, setOpenChipInput] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [type, setType] = useState('payments');
+  const [creditDownloadData, setCreditDownloadData] = useState([]);
+  const [debitDownloadData, setDebitDownloadData] = useState([]);
+  const [allDownloadData, setAllDownloadData] = useState([]);
 
   const currentDate = new Date();
   const prevFiveYearDate = new Date(
@@ -60,6 +63,7 @@ const GoCardlessModal = ({
   });
   const [startDateError, setStartDateError] = useState(null);
   const [endDateError, setEndDateError] = useState(null);
+  const [showDates, setShowDates] = useState(false);
 
   const setCurrentStayStartDate = date => {
     if (!date) {
@@ -253,18 +257,28 @@ const GoCardlessModal = ({
   }, [bankData]);
 
   useEffect(() => {
-    const parentArr = [...withoutGocardlessData];
+    const parentArr = [...withoutGocardlessData, ...gocardlessData];
     const accountObject = parentArr.find(i => selectedId === i.id);
-    if (!isGocardless) {
-      if (accountObject.start_date && accountObject.end_date) {
-        setCurrentDateRange({
-          start_date: accountObject.start_date,
-          end_date: accountObject.end_date
-        });
+
+    if (accountObject) {
+      if (!accountObject.continue_with_gocardless) {
+        setShowDates(true);
+        if (accountObject.start_date && accountObject.end_date) {
+          setCurrentDateRange({
+            start_date: accountObject.start_date,
+            end_date: accountObject.end_date
+          });
+          setStartDateError(null);
+          setEndDateError(null);
+        }
+      } else {
+        setShowDates(false);
       }
     }
     return () => {
-      if (!isGocardless) {
+      const parentArr = [...withoutGocardlessData, ...gocardlessData];
+      const accountObject = parentArr.find(i => selectedId === i.id);
+      if (accountObject && !accountObject.continue_with_gocardless) {
         if (currentDateRange.start_date && currentDateRange.end_date) {
           accountObject.start_date = currentDateRange.start_date;
           accountObject.end_date = currentDateRange.end_date;
@@ -352,12 +366,24 @@ const GoCardlessModal = ({
     setOpenChipInput(false);
   };
 
-  const [transactionData, setTransactionData] = useState([]);
+  // const [transactionData, setTransactionData] = useState([]);
 
   const downloadData = () => {
     handleReportDownload(
-      downloadBankStatementApi,
-      setTransactionData,
+      (id) => downloadBankStatementApi(id, 'credit'),
+      setCreditDownloadData,
+      showToast,
+      selectedId
+    );
+    handleReportDownload(
+      (id) => downloadBankStatementApi(id, 'debit'),
+      setDebitDownloadData,
+      showToast,
+      selectedId
+    );
+    handleReportDownload(
+      (id) => downloadBankStatementApi(id, 'all'),
+      setAllDownloadData,
       showToast,
       selectedId
     );
@@ -383,8 +409,8 @@ const GoCardlessModal = ({
             <button
               type="button"
               onClick={() => {
-                if (!isGocardless) {
-                  if (startDateError || endDateError) {
+                if (showDates) {
+                  if (!currentDateRange.start_date || !currentDateRange.end_date) {
                     showToast('Start date and End date are mandatory', {
                       type: NotificationType.Error
                     });
@@ -469,32 +495,74 @@ const GoCardlessModal = ({
           </div>
 
           {isGocardless && (
-            <div className="flex flex-col items-center gap-4 px-4 pt-4">
-              <CSVLink
-                data={transactionData}
-                filename={`statement-${selectedId}.csv`}
-                target="_blank"
-                onClick={event => {
-                  if (transactionData.length === 0 || bankData.length === 0) {
-                    event.preventDefault();
-                    showToast('No data available for download.', {
-                      type: NotificationType.Error
-                    });
-                  } else {
-                    showToast('Download started successfully!', {
-                      type: NotificationType.Success
-                    });
-                  }
-                }}
-                className="flex w-full cursor-pointer justify-between rounded border border-gray-300 p-4 text-[#929292]"
-              >
-                <div className="flex gap-2">
-                  <img src={download} alt="download" />
-                  <div>
-                    <a className="text-[14px]">{'Download Statement'}</a>
-                  </div>
-                </div>
-              </CSVLink>
+            <div className="flex flex-col gap-4 px-4 pt-4">
+              <div className="flex gap-2">
+                <CSVLink
+                  data={creditDownloadData}
+                  filename={`transactions_credit_${selectedId}.csv`}
+                  target="_blank"
+                  onClick={event => {
+                    if (creditDownloadData.length === 0) {
+                      event.preventDefault();
+                      showToast('No credit transactions available for download.', {
+                        type: NotificationType.Error
+                      });
+                    } else {
+                      showToast('Download started successfully!', {
+                        type: NotificationType.Success
+                      });
+                    }
+                  }}
+                  className="flex flex-1 cursor-pointer justify-center items-center gap-2 rounded border border-gray-300 p-3 text-[#1A439A] hover:bg-gray-50"
+                >
+                  <img src={download} alt="download" className="w-4 h-4" />
+                  <span className="text-[13px] font-medium">{'Credit'}</span>
+                </CSVLink>
+
+                <CSVLink
+                  data={debitDownloadData}
+                  filename={`transactions_debit_${selectedId}.csv`}
+                  target="_blank"
+                  onClick={event => {
+                    if (debitDownloadData.length === 0) {
+                      event.preventDefault();
+                      showToast('No debit transactions available for download.', {
+                        type: NotificationType.Error
+                      });
+                    } else {
+                      showToast('Download started successfully!', {
+                        type: NotificationType.Success
+                      });
+                    }
+                  }}
+                  className="flex flex-1 cursor-pointer justify-center items-center gap-2 rounded border border-gray-300 p-3 text-[#1A439A] hover:bg-gray-50"
+                >
+                  <img src={download} alt="download" className="w-4 h-4" />
+                  <span className="text-[13px] font-medium">{'Debit'}</span>
+                </CSVLink>
+
+                <CSVLink
+                  data={allDownloadData}
+                  filename={`transactions_all_${selectedId}.csv`}
+                  target="_blank"
+                  onClick={event => {
+                    if (allDownloadData.length === 0) {
+                      event.preventDefault();
+                      showToast('No transactions available for download.', {
+                        type: NotificationType.Error
+                      });
+                    } else {
+                      showToast('Download started successfully!', {
+                        type: NotificationType.Success
+                      });
+                    }
+                  }}
+                  className="flex flex-1 cursor-pointer justify-center items-center gap-2 rounded border border-gray-300 p-3 text-[#1A439A] hover:bg-gray-50"
+                >
+                  <img src={download} alt="download" className="w-4 h-4" />
+                  <span className="text-[13px] font-medium">{'All'}</span>
+                </CSVLink>
+              </div>
               {openStatements &&
                 bankData?.business_account_statements?.map(statement => (
                   <div
@@ -647,7 +715,7 @@ const GoCardlessModal = ({
           )}
         </div>
 
-        {!isGocardless && (
+        {showDates && (
           <div className="relative flex w-full flex-col justify-between p-4">
             <div className="flex justify-between gap-4">
               <div className="flex w-[80%] gap-4">

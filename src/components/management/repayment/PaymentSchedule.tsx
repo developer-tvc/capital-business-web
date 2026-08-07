@@ -17,7 +17,17 @@ import { MdEdit } from 'react-icons/md';
 
 const PaymentSchedule = ({ loanId, setRef, setIsUwRepaymentComplete }) => {
   const formRef = useRef<HTMLFormElement>(null);
-  setRef(formRef);
+  
+  useEffect(() => {
+    if (formRef.current) {
+      setRef(formRef);
+    }
+  }, [setRef]);
+  
+  useEffect(() => {
+    // Component mounted
+  }, []);
+  
   const methods = useForm({
     resolver: yupResolver(paymentScheduleSchema)
   });
@@ -27,8 +37,7 @@ const PaymentSchedule = ({ loanId, setRef, setIsUwRepaymentComplete }) => {
   const {
     handleSubmit,
     watch,
-    trigger,
-    formState: { errors }
+    trigger
   } = methods;
 
   const { authenticated } = useAuth();
@@ -51,7 +60,7 @@ const PaymentSchedule = ({ loanId, setRef, setIsUwRepaymentComplete }) => {
     }
   }, [pendingAmount]);
 
-  const currentDynamicPlanFields = methods.getValues('adjustment_plans') || [];
+  const currentDynamicPlanFields = watch('adjustment_plans') || [];
 
   const handleDelete = () => {
     methods.setValue('adjustment_plans', []);
@@ -60,69 +69,168 @@ const PaymentSchedule = ({ loanId, setRef, setIsUwRepaymentComplete }) => {
   useEffect(() => {}, [watch('adjustment_plans')]);
   const { showToast } = useToast();
 
-  const onSubmit = async data => {
-    trigger();
+  const onError = (formErrors) => {
+    console.log('Form Validation Errors:', formErrors);
+    
+    // Helper to extract the first error message from the nested errors object
+    const getFirstError = (errorsObj) => {
+      if (!errorsObj) return null;
+      if (typeof errorsObj === 'string') return errorsObj;
+      if (errorsObj.message) return errorsObj.message;
+      
+      for (const key in errorsObj) {
+        const result = getFirstError(errorsObj[key]);
+        if (result) return result;
+      }
+      return null;
+    };
 
-    if (Object.values(errors).length > 0) return;
+    const errorMessage = getFirstError(formErrors);
+    showToast(errorMessage || "Validation failed. Please check the required fields.", { 
+      type: NotificationType.Error,
+      autoClose: 6000 
+    });
+
+    // Automatically open the edit modal for the first entry with a validation error
+    if (formErrors.adjustment_plans) {
+      const plans = methods.getValues('adjustment_plans') || [];
+      // Find the first index that has an error in the adjustment_plans array
+      const errorIndex = formErrors.adjustment_plans.findIndex((err: any) => err !== undefined && err !== null);
+      
+      if (errorIndex !== -1 && plans[errorIndex]) {
+        setTimeout(() => {
+          setEditingSchedule(plans[errorIndex]);
+          setIsModalOpen(true);
+        }, 2000);
+      }
+    }
+  };
+
+  const onSubmit = async (data) => {
+    // 1. Trigger Yup validation
+    const isValid = await trigger();
+    if (!isValid) {
+      // trigger() populates errors in the background, but we already have onError for when handleSubmit fails.
+      // This onSubmit trigger is a fallback.
+      return;
+    }
+
+    // 2. Comprehensive manual guard: check all plans for missing/invalid start_date
+    const schedulePlans = data.adjustment_plans || [];
+    
+    let invalidPlan = null;
+    const hasInvalidDate = schedulePlans.some(plan => {
+      const dateVal = plan.start_date;
+      const isInvalid = (
+        dateVal === null || 
+        dateVal === undefined || 
+        dateVal === "" || 
+        dateVal === "null" || 
+        dateVal === "1970-01-01"
+      );
+      if (isInvalid) {
+        invalidPlan = plan;
+      }
+      return isInvalid;
+    });
+
+    if (hasInvalidDate) {
+      showToast("One or more payment schedules are missing a valid Date of Debit. Please select a date for all schedules.", { 
+        type: NotificationType.Error,
+        autoClose: 6000
+      });
+      
+      // Automatically open the edit modal for the first invalid plan after a short delay
+      if (invalidPlan) {
+        setTimeout(() => {
+          setEditingSchedule(invalidPlan);
+          setIsModalOpen(true);
+        }, 1000);
+      }
+      return;
+    }
+
+    // 3. Rounding Logic
+    const weeklyInstallmentValue = methods.getValues('amount_per_week');
+    const weeklyInstallment = parseFloat(Number(weeklyInstallmentValue || 0).toFixed(2));
+    
+    const adjustmentPlansWithRoundedAmounts = schedulePlans.map(plan => ({
+      ...plan,
+      amount: parseFloat(Number(plan.amount).toFixed(2))
+    }));
+    
+    const total = adjustmentPlansWithRoundedAmounts.reduce((sum, plan) => sum + plan.amount, 0);
+    const totalRounded = parseFloat(total.toFixed(2));
+    const difference = parseFloat((weeklyInstallment - totalRounded).toFixed(2));
+    
+    // Adjust the last schedule's amount to match weekly installment exactly
+    if (Math.abs(difference) > 0.001 && adjustmentPlansWithRoundedAmounts.length > 0) {
+      const lastIndex = adjustmentPlansWithRoundedAmounts.length - 1;
+      adjustmentPlansWithRoundedAmounts[lastIndex].amount = parseFloat(
+        (adjustmentPlansWithRoundedAmounts[lastIndex].amount + difference).toFixed(2)
+      );
+    }
 
     const tolerance = 1;
     if (Math.abs(pendingAmount) > tolerance) {
       showToast(
-        `Validation failed: Total amount in adjustment plans (${pendingAmount}) does not match the pending due (${totalPendingDueToCollect}).`,
+        `Validation failed: Total amount in adjustment plans does not match the pending due (${totalPendingDueToCollect}).`,
         { type: NotificationType.Error }
       );
       return;
     }
 
     try {
-      const response = await addPaymentScheduleAPI(data, contractId);
+      const payload = {
+        adjustment_plans: adjustmentPlansWithRoundedAmounts
+      };
+      
+      const response = await addPaymentScheduleAPI(payload, contractId);
+      
       if (response.status_code === 200) {
         setIsUwRepaymentComplete(true);
-        showToast(response?.status_message, { type: NotificationType.Success });
+        showToast(response?.status_message || "Repayment schedule updated successfully", { type: NotificationType.Success });
       } else {
-        showToast('Something went wrong!', { type: NotificationType.Error });
+        showToast(response?.status_message || 'Something went wrong!', { type: NotificationType.Error });
       }
     } catch (error) {
-      showToast(error.message, { type: NotificationType.Error });
+      showToast(error.message || "Failed to update repayment schedule", { type: NotificationType.Error });
     }
-  };
-
-  const onError = error => {
-    showToast('Please check the validation error!', {
-      type: NotificationType.Error
-    });
-    console.log('error', error);
   };
 
   useEffect(() => {
     if (currentDynamicPlanFields.length > 0) {
       const total_to_be_collected = currentDynamicPlanFields.reduce(
         (acc, curr) => {
-          return acc + (curr.amount || 0);
+          return acc + parseFloat((curr.amount || 0).toFixed(2));
         },
         0
       );
-      setPendingAmount(totalPendingDueToCollect - total_to_be_collected);
+      const roundedTotal = parseFloat(total_to_be_collected.toFixed(2));
+      const remaining = parseFloat((totalPendingDueToCollect - roundedTotal).toFixed(2));
+      setPendingAmount(remaining);
     } else {
-      setPendingAmount(methods.getValues('amount_per_week'));
+      setPendingAmount(totalPendingDueToCollect);
     }
-  }, [currentDynamicPlanFields, handleDelete]);
+  }, [currentDynamicPlanFields, handleDelete, totalPendingDueToCollect]);
 
   const fetchDataFromApi = async (loanId: string) => {
     try {
       const PaymentScheduleApiResponse = await getPaymentScheduleAPI(loanId);
+      
       if (PaymentScheduleApiResponse?.status_code === 200) {
         SetTotalPendingDueToCollect(
           PaymentScheduleApiResponse.data.amount_per_week
         );
         methods.reset(PaymentScheduleApiResponse.data);
+        
       } else {
         showToast(PaymentScheduleApiResponse.status_message, {
           type: NotificationType.Error
         });
       }
     } catch (error) {
-      console.log('Exception', error);
+      console.log(error,"error");
       showToast('something wrong!', { type: NotificationType.Error });
     }
   };
@@ -165,7 +273,7 @@ const PaymentSchedule = ({ loanId, setRef, setIsUwRepaymentComplete }) => {
                 <div className="flex items-center gap-2">
                   <span className="font-medium">Approved Amount:</span>
                   <span className="font-semibold text-black">
-                    {methods.getValues('fund_request_amount')}
+                    {Number(methods.getValues('fund_request_amount'))?.toFixed(2)}
                   </span>
                 </div>
               )}
@@ -173,7 +281,7 @@ const PaymentSchedule = ({ loanId, setRef, setIsUwRepaymentComplete }) => {
                 <div className="flex items-center gap-2">
                   <span className="font-medium">Repayment Amount:</span>
                   <span className="font-semibold text-black">
-                    {methods.getValues('repayment_amount')}
+                    {Number(methods.getValues('repayment_amount'))?.toFixed(2)}
                   </span>
                 </div>
               )}
@@ -189,7 +297,7 @@ const PaymentSchedule = ({ loanId, setRef, setIsUwRepaymentComplete }) => {
                 <div className="flex items-center gap-2">
                   <span className="font-medium">Amount per week:</span>
                   <span className="font-semibold text-black">
-                    {methods.getValues('amount_per_week')}
+                    {Number(methods.getValues('amount_per_week'))?.toFixed(2)}
                   </span>
                 </div>
               )}
@@ -197,7 +305,7 @@ const PaymentSchedule = ({ loanId, setRef, setIsUwRepaymentComplete }) => {
                 <div className="flex items-center gap-2">
                   <span className="font-medium">Remaining Amount:</span>
                   <span className="font-semibold text-black">
-                    {pendingAmount}
+                    {Number(pendingAmount)?.toFixed(2)}
                   </span>
                 </div>
               }
@@ -219,11 +327,11 @@ const PaymentSchedule = ({ loanId, setRef, setIsUwRepaymentComplete }) => {
               </span>
             </button>
             <button
-              onClick={pendingAmount > 0 ? openModal : undefined}
+              onClick={pendingAmount > 0.01 ? openModal : undefined}
               className="flex items-center gap-2 rounded bg-white px-4 py-2 shadow transition hover:bg-gray-100"
               style={{
-                color: pendingAmount > 0 ? '#1A439A' : 'grey',
-                cursor: pendingAmount > 0 ? 'pointer' : 'not-allowed'
+                color: pendingAmount > 0.01 ? '#1A439A' : 'grey',
+                cursor: pendingAmount > 0.01 ? 'pointer' : 'not-allowed'
               }}
             >
               <IoMdAdd size={16} />
@@ -257,7 +365,7 @@ const PaymentSchedule = ({ loanId, setRef, setIsUwRepaymentComplete }) => {
                     <div>
                       <div className="text-[12px] text-gray-500">Amount</div>
                       <div className="text-[14px] font-semibold text-black">
-                        {field.amount || 'N/A'}
+                        {Number(field.amount)?.toFixed(2) || 'N/A'}
                       </div>
                     </div>
                   </div>
@@ -288,6 +396,20 @@ const PaymentSchedule = ({ loanId, setRef, setIsUwRepaymentComplete }) => {
                 </div>
               </div>
             ))}
+            <button type="submit" hidden>Submit</button>
+            
+            {/* Submit Payment Schedule Button */}
+            {currentDynamicPlanFields.length > 0 && (
+              <div className="mt-6 flex justify-end">
+                <button
+                  type="button"
+                  onClick={() => handleSubmit(onSubmit, onError)()}
+                  className="rounded bg-blue-900 px-6 py-2 text-sm font-medium text-white hover:bg-blue-800"
+                >
+                  Submit Payment Schedule
+                </button>
+              </div>
+            )}
           </form>
         </FormProvider>
       </div>

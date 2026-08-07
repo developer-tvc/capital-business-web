@@ -1,16 +1,19 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { CiMail } from 'react-icons/ci';
 import { IoIosArrowDown, IoIosArrowUp } from 'react-icons/io';
-import { IoCheckmark } from 'react-icons/io5';
+import { IoCheckmark, IoRefresh } from 'react-icons/io5';
 import { useDispatch, useSelector } from 'react-redux';
 
 import {
   getContractApi,
   getDebitApi,
+  getPreviewContractApi,
   reSendContractEmailApi,
+  regenerateAndSendContractEmailApi,
   sendContractEmailApi,
   sendDirectDebitLinkApi
 } from '../../api/loanServices';
+import { loanFinanceEntryApi } from '../../api/financeManagerServices';
 import eye from '../../assets/svg/eye.svg';
 import { authSelector } from '../../store/auth/userSlice';
 import { updateIsContractSend } from '../../store/fundingStateReducer';
@@ -28,6 +31,8 @@ import useToast from '../../utils/hooks/toastify/useToast';
 import { LoanFromCommonProps } from '../../utils/types';
 import Loader from '../Loader';
 import ContractSignConfirmation from './modals/ContractSignConfirmationModal';
+import AgreementPreviewModal from './modals/AgreementPreviewModal';
+import BankSelectModal from './modals/BankSelectModal';
 
 export const badgeClassesHead = [
   {
@@ -141,11 +146,17 @@ const Contract: React.FC<LoanFromCommonProps> = ({
     useState(false);
   // const [contractPdf, setContractPdf] = useState(null);
   const [contractResponse, setContractResponse] = useState(null);
+  const [previewData, setPreviewData] = useState<Record<string, unknown> | null>(null);
+  const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
   const dispatch = useDispatch();
   const [contractApiStatus, setContractApiStatus] = useState<
     'idle' | 'loading' | 'fulfilled' | 'waiting' | 'error'
   >('idle');
   const [contractApiData, setContractApiData] = useState(null);
+  const [isRegenerating, setIsRegenerating] = useState(false);
+  const [lastRegeneratedAt, setLastRegeneratedAt] = useState(null);
+  const regenerateTimeoutRef = useRef(null);
+  const [isBankModalOpen, setIsBankModalOpen] = useState(false);
   console.log('contractApiStatus', contractApiStatus);
 
   const fetchDebitApi = async (loanId: string) => {
@@ -171,6 +182,55 @@ const Contract: React.FC<LoanFromCommonProps> = ({
       setContractApiStatus('error');
     }
   };
+
+  // Shared regenerate API function
+  const regenerateData = useCallback(async (triggerSource = 'manual') => {
+    if (!loanId && !loan.id) {
+      showToast('Loan ID not available', { type: NotificationType.Error });
+      return;
+    }
+
+    try {
+      setIsRegenerating(true);
+      
+      // Call the specific regenerate API endpoint
+      const response = await regenerateAndSendContractEmailApi(loanId || loan.id);
+      
+      if (response.status_code >= 200 && response.status_code < 300) {
+        // After successful regeneration, refresh the data
+        await Promise.all([
+          fetchDebitApi(loanId || loan.id),
+          fetchContractApi(loanId || loan.id)
+        ]);
+        
+        setLastRegeneratedAt(new Date());
+        
+        if (triggerSource === 'manual') {
+          showToast(response.status_message || 'Contract regenerated and sent successfully', { 
+            type: NotificationType.Success 
+          });
+        }
+      } else {
+        showToast(response.status_message || 'Failed to regenerate contract', { 
+          type: NotificationType.Error 
+        });
+      }
+    } catch (error) {
+      console.error('Error regenerating data:', error);
+      showToast('Failed to regenerate contract', { type: NotificationType.Error });
+    } finally {
+      setIsRegenerating(false);
+    }
+  }, [loanId, loan.id]);
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (regenerateTimeoutRef.current) {
+        clearTimeout(regenerateTimeoutRef.current);
+      }
+    };
+  }, []);
 
   const handleContractToggle = () => {
     const isOpening = !openContract2;
@@ -225,80 +285,127 @@ const Contract: React.FC<LoanFromCommonProps> = ({
     }
   };
 
+  const fetchPreviewContractApi = async (loanId: string) => {
+    try {
+      const response = await getPreviewContractApi(loanId);
+      if (response.status_code >= 200 && response.status_code < 300) {
+        // Store the full agreement data object for the modal
+        const { preview_url, ...agreementData } = response.data || {};
+        if (Object.keys(agreementData).length > 0) {
+          setPreviewData(agreementData);
+        } else if (response.data) {
+          // If there's no extra data apart from preview_url, store the whole object
+          setPreviewData(response.data);
+        }
+      }
+    } catch (error) {
+      console.log('Preview contract API error:', error);
+      // Silently fail - button just won't show
+    }
+  };
+
   const handleSignContract = async () => {
     setIsContractSendConfirmModal(false);
+    // Show bank selection modal instead of directly calling the API
+    setIsBankModalOpen(true);
+  };
+
+  const handleBankSelect = async (bankAccountId: string) => {
+    setIsLoading(true);
 
     try {
-      // if(envelopeStatus !== contractStatus.signedByAll){
-      //   showToast("Need to sign Contract!", { type: NotificationType.Error });
-      // }
-      setIsLoading(true);
-      if (
-        isContractSend ||
-        (contractResponse &&
-          [contractStatus.resent, contractStatus.sent].includes(
-            contractResponse.envelope_status
-          ))
-      ) {
-        const reSendContractEmailApiResponse = await reSendContractEmailApi(
-          loanId || loan.id
-        );
-
-        if (
-          reSendContractEmailApiResponse.status_code >= 200 &&
-          reSendContractEmailApiResponse.status_code < 300
-        ) {
-          setIsContractSend(true);
-          showToast(reSendContractEmailApiResponse.status_message, {
-            type: NotificationType.Success
-          });
-          updateFilledForms(loanId, {
-            complete_contract: true
-          }); // update filled forms
-        } else {
-          showToast(reSendContractEmailApiResponse.status_message, {
-            type: NotificationType.Error
-          });
+      // First call the bank selection API
+      const bankSelectionResponse = await loanFinanceEntryApi(
+        loanId || loan.id,
+        {
+          bank_account_id: bankAccountId,
+          partner_type: 'Customer'
         }
-      } else {
-        const sendContractEmailApiResponse = await sendContractEmailApi(
-          loanId || loan.id
-        );
+      );
 
+      if (bankSelectionResponse.status_code >= 200 && bankSelectionResponse.status_code < 300) {
+        showToast('Bank account selected successfully', {
+          type: NotificationType.Success
+        });
+
+        // Then call the original contract sending API
         if (
-          sendContractEmailApiResponse.status_code >= 200 &&
-          sendContractEmailApiResponse.status_code < 300
+          isContractSend ||
+          (contractResponse &&
+            [contractStatus.resent, contractStatus.sent].includes(
+              contractResponse.envelope_status
+            ))
         ) {
-          showToast(sendContractEmailApiResponse.status_message, {
-            type: NotificationType.Success
-          });
-          if (!(isContractSend || isSigned)) {
-            // send not resend
-            sendDirectDebitLinkApi({}, loanId || loan.id);
+          const reSendContractEmailApiResponse = await reSendContractEmailApi(
+            loanId || loan.id
+          );
+
+          if (
+            reSendContractEmailApiResponse.status_code >= 200 &&
+            reSendContractEmailApiResponse.status_code < 300
+          ) {
+            setIsContractSend(true);
+            showToast(reSendContractEmailApiResponse.status_message, {
+              type: NotificationType.Success
+            });
             updateFilledForms(loanId, {
               complete_contract: true
             }); // update filled forms
+          } else {
+            showToast(reSendContractEmailApiResponse.status_message, {
+              type: NotificationType.Error
+            });
           }
-          setIsContractSend(true);
         } else {
-          showToast(sendContractEmailApiResponse.status_message, {
-            type: NotificationType.Error
-          });
+          const sendContractEmailApiResponse = await sendContractEmailApi(
+            loanId || loan.id
+          );
+
+          if (
+            sendContractEmailApiResponse.status_code >= 200 &&
+            sendContractEmailApiResponse.status_code < 300
+          ) {
+            showToast(sendContractEmailApiResponse.status_message, {
+              type: NotificationType.Success
+            });
+            if (!(isContractSend || isSigned)) {
+              // send not resend
+              sendDirectDebitLinkApi({}, loanId || loan.id);
+              updateFilledForms(loanId, {
+                complete_contract: true
+              }); // update filled forms
+            }
+            setIsContractSend(true);
+          } else {
+            showToast(sendContractEmailApiResponse.status_message, {
+              type: NotificationType.Error
+            });
+          }
         }
+      } else {
+        showToast(bankSelectionResponse.status_message || 'Failed to select bank account', {
+          type: NotificationType.Error
+        });
       }
     } catch (error) {
       console.log('Exception', error);
       showToast('something wrong!', { type: NotificationType.Error });
+    } finally {
+      setIsLoading(false);
     }
-    setIsLoading(false);
   };
 
   useEffect(() => {
     if (role !== Roles.FieldAgent) {
       fetchContractApi(loanId || loan.id);
       fetchDebitApi(loanId || loan.id);
+      fetchPreviewContractApi(loanId || loan.id);
     }
-  }, [loanId, loan.id]);
+    // Also load preview data for underwriters specifically
+    if (role === Roles.UnderWriter) {
+      fetchPreviewContractApi(loanId || loan.id);
+    }
+  }, [loanId, loan.id, role]);
 
   useEffect(() => {
     dispatch(updateIsContractSend(isContractSend));
@@ -308,11 +415,22 @@ const Contract: React.FC<LoanFromCommonProps> = ({
     return (
       <div className="p-4">
         {isSigned && (
-          <div className="flex">
+          <div className="flex items-center justify-between">
             <h2 className="mb-4 text-[16px] font-bold">{'Contract'}</h2>
-            <div>
+            <div className="flex gap-4">
+              {(previewData || role === Roles.UnderWriter) && (
+                <p
+                  className="flex cursor-pointer items-center pr-4 text-[12px] font-medium text-[#1A439A]"
+                  onClick={() => {
+                    setIsPreviewModalOpen(true);
+                  }}
+                >
+                  <img src={eye} alt="eye" className="px-2" />
+                  {'PREVIEW'}
+                </p>
+              )}
               <p
-                className="flex pr-4 text-[12px] font-medium text-[#1A439A]"
+                 className="flex pr-4 text-[12px] font-medium text-[#1A439A]"
                 onClick={() => {
                   window.open(contractResponse?.signed_pdf, '_blank');
                 }}
@@ -340,7 +458,7 @@ const Contract: React.FC<LoanFromCommonProps> = ({
             <Loader />
           </div>
         )}
-        {[Roles.Admin, Roles.Manager].includes(role as Roles) && (
+        {[Roles.Admin, Roles.Manager, Roles.UnderWriter].includes(role as Roles) && (
           <div className="flex flex-col pb-8">
             <div
               className={`items-center rounded-lg border border-[#D4D4D4] px-2 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 ${
@@ -366,6 +484,18 @@ const Contract: React.FC<LoanFromCommonProps> = ({
                       ? 'Contract'
                       : 'Send Contract Sign Email and Direct debit'}
                   </span>
+                  {(previewData || role === Roles.UnderWriter) && (
+                    <p
+                      className="flex cursor-pointer items-center text-[12px] font-medium text-[#1A439A]"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setIsPreviewModalOpen(true);
+                      }}
+                    >
+                      <img src={eye} alt="eye" className="px-2" />
+                      {'PREVIEW'}
+                    </p>
+                  )}
                 </div>
                 {isContractSend || isSigned ? (
                   isSigned ? (
@@ -373,37 +503,64 @@ const Contract: React.FC<LoanFromCommonProps> = ({
                       {openContract ? <IoIosArrowUp /> : <IoIosArrowDown />}
                     </span>
                   ) : (
-                    <button
-                      type="button"
-                      className={`bg-white ${[FundingFromCurrentStatus.UnderwriterSubmitted].includes(fundingFormStatus) ? 'text-[#1A439A]' : 'text-[#BABABA]'} cursor-pointer text-[14px] font-semibold uppercase max-sm:text-[10px]`}
-                      disabled={
-                        ![
-                          FundingFromCurrentStatus.UnderwriterSubmitted
-                        ].includes(fundingFormStatus)
-                      }
-                      onClick={() => {
-                        setIsContractSendConfirmModal(true);
-                      }}
-                    >
-                      {'RESEND'}
-                    </button>
+<div>
+
+                      <div className="text-xs text-gray-500">
+                      {lastRegeneratedAt && (
+                        <span>Last regenerated: {lastRegeneratedAt.toLocaleTimeString()}</span>
+                      )}
+                    </div>
+                    {![Roles.UnderWriter].includes(role) && (
+                      <div className="flex gap-2">
+                        <button
+                          type="button"
+                          className={`flex items-center gap-2 rounded border px-3 py-2 text-sm font-medium transition-colors ${
+                            isRegenerating
+                              ? 'border-gray-300 bg-gray-100 text-gray-500 cursor-not-allowed'
+                              : 'border-blue-500 bg-blue-50 text-blue-700 hover:bg-blue-100'
+                          }`}
+                          onClick={() => regenerateData('manual')}
+                          disabled={isRegenerating}
+                        >
+                          <IoRefresh className={isRegenerating ? 'animate-spin' : ''} size={16} />
+                          {isRegenerating ? 'Regenerating...' : 'Regenerate'}
+                        </button>
+                        <button
+                          type="button"
+                          className={`bg-white ${[FundingFromCurrentStatus.UnderwriterSubmitted].includes(fundingFormStatus) ? 'text-[#1A439A]' : 'text-[#BABABA]'} cursor-pointer text-[14px] font-semibold uppercase max-sm:text-[10px]`}
+                          disabled={
+                            ![
+                              FundingFromCurrentStatus.UnderwriterSubmitted
+                            ].includes(fundingFormStatus)
+                          }
+                          onClick={() => {
+                            setIsContractSendConfirmModal(true);
+                          }}
+                        >
+                          {'RESEND'}
+                        </button>
+                      </div>
+                    )}
+                    </div>
                   )
                 ) : (
                   <span>
-                    <button
-                      type="button"
-                      className={`bg-white ${[FundingFromCurrentStatus.UnderwriterSubmitted].includes(fundingFormStatus) ? 'text-[#1A439A]' : 'text-[#BABABA]'} cursor-pointer text-[14px] font-semibold uppercase max-sm:text-[10px]`}
-                      disabled={
-                        ![
-                          FundingFromCurrentStatus.UnderwriterSubmitted
-                        ].includes(fundingFormStatus)
-                      }
-                      onClick={() => {
-                        setIsContractSendConfirmModal(true);
-                      }}
-                    >
-                      {'SEND'}
-                    </button>
+                    {![Roles.UnderWriter].includes(role) && (
+                      <button
+                        type="button"
+                        className={`bg-white ${[FundingFromCurrentStatus.UnderwriterSubmitted].includes(fundingFormStatus) ? 'text-[#1A439A]' : 'text-[#BABABA]'} cursor-pointer text-[14px] font-semibold uppercase max-sm:text-[10px]`}
+                        disabled={
+                          ![
+                            FundingFromCurrentStatus.UnderwriterSubmitted
+                          ].includes(fundingFormStatus)
+                        }
+                        onClick={() => {
+                          setIsContractSendConfirmModal(true);
+                        }}
+                      >
+                        {'SEND'}
+                      </button>
+                    )}
                   </span>
                 )}
               </div>
@@ -416,7 +573,7 @@ const Contract: React.FC<LoanFromCommonProps> = ({
             )}
           </div>
         )}
-        {[Roles.Admin, Roles.Manager].includes(role) && isContractSend && (
+        {[Roles.Admin, Roles.Manager, Roles.UnderWriter].includes(role) && isContractSend && (
           <>
             {isSigned && openContract && <ViewContract />}
 
@@ -555,27 +712,32 @@ const Contract: React.FC<LoanFromCommonProps> = ({
                       Waiting Customer authorization...
                     </div>
                   )}
-                  <div className="mt-4 flex justify-end">
-                    <button
-                      type="button"
-                      className={`bg-white ${
-                        [
-                          FundingFromCurrentStatus.UnderwriterSubmitted
-                        ].includes(fundingFormStatus)
-                          ? 'text-[#1A439A]'
-                          : 'text-[#BABABA]'
-                      } cursor-pointer text-[14px] font-semibold uppercase max-sm:text-[10px]`}
-                      onClick={() =>
-                        sendDirectDebitLinkApi(
-                          {
-                            resend: true
-                          },
-                          loanId || loan.id
-                        )
-                      }
-                    >
-                      RESEND
-                    </button>
+                  <div className="mt-6 flex items-center justify-between gap-4">
+
+                      {![Roles.UnderWriter].includes(role) && (
+                        <div className="mt-4 flex justify-end">
+                      <button
+                        type="button"
+                        className={`bg-white ${
+                          [
+                            FundingFromCurrentStatus.UnderwriterSubmitted
+                          ].includes(fundingFormStatus)
+                            ? 'text-[#1A439A]'
+                            : 'text-[#BABABA]'
+                        } cursor-pointer text-[14px] font-semibold uppercase max-sm:text-[10px]`}
+                        onClick={() =>
+                          sendDirectDebitLinkApi(
+                            {
+                              resend: true
+                            },
+                            loanId || loan.id
+                          )
+                        }
+                      >
+                        RESEND
+                      </button>
+                        </div>
+                      )}
                   </div>
                 </div>
               )}
@@ -597,6 +759,16 @@ const Contract: React.FC<LoanFromCommonProps> = ({
         setUpdateRateOfInterest={setRateOfInterest}
         InterestOld={12}
         InterestNew={rateOfInterest}
+      />
+      <AgreementPreviewModal
+        isOpen={isPreviewModalOpen}
+        onClose={() => setIsPreviewModalOpen(false)}
+        data={previewData}
+      />
+      <BankSelectModal
+        isOpen={isBankModalOpen}
+        close={() => setIsBankModalOpen(false)}
+        onBankSelect={handleBankSelect}
       />
     </>
   );

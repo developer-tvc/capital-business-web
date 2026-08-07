@@ -8,7 +8,7 @@ import { useMediaQuery } from 'react-responsive';
 import { financeManagerLedgerApi } from '../../../../api/financeManagerServices';
 import { fieldClass, labelClass } from '../../../../utils/constants';
 import { entryHeaders } from '../../../../utils/data';
-import { EntryType } from '../../../../utils/enums';
+// import { EntryType } from '../../../../utils/enums';
 import {
   convertDateString,
   formatDate,
@@ -36,7 +36,6 @@ const Ledger = () => {
     goToPrevPage,
     goToPage,
     handleFilter,
-    callPaginate,
     userPaginateException
   } = usePagination(financeManagerLedgerApi);
 
@@ -58,9 +57,10 @@ const Ledger = () => {
   // const options = ['Journal', 'Other']
 
   const watchGlCode = watch('gl_code');
+  const watchBpCode = watch('bp_code');
   const watchFromDate = watch('from_date');
   const watchToDate = watch('to_date');
-  const date_to = convertDateString(watchFromDate);
+  const date_to = convertDateString(watchToDate);
   const date_from = convertDateString(watchFromDate);
   const isMobile = useMediaQuery({ query: '(max-width: 767px)' });
   const isTablet = useMediaQuery({
@@ -69,18 +69,23 @@ const Ledger = () => {
   const isLaptop = useMediaQuery({ query: '(min-width: 1024px)' });
 
   useEffect(() => {
-    if (watchFromDate && watchToDate && watchGlCode) {
-      // const selectedGl =  glData.filter((item) => item.gl_code===watchGlCode)
-      // setValue('gl_name',selectedGl.gl_name)
-      const customFilter = {};
-      customFilter['gl_code'] = convertDateString(watchGlCode);
-      customFilter['start_date'] = convertDateString(watchFromDate);
-      customFilter['end_date'] = convertDateString(watchToDate);
+    if (watchFromDate && watchToDate && (watchGlCode || watchBpCode)) {
+      const customFilter: Record<string, string> = {
+        start_date: convertDateString(watchFromDate),
+        end_date: convertDateString(watchToDate)
+      };
+      if (watchGlCode) customFilter.gl_code = watchGlCode;
+      if (watchBpCode) customFilter.bp_code = watchBpCode;
       setIsLoading(true);
       handleFilter(customFilter);
+      downloadData();
+    } else if (!watchGlCode && !watchBpCode) {
+      // Clear data when no GL/BP is selected
+      setList([]);
+      setLoans([]);
+      setTransactionData([]);
     }
-    // setValue('glAccountName', glIDs.find(i => i.partner_code === watchGlCode).partner_name)
-  }, [watchGlCode, watchFromDate, watchToDate]);
+  }, [watchGlCode, watchBpCode, watchFromDate, watchToDate]);
 
   const [list, setList] = useState<LedgerProps[]>([]);
   const onFilter = () => {
@@ -91,9 +96,19 @@ const Ledger = () => {
 
   useEffect(() => {
     if (selectedGl) {
-      setValue('gl_code', selectedGl?.partner_code);
+      if (selectedGl.type === 'bp') {
+        setValue('bp_code', selectedGl.partner_code);
+        setValue('bp_name', selectedGl.partner_name);
+        setValue('gl_code', '');
+        setValue('gl_name', '');
+      } else {
+        setValue('gl_code', selectedGl.partner_code);
+        setValue('gl_name', selectedGl.partner_name);
+        setValue('bp_code', '');
+        setValue('bp_name', '');
+      }
     }
-  }, [selectedGl]);
+  }, [selectedGl, setValue]);
 
   useEffect(() => {
     if (data) {
@@ -123,12 +138,13 @@ const Ledger = () => {
               id="gl_name"
               type="text"
               placeholder=" "
-              value={selectedGl?.partner_name}
+              value={watch('gl_name') || watch('bp_name') || selectedGl?.partner_name || ''}
               className={fieldClass}
               onClick={() => setShowModal(true)}
+              readOnly
             />
             <label htmlFor="gl_name" className={labelClass}>
-              {'GL Name'}
+              {selectedGl?.type === 'bp' ? 'BP Name' : 'GL Name'}
               <span className="text-red-500">{' *'}</span>
             </label>
           </div>
@@ -137,39 +153,43 @@ const Ledger = () => {
     </div>
   );
 
-  const GLCodeInput = () => (
-    <InputController
-      metaData={{
-        fieldClass,
-        labelClass,
-        name: 'gl_code',
-        label: 'GL Code',
-        type: 'text',
-        placeholder: 'GL Code',
-        isDisabled: true
-      }}
-    />
-  );
+  const GLCodeInput = () => {
+    const codeLabel = selectedGl?.type === 'bp' ? 'BP Code' : 'GL Code';
+    const fieldName = selectedGl?.type === 'bp' ? 'bp_code' : 'gl_code';
+
+    return (
+      <InputController
+        metaData={{
+          fieldClass,
+          labelClass,
+          name: fieldName,
+          label: codeLabel,
+          type: 'text',
+          placeholder: codeLabel,
+          isDisabled: true
+        }}
+      />
+    );
+  };
   useEffect(() => {
     if (data) setLoans(data);
   }, [data]);
 
-  useEffect(() => {
-    setIsLoading(true);
-    callPaginate();
-    downloadData();
-  }, []);
 
   const downloadData = () => {
     const fromDate = getValues('from_date');
     const toDate = getValues('to_date');
+    const filterPayload: Record<string, string | boolean> = {
+      start_date: convertDateString(fromDate),
+      end_date: convertDateString(toDate),
+      download: true
+    };
+
+    if (watchGlCode) filterPayload.gl_code = watchGlCode;
+    if (watchBpCode) filterPayload.bp_code = watchBpCode;
+
     const dateFilter = {
-      filter: {
-        start_date: convertDateString(fromDate),
-        end_date: convertDateString(toDate),
-        gl_code: watchGlCode,
-        download: true
-      }
+      filter: filterPayload
     };
     handleReportDownload(
       financeManagerLedgerApi,
@@ -189,7 +209,7 @@ const Ledger = () => {
           placeholder: 'from',
           isRequired: true,
           name: 'from_date',
-          label: 'From',
+          label: '',
           type: 'date'
         }}
       />
@@ -201,7 +221,7 @@ const Ledger = () => {
           placeholder: 'to',
           isRequired: true,
           name: 'to_date',
-          label: 'To',
+          label: '',
           type: 'date'
         }}
       />
@@ -262,7 +282,6 @@ const Ledger = () => {
                   filename={`Ledger_${date_to}-${date_from}.csv`}
                   target="_blank"
                   onClick={event => {
-                    downloadData();
                     if (transactionData.length === 0 || loans.length === 0) {
                       event.preventDefault();
                       showToast('No data available for download.', {
@@ -291,8 +310,7 @@ const Ledger = () => {
               </div>
             </div>
           </FormProvider>
-          {watchGlCode && (
-            <div className="flex h-[75%] flex-1 flex-col overflow-y-auto bg-white max-sm:h-[64vh]">
+          <div className="flex h-[75%] flex-1 flex-col overflow-y-auto bg-white max-sm:h-[64vh]">
               <div className="px-2 max-sm:p-4">
                 <div>
                   {(isLaptop || isTablet) && (
@@ -336,9 +354,10 @@ const Ledger = () => {
                                   {entry?.transaction_no || 'N/A'}
                                 </td>
                                 <td className="whitespace-nowrap px-6 py-4">
-                                  {entry?.entry_type
+                                  {/* {entry?.entry_type
                                     ? EntryType[entry.entry_type.toLowerCase()]
-                                    : 'N/A'}
+                                    : 'N/A'} */}
+                                        {entry?.transaction_type ||'N/A'}
                                 </td>
                                 {/* <td className="px-6 py-4 whitespace-nowrap">
                                 {entry?.offset_accounts?.[0]?.bp_account
@@ -492,7 +511,6 @@ const Ledger = () => {
                 </div>
               </div>
             </div>
-          )}
         </div>
       ) : (
         <AddEntry

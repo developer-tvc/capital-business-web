@@ -149,7 +149,7 @@ const StatementBalanceSheet = () => {
                   placeholder: 'from',
                   isRequired: true,
                   name: `date_from`,
-                  label: 'from',
+                  label: '',
                   type: 'date'
                 }}
               />
@@ -161,7 +161,7 @@ const StatementBalanceSheet = () => {
                   placeholder: 'to',
                   isRequired: true,
                   name: `date_to`,
-                  label: 'to',
+                  label: '',
                   type: 'date'
                 }}
               />

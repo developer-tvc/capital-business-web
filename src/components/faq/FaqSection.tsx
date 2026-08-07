@@ -1,50 +1,43 @@
 import React, { useState } from 'react';
-import { IoIosArrowDown, IoIosArrowForward } from 'react-icons/io';
-
 import { questions } from '../../utils/data';
 
 const FAQSection: React.FC = () => {
-  const [openQuestion, setOpenQuestion] = useState<number | null>(null);
+  const [openQuestion, setOpenQuestion] = useState<number>(0);
 
   const toggleQuestion = (questionIndex: number) => {
     setOpenQuestion(openQuestion === questionIndex ? null : questionIndex);
   };
 
   return (
-    <section className="bg-[#EDF3FF]">
-      <>
-        <div className="container mx-auto space-y-4 bg-[#EDF3FF] p-6 py-12 lg:px-12">
+  <section className='choose-us-box1'>
+     
+      <div className="container p-0">
+        <h2 className="section-title">How It Works</h2>
+                <p>The Capital4business Process<br />
+                  Navigating the path to business friendly capital @ Capital4business is effortless:
+                </p>
+        <div className="accordion">
           {questions.map((question, index) => (
-            <div
-              key={index}
-              className="cursor-pointer border border-gray-200 bg-white shadow-lg transition-all duration-200 hover:bg-gray-50"
-              onClick={() => toggleQuestion(index)}
-            >
-              <button
-                type="button"
-                className="flex w-full items-center justify-between px-4 py-5 sm:p-6"
-              >
-                <span className="flex text-lg font-semibold text-black">
+            <div className="card" key={index}>
+              <div className="card-header">
+                <h4
+                  className={`heading-title ${openQuestion === index ? '' : 'collapsed'}`}
+                  onClick={() => toggleQuestion(index)}
+                >
                   {question.title}
-                </span>
-
-                {openQuestion === index ? (
-                  <IoIosArrowDown />
-                ) : (
-                  <IoIosArrowForward />
-                )}
-              </button>
+                </h4>
+              </div>
               <div
-                className={`px-4 pb-5 transition-all duration-200 sm:px-6 sm:pb-6 ${
-                  openQuestion === index ? 'block' : 'hidden'
-                }`}
+                className={`accordion-body-wrapper ${openQuestion === index ? 'open' : ''}`}
               >
-                <p>{question.answer}</p>
+                <div className="card-body">
+                  <p>{question.answer}</p>
+                </div>
               </div>
             </div>
           ))}
         </div>
-      </>
+      </div>
     </section>
   );
 };

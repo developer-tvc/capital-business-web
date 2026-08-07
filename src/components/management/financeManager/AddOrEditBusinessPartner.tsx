@@ -7,8 +7,7 @@ import * as yup from 'yup';
 
 import {
   businessPartnerGroupsNonPaginatedGetApi,
-  financePartnerApi,
-  generalLedgerGetApi
+  financePartnerApi
 } from '../../../api/financeManagerServices';
 import { NotificationType } from '../../../utils/hooks/toastify/enums';
 import useToast from '../../../utils/hooks/toastify/useToast';
@@ -20,8 +19,6 @@ interface BusinessPartnerData {
   name?: string;
   email?: string;
   mobile?: string;
-  glId?: string;
-  gl_code?: string;
 }
 
 // Yup validation schema
@@ -39,8 +36,7 @@ const schema = yup.object().shape({
       'is-valid-phone',
       'Phone number must be a valid 10-digit UK number',
       value => !value || /^[0-9]{10}$/.test(value)
-    ),
-  glId: yup.string().required('General Ledger ID is required')
+    )
 });
 
 const AddOrEditBusinessPartner = ({
@@ -65,11 +61,7 @@ const AddOrEditBusinessPartner = ({
 
   const [isLoading, setIsLoading] = useState(false);
 
-  const [glIds, setGlIds] = useState<{ id: string; display: string }[]>([]);
   const [groups, setGroups] = useState<{ display: string; id: string }[]>([]);
-  const [glDisplayValue, setGlDisplayValue] = useState('');
-  const [showGlList, setShowGlList] = useState(false);
-  const [glSearchTerm, setGlSearchTerm] = useState('');
 
   const [bpGroupDisplayValue, setBpGroupDisplayValue] = useState('');
   const [showBpGroupList, setShowBpGroupList] = useState(false);
@@ -82,50 +74,21 @@ const AddOrEditBusinessPartner = ({
       setValue('name', editingPartner.name);
       setValue('email', editingPartner.email);
       setValue('mobile', editingPartner.mobile);
-      setValue('glId', editingPartner.glId);
-      setGlSearchTerm(glIds.find(gl => gl.id === editingPartner.glId)?.display);
       setBpGroupSearchTerm(
         groups.find(group => group.id === editingPartner.group)?.display
       );
     }
   }, [editingPartner]);
 
-  const fetchGlIds = async (term = '') => {
-    try {
-      const response = await generalLedgerGetApi(term);
-      if (response.status_code >= 200 && response.status_code < 300) {
-        // Update state to store both ID and display information
-        const fetchedGlIds = response.data.map(
-          (ledger: { id: string; gl_code: string; gl_name: string }) => ({
-            id: ledger.id,
-            display: `${ledger.gl_code} - ${ledger.gl_name}`
-          })
-        );
-        setGlIds(fetchedGlIds);
-      } else {
-        showToast('Failed to fetch General Ledger IDs.', {
-          type: NotificationType.Error
-        });
-      }
-    } catch (error) {
-      showToast('An error occurred while fetching General Ledger IDs.', {
-        type: NotificationType.Error
-      });
-      console.error('Error during API call:', error);
-    }
-  };
-
   const handleAddOrUpdateBusinessPartner: SubmitHandler<
     BusinessPartnerData
   > = async data => {
     setIsLoading(true);
-    fetchGlIds();
 
     const payload = {
       partner_code: data.id,
       partner_name: data.name,
       partner_type: data.group,
-      gl_account: data.glId,
       email: data.email,
       phone_number: data.mobile
     };
@@ -138,7 +101,7 @@ const AddOrEditBusinessPartner = ({
           setBusinessPartners(
             businessPartners.map(partner =>
               partner.id === data.id
-                ? { ...data, glId: formatGlId(data.glId) }
+                ? { ...data }
                 : partner
             )
           );
@@ -148,7 +111,7 @@ const AddOrEditBusinessPartner = ({
         } else {
           setBusinessPartners([
             ...businessPartners,
-            { ...data, glId: formatGlId(data.glId) }
+            { ...data }
           ]);
           showToast('Business Partner added successfully!', {
             type: NotificationType.Success
@@ -186,11 +149,6 @@ const AddOrEditBusinessPartner = ({
     }
   };
 
-  const formatGlId = (glId: string): string => {
-    const gl = glIds.find(g => g.id === glId);
-    return gl ? gl.display : glId;
-  };
-
   const fetchGroups = async (bpGroupSearchTerm = '') => {
     try {
       const response =
@@ -222,7 +180,6 @@ const AddOrEditBusinessPartner = ({
 
   useEffect(() => {
     fetchGroups();
-    fetchGlIds();
   }, []);
 
   const toggleModal = () => {
@@ -236,13 +193,6 @@ const AddOrEditBusinessPartner = ({
     });
   };
 
-  const handleOptionClick = glId => {
-    setGlDisplayValue(glIds.find(gl => gl.id === glId).display);
-    setShowGlList(false);
-    setValue('glId', glId);
-    setGlSearchTerm(glIds.find(gl => gl.id === glId).display);
-  };
-
   const handleBpGroupOptionClick = bpId => {
     setBpGroupDisplayValue(groups.find(group => group.id === bpId).display);
     setShowBpGroupList(false);
@@ -251,19 +201,12 @@ const AddOrEditBusinessPartner = ({
   };
 
   useEffect(() => {
-    fetchGlIds(glSearchTerm);
-    setGlDisplayValue(glSearchTerm);
-  }, [glSearchTerm]);
-
-  useEffect(() => {
     fetchGroups(bpGroupSearchTerm);
     setBpGroupDisplayValue(bpGroupSearchTerm);
   }, [bpGroupSearchTerm]);
 
   useEffect(() => {
     return () => {
-      setShowGlList(false);
-      setGlSearchTerm('');
       setShowBpGroupList(false);
       setBpGroupSearchTerm('');
     };
@@ -295,19 +238,13 @@ const AddOrEditBusinessPartner = ({
   // }, [showGlList, showBpGroupList]);
 
   useEffect(() => {
-    if (showGlList === false) {
-      const currentGlId = getValues('glId');
-      const selectedGlId =
-        currentGlId && glIds.find(gl => gl.id === currentGlId);
-      setGlSearchTerm(selectedGlId?.display || '');
-    }
     if (showBpGroupList === false) {
       const currentGroup = getValues('group');
       const selectedGroup =
         currentGroup && groups.find(group => group.id === currentGroup);
       setBpGroupSearchTerm(selectedGroup?.display || '');
     }
-  }, [showGlList, showBpGroupList]);
+  }, [showBpGroupList]);
 
   return (
     <>
@@ -450,46 +387,6 @@ const AddOrEditBusinessPartner = ({
                       <p className="text-red-500">{errors.mobile.message}</p>
                     )}
                   </div>
-                  <div className="grid grid-cols-1 gap-4 p-2" id="gl-list">
-                    <input
-                      // {...register("glId")}
-                      value={glDisplayValue}
-                      onChange={e => {
-                        setGlSearchTerm(e.target.value);
-                        setShowGlList(true);
-                      }}
-                      className={`appearance-none rounded border px-3 py-2 font-light leading-tight text-[#737373] focus:outline-none ${
-                        errors.glId ? 'border-red-500' : ''
-                      }`}
-                      onClick={() => setShowGlList(preVstate => !preVstate)}
-                      placeholder="Select General Ledger ID"
-                    />
-                    {showGlList && (
-                      <ul className="absolute z-10 mt-12 max-h-60 w-[89%] overflow-auto rounded border bg-white">
-                        {glIds.length > 0 ? (
-                          glIds.map(gl => (
-                            <li
-                              key={gl.id}
-                              className="cursor-pointer px-3 py-2 hover:bg-gray-200"
-                              onClick={() => handleOptionClick(gl.id)}
-                            >
-                              {gl.display}
-                            </li>
-                          ))
-                        ) : (
-                          <li
-                            className="cursor-pointer px-3 py-2 hover:bg-gray-200"
-                            onClick={() => setShowGlList(false)}
-                          >
-                            {'No Gl found'}
-                          </li>
-                        )}
-                      </ul>
-                    )}
-                    {errors.glId && (
-                      <p className="text-red-500">{errors.glId.message}</p>
-                    )}
-                  </div>
                 </div>
 
                 <div className="grid grid-cols-1 gap-4 p-2">
@@ -498,10 +395,7 @@ const AddOrEditBusinessPartner = ({
                     value={`${
                       editingPartner ? 'Update' : 'Add'
                     } Business Partner`}
-                    disabled={showGlList}
-                    className={`w-full rounded border border-blue-700 bg-blue-900 px-4 py-2 text-[12px] font-medium text-white hover:bg-blue-800 ${
-                      !showGlList ? 'cursor-pointer' : 'cursor-not-allowed'
-                    }`}
+                    className={`w-full cursor-pointer rounded border border-blue-700 bg-blue-900 px-4 py-2 text-[12px] font-medium text-white hover:bg-blue-800`}
                   />
                 </div>
               </form>

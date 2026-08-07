@@ -9,7 +9,7 @@ import {
 } from 'react-hook-form';
 import { AnyAction, Reducer } from 'redux';
 import yup from 'yup';
-
+import 'jspdf';
 import { ApprovalType, FundingFromCurrentStatus, Roles } from './enums';
 import {
   affordabilityGeneralSchema,
@@ -85,7 +85,7 @@ export type TradingAddress = {
   premise_type: 'Freehold' | 'Leasehold' | 'Lease';
   start_date?: string;
   end_date?: string;
-  document?: File[];
+  trading_documents?: File[];
 };
 export type RegisteredAddress = {
   address_line: string;
@@ -136,12 +136,12 @@ export type MarketingPreferencesType = {
 };
 
 export type DocumentationUploadsType = {
-  photo?: File;
-  passport?: File;
-  driving_license?: File;
-  council_tax: File;
-  utility_bill: File;
-  lease_deed?: File;
+  photo?: File[];
+  passport?: File[];
+  driving_license?: File[];
+  council_tax: File[];
+  utility_bill: File[];
+  lease_deed?: File[];
   // business_account_statements?: File[];
   other_files?: File[];
   document_upload_self_declaration?: boolean;
@@ -169,7 +169,7 @@ export interface GuarantorTypeSubSchemaType {
   email?: string;
   owns_other_property?: 'Yes' | 'No';
   stay_validated?: boolean;
-  company_name?: string;
+   company_name?: string;
   stay?: {
     pincode?: string;
     address?: string;
@@ -191,6 +191,7 @@ export type GuaranteedPropertyType = {
   owns_other_property: 'Yes' | 'No';
   owned_property_count?: number;
   owned_property?: {
+    id:string
     owner_name: string;
     owner_email: string;
     pincode: string;
@@ -198,8 +199,19 @@ export type GuaranteedPropertyType = {
   }[];
 };
 
+declare module "jspdf" {
+  interface jsPDF {
+    lastAutoTable?: {
+      finalY: number;
+    };
+    autoTable: (...args: unknown[]) => unknown;
+    getNumberOfPages: () => number;
+  }
+}
+
+
 export type CorporateGuarantorDirectorType = {
-  id?: number;
+  id?: string;
   title: string;
   first_name: string;
   last_name: string;
@@ -460,6 +472,7 @@ export interface DropdownControllerProps
   hideLabel?: boolean;
   disabled?: boolean;
   isDeSelectable?: boolean;
+  isEditable?: boolean;
 }
 
 export interface DateControllerProps extends Partial<CommonClassesInterface> {
@@ -475,6 +488,7 @@ export interface DateControllerProps extends Partial<CommonClassesInterface> {
   excludeDateIntervals?: { start: Date; end: Date }[];
   icon?: () => JSX.Element;
   filterDates?: (date: undefined) => boolean;
+  dateFormat?: string;
 }
 
 export interface TextAreaControllerProps
@@ -1094,6 +1108,7 @@ export interface StatementBpTrialBalanceProps {
 }
 
 export interface LedgerProps {
+  transaction_type: string;
   date: string;
   transaction_no: string;
   entry_type: string;

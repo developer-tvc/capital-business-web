@@ -33,12 +33,12 @@ import {
   FundingFromCurrentStatus,
   FundingFromStatusEnum,
   FundingFromUpcomingStatus,
-  ModeOfApplication,
   Roles
 } from '../../../utils/enums';
 import {
   AffordabilityNextTab,
   AffordabilityPrevTab,
+  isRepresentativeModeOfApplication,
   updateFilledForms
 } from '../../../utils/helpers';
 import { NotificationType } from '../../../utils/hooks/toastify/enums';
@@ -65,6 +65,7 @@ import DisbursementAdvice from '../dashboard/DisbursementAdvice';
 import FundingTab from './FundingTab';
 import Repayment from '../repayment/PaymentSchedule';
 import CorporateGuarantor from '../../fundingForms/corporateGuarantor';
+import RepresentativeAccessDeniedModal from '../../fundingForms/modals/RepresentativeAccessDeniedModal';
 
 const ManagementFundingApplication = () => {
   const { role } = useSelector(authSelector);
@@ -76,14 +77,14 @@ const ManagementFundingApplication = () => {
   const maxFormsByRole = {
     [Roles.FieldAgent]: 9,
     [Roles.FinanceManager]: 9,
-    [Roles.UnderWriter]: 12,
+    [Roles.UnderWriter]: 14,
     [Roles.Manager]: 14,
     [Roles.Admin]: 14
   };
   const NumberOfForms = [Roles.Admin, Roles.Manager].includes(role)
     ? 14
     : [Roles.UnderWriter].includes(role)
-      ? 12
+      ? 14
       : 9;
 
   const [fundingFormStatus, setFundingFormStatus] =
@@ -118,6 +119,10 @@ const ManagementFundingApplication = () => {
   const [affordabilityActiveStage, setAffordabilityActiveStage] =
     useState('general_form');
   const [uwVerifyData, setUwVerifyData] = useState<Record<string, boolean>>({});
+  const [
+    isRepresentativeAccessDeniedOpen,
+    setIsRepresentativeAccessDeniedOpen
+  ] = useState(false);
 
   const isSigned = !!(
     contractResponse?.signed_pdf && contractResponse?.signed_pdf !== ''
@@ -133,7 +138,7 @@ const ManagementFundingApplication = () => {
       }, 1500);
     } else if (role !== Roles.UnderWriter && isUwRepaymentComplete) {
       setTimeout(() => {
-        handleStageChange(12);
+        handleStageChange(13);
         setIsUwRepaymentComplete(false);
       }, 1500);
     }
@@ -159,6 +164,16 @@ const ManagementFundingApplication = () => {
       dispatch(updateCurrentStage(activeStage));
     }
   }, [activeStage]);
+
+  useEffect(() => {
+    // Check if Customer role is trying to access Representative mode funding
+    if (
+      role === Roles.Customer &&
+      isRepresentativeModeOfApplication(loan?.customer?.mode_of_application)
+    ) {
+      setIsRepresentativeAccessDeniedOpen(true);
+    }
+  }, [loan, role]);
 
   useEffect(() => {
     fetchCustomerLoans(loan.id);
@@ -192,8 +207,7 @@ const ManagementFundingApplication = () => {
           type: NotificationType.Error
         });
       }
-    } catch (error) {
-      console.log('Exception', error);
+    } catch (_error) {
       showToast('something wrong!', { type: NotificationType.Error });
     }
   };
@@ -221,8 +235,7 @@ const ManagementFundingApplication = () => {
           type: NotificationType.Error
         });
       }
-    } catch (error) {
-      console.log('Exception', error);
+    } catch (_error) {
       showToast('something wrong!', { type: NotificationType.Error });
     }
   };
@@ -250,19 +263,6 @@ const ManagementFundingApplication = () => {
         const maxForms = maxFormsByRole[role];
         filledForms = Math.min(filledForms, maxForms);
         const NextForm = Math.min(filledForms + 1, NumberOfForms);
-        console.log('loanGetApiResponse', loanGetApiResponse.data.loan_status);
-
-        console.log(
-          'nextForm',
-          NextForm,
-          'Max',
-          maxForms,
-          'Fill',
-          filledForms,
-          'NoF',
-          NumberOfForms
-        );
-
         setActiveStage(NextForm);
         dispatch(updateCurrentStage(NextForm));
       } else {
@@ -270,16 +270,30 @@ const ManagementFundingApplication = () => {
           type: NotificationType.Error
         });
       }
-    } catch (error) {
-      console.log('Exception', error);
+    } catch (_error) {
       showToast('something wrong!', { type: NotificationType.Error });
     }
   };
 
   const handleStageChange = (stage: number) => {
+    // Check if Customer role is trying to access Representative mode funding
+    if (
+      role === Roles.Customer &&
+      isRepresentativeModeOfApplication(loan?.customer?.mode_of_application)
+    ) {
+      setIsRepresentativeAccessDeniedOpen(true);
+      return;
+    }
+
     if (stage <= NumberOfForms) {
-      dispatch(updateCurrentStage(stage));
-      setActiveStage(stage);
+      // For UnderWriter, skip stage 13 (Disbursement Advice) and go to stage 14 (Contract)
+      if (role === Roles.UnderWriter && stage === 13) {
+        dispatch(updateCurrentStage(14));
+        setActiveStage(14);
+      } else {
+        dispatch(updateCurrentStage(stage));
+        setActiveStage(stage);
+      }
     }
   };
 
@@ -292,7 +306,7 @@ const ManagementFundingApplication = () => {
   const wizardTabs = [Roles.Admin, Roles.Manager].includes(role)
     ? LoanWizardStages
     : Roles.UnderWriter === role
-      ? LoanWizardStages.slice(0, -2) // hide contract tab and disbursement tab
+      ? LoanWizardStages.slice(0, 12).concat(LoanWizardStages.slice(-1)) // show stages 1-12 and contract (stage 14), skip disbursement (stage 13)
       : LoanWizardStages.slice(0, -4); //  hide contract tab and disbursement tab affordability tab
 
   const submitApiCall = async (remark: string) => {
@@ -301,6 +315,10 @@ const ManagementFundingApplication = () => {
     const response = await submitLoanApi(loanId, payload);
     if (response.status_code >= 200 && response.status_code < 300) {
       setIsSubmitted(true);
+      // Auto-navigate to contract stage (14) for underwriters after stage 12 submission
+      if (role === Roles.UnderWriter && activeStage === 12) {
+        dispatch(updateCurrentStage(14));
+      }
     } else {
       showToast(response.status_message, { type: NotificationType.Error });
     }
@@ -576,7 +594,7 @@ const ManagementFundingApplication = () => {
       case FundingFromCurrentStatus.Inprogress:
       case FundingFromCurrentStatus.UnderwriterReturned:
         if (
-          loan.customer.mode_of_application === ModeOfApplication.Representative
+          isRepresentativeModeOfApplication(loan?.customer?.mode_of_application)
         ) {
           switch (role) {
             case Roles.FieldAgent:
@@ -656,7 +674,7 @@ const ManagementFundingApplication = () => {
 
       case FundingFromCurrentStatus.Submitted:
         if (
-          loan.customer.mode_of_application === ModeOfApplication.Representative
+          isRepresentativeModeOfApplication(loan?.customer?.mode_of_application)
         ) {
           switch (role) {
             case Roles.FieldAgent:
@@ -696,6 +714,23 @@ const ManagementFundingApplication = () => {
         } else {
           switch (role) {
             case Roles.UnderWriter:
+              if (activeStage === 12) {
+                return renderActionButtons([
+                  {
+                    value: 'Submit',
+                    onClick: () => handleUwSubmit(),
+                    style: 'submit',
+                    disabled: ![
+                      FundingFromUpcomingStatus.UnderwriterSubmissionWaiting
+                    ].includes(fundingUpcomingFormStatus)
+                  },
+                  {
+                    value: 'Return',
+                    onClick: () => setIsReturnConfirmModal(true),
+                    style: 'reject'
+                  }
+                ]);
+              }
               if (activeStage === NumberOfForms) {
                 if (isUwRepaymentComplete) {
                   return renderActionButtons([
@@ -718,7 +753,10 @@ const ManagementFundingApplication = () => {
                   {
                     value: 'Next',
                     onClick: () => {
-                      formRef.current.requestSubmit();
+                      if (formRef.current) {
+                        formRef.current.requestSubmit();
+                      } else {
+                      }
                     },
                     style: 'next'
                   },
@@ -769,6 +807,23 @@ const ManagementFundingApplication = () => {
                     ]);
                 }
               }
+              if (activeStage === 12) {
+                return renderActionButtons([
+                  {
+                    value: 'Submit',
+                    onClick: () => handleUwSubmit(),
+                    style: 'submit',
+                    disabled: ![
+                      FundingFromUpcomingStatus.UnderwriterSubmissionWaiting
+                    ].includes(fundingUpcomingFormStatus)
+                  },
+                  {
+                    value: 'Return',
+                    onClick: () => setIsReturnConfirmModal(true),
+                    style: 'reject'
+                  }
+                ]);
+              }
               return renderActionButtons([
                 {
                   value: 'Next',
@@ -807,7 +862,18 @@ const ManagementFundingApplication = () => {
               return renderActionButtons([
                 {
                   value: 'Next',
-                  onClick: () => formRef.current.requestSubmit(),
+                  onClick: () => {
+                    if (formRef.current) {
+                      const submitButton = formRef.current.querySelector(
+                        'button[type="submit"]'
+                      );
+                      if (submitButton) {
+                        submitButton.click();
+                      } else {
+                      }
+                    } else {
+                    }
+                  },
                   style: 'next'
                 }
               ]);
@@ -865,6 +931,23 @@ const ManagementFundingApplication = () => {
               }
             ]);
           case Roles.UnderWriter:
+            if (activeStage === 12) {
+              return renderActionButtons([
+                {
+                  value: 'Submit',
+                  onClick: () => handleUwSubmit(),
+                  style: 'submit',
+                  disabled: ![
+                    FundingFromUpcomingStatus.UnderwriterSubmissionWaiting
+                  ].includes(fundingUpcomingFormStatus)
+                },
+                {
+                  value: 'Return',
+                  onClick: () => setIsReturnConfirmModal(true),
+                  style: 'reject'
+                }
+              ]);
+            }
             if (activeStage === NumberOfForms) {
               if (isUwRepaymentComplete) {
                 return renderActionButtons([
@@ -887,7 +970,12 @@ const ManagementFundingApplication = () => {
                 {
                   value: 'Next',
                   onClick: () => {
-                    formRef.current.requestSubmit();
+                    if (formRef.current) {
+                      const submitButton = formRef.current.querySelector(
+                        'button[type="submit"]'
+                      );
+                      if (submitButton) submitButton.click();
+                    }
                   },
                   style: 'next'
                 },
@@ -905,7 +993,14 @@ const ManagementFundingApplication = () => {
                   return renderActionButtons([
                     {
                       value: 'Next',
-                      onClick: () => formRef.current.requestSubmit(),
+                      onClick: () => {
+                        if (formRef.current) {
+                          const submitButton = formRef.current.querySelector(
+                            'button[type="submit"]'
+                          );
+                          if (submitButton) submitButton.click();
+                        }
+                      },
                       style: 'next',
                       disabled: ![
                         FundingFromUpcomingStatus.UnderwriterGocardlessSortingWaiting,
@@ -955,6 +1050,23 @@ const ManagementFundingApplication = () => {
                   ]);
               }
             }
+            if (activeStage === 12) {
+              return renderActionButtons([
+                {
+                  value: 'Submit',
+                  onClick: () => handleUwSubmit(),
+                  style: 'submit',
+                  disabled: ![
+                    FundingFromUpcomingStatus.UnderwriterSubmissionWaiting
+                  ].includes(fundingUpcomingFormStatus)
+                },
+                {
+                  value: 'Return',
+                  onClick: () => setIsReturnConfirmModal(true),
+                  style: 'reject'
+                }
+              ]);
+            }
             return renderActionButtons([
               {
                 value: 'Next',
@@ -977,7 +1089,14 @@ const ManagementFundingApplication = () => {
                   return renderActionButtons([
                     {
                       value: 'Next',
-                      onClick: () => formRef.current.requestSubmit(),
+                      onClick: () => {
+                        if (formRef.current) {
+                          const submitButton = formRef.current.querySelector(
+                            'button[type="submit"]'
+                          );
+                          if (submitButton) submitButton.click();
+                        }
+                      },
                       style: 'next',
                       disabled: ![
                         FundingFromUpcomingStatus.UnderwriterAffordabilityWaiting,
@@ -1033,6 +1152,23 @@ const ManagementFundingApplication = () => {
                 }
               ]);
             }
+            if (activeStage === 12) {
+              return renderActionButtons([
+                {
+                  value: 'Submit',
+                  onClick: () => handleUwSubmit(),
+                  style: 'submit',
+                  disabled: ![
+                    FundingFromUpcomingStatus.UnderwriterSubmissionWaiting
+                  ].includes(fundingUpcomingFormStatus)
+                },
+                {
+                  value: 'Return',
+                  onClick: () => setIsReturnConfirmModal(true),
+                  style: 'reject'
+                }
+              ]);
+            }
             return renderActionButtons([
               {
                 value: 'Next',
@@ -1050,7 +1186,14 @@ const ManagementFundingApplication = () => {
                   return renderActionButtons([
                     {
                       value: 'Next',
-                      onClick: () => formRef.current.requestSubmit(),
+                      onClick: () => {
+                        if (formRef.current) {
+                          const submitButton = formRef.current.querySelector(
+                            'button[type="submit"]'
+                          );
+                          if (submitButton) submitButton.click();
+                        }
+                      },
                       style: 'next',
                       disabled: ![
                         FundingFromUpcomingStatus.UnderwriterAffordabilityWaiting,
@@ -1085,15 +1228,59 @@ const ManagementFundingApplication = () => {
                 }
               ]);
             }
+            if (activeStage === 12) {
+              return renderActionButtons([
+                {
+                  value: 'Submit',
+                  onClick: () => handleUwSubmit(),
+                  style: 'submit',
+                  disabled: ![
+                    FundingFromUpcomingStatus.UnderwriterSubmissionWaiting
+                  ].includes(fundingUpcomingFormStatus)
+                },
+                {
+                  value: 'Return',
+                  onClick: () => setIsReturnConfirmModal(true),
+                  style: 'reject'
+                }
+              ]);
+            }
             return renderActionButtons([
               {
                 value: 'Next',
-                onClick: () => formRef.current.requestSubmit(),
+                onClick: () => {
+                  if (formRef.current) {
+                    const submitButton = formRef.current.querySelector(
+                      'button[type="submit"]'
+                    );
+                    if (submitButton) submitButton.click();
+                  }
+                },
                 style: 'next'
               }
             ]);
 
           default:
+            // Special handling for Repayment Schedule (stage 12)
+            if (activeStage === 12) {
+              return renderActionButtons([
+                {
+                  value: 'Next',
+                  onClick: () => {
+                    if (formRef.current) {
+                      const submitButton = formRef.current.querySelector(
+                        'button[type="submit"]'
+                      );
+                      if (submitButton) {
+                        submitButton.click();
+                      }
+                    }
+                  },
+                  style: 'next'
+                }
+              ]);
+            }
+
             if (activeStage === 10) {
               switch (affordabilityActiveStage) {
                 case 'general_form':
@@ -1156,6 +1343,23 @@ const ManagementFundingApplication = () => {
               }
             ]);
           case Roles.UnderWriter:
+            if (activeStage === 12) {
+              return renderActionButtons([
+                {
+                  value: 'Submit',
+                  onClick: () => handleUwSubmit(),
+                  style: 'submit',
+                  disabled: ![
+                    FundingFromUpcomingStatus.UnderwriterSubmissionWaiting
+                  ].includes(fundingUpcomingFormStatus)
+                },
+                {
+                  value: 'Return',
+                  onClick: () => setIsReturnConfirmModal(true),
+                  style: 'reject'
+                }
+              ]);
+            }
             if (activeStage === NumberOfForms) {
               return renderSubmitButton('Submitted', null, true);
             }
@@ -1720,8 +1924,7 @@ const ManagementFundingApplication = () => {
       handleApiResponse(response, () => {
         setUwVerifyData(response?.data?.underwriter_verified_forms || {});
       });
-    } catch (error) {
-      console.error('Fetch UwVerify Error:', error);
+    } catch (_error) {
       showToast('Something went wrong!', { type: NotificationType.Error });
     }
   };
@@ -1757,8 +1960,7 @@ const ManagementFundingApplication = () => {
             type: NotificationType.Success
           });
         });
-      } catch (error) {
-        console.error('Checkbox Change Error:', error);
+      } catch (_error) {
         showToast('Something went wrong!', { type: NotificationType.Error });
       }
     };
@@ -1816,6 +2018,11 @@ const ManagementFundingApplication = () => {
           />
         </span>
         <span className="flex items-center gap-6 max-sm:gap-2">
+          {loan?.customer?.company_name && (
+            <span className="text-xs font-semibold text-[#1A439A] max-sm:text-[9px]">
+              {loan?.customer?.company_name}
+            </span>
+          )}
           <a
             className="flex cursor-pointer items-center gap-1 font-semibold text-gray-900"
             onClick={toggleComments}
@@ -2129,6 +2336,10 @@ const ManagementFundingApplication = () => {
         }}
         head="Funding Application Returned!"
         content="Funding application has been Returned."
+      />
+      <RepresentativeAccessDeniedModal
+        isOpen={isRepresentativeAccessDeniedOpen}
+        onClose={() => setIsRepresentativeAccessDeniedOpen(false)}
       />
     </div>
   );

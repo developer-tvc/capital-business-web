@@ -1,8 +1,13 @@
 import { useEffect } from 'react';
 
-import ContactUs from '../components/ContactUs';
+// import ContactUs from '../components/ContactUs';
 import Footer from '../components/layout/Footer';
 import Header from '../components/layout/Mainheader';
+import ContactUsBanner from '../components/ContactUS/ContactUsBanner';
+import ContactUsTop from '../components/ContactUS/ContactUsTop';
+import ContactForm from '../components/ContactUS/ContactForm';
+import ContactUsMap from '../components/ContactUS/ContactUsMap';
+import NeedAnyHelp from '../components/ContactUS/NeedAnyHelp';
 
 const ContactUsPage = () => {
   useEffect(() => {
@@ -11,7 +16,12 @@ const ContactUsPage = () => {
   return (
     <>
       <Header />
-      <ContactUs />
+      {/* <ContactUs /> */}
+      <ContactUsBanner/>
+      <ContactUsTop/>
+      <ContactForm/>
+      <ContactUsMap/>
+      <NeedAnyHelp/>
       <Footer />
     </>
   );

@@ -14,7 +14,7 @@ const GLSelectModal: React.FC<GLSelectModalProps> = ({
   close,
   getValues,
   update,
-  onLoanIdsReceived,
+  // onLoanIdsReceived,
   clearErrors,
   isForTable = true,
   setSelectedGl
@@ -38,6 +38,7 @@ const GLSelectModal: React.FC<GLSelectModalProps> = ({
           )
           .map(ledger => ({
             id: ledger.id,
+            type: 'gl',
             display: `${ledger.gl_code} - ${ledger.gl_name}`,
             partner_code: ledger.gl_code,
             partner_name: ledger.gl_name
@@ -67,25 +68,28 @@ const GLSelectModal: React.FC<GLSelectModalProps> = ({
               partner.partner_code.toLowerCase().includes(term.toLowerCase()) ||
               partner.partner_name.toLowerCase().includes(term.toLowerCase())
           )
-          .map(partner => ({
-            id: partner.id,
-            display: `${partner.partner_code} - ${partner.partner_name}`,
-            partner_code: partner.partner_code,
-            partner_name: partner.partner_name,
-            type: partner.partner_type.group_name,
-            bpId: partner.partner_type.id,
-            bpLoanNumber: partner?.loan?.loan_number,
-            loanId: partner.loan
-              ? partner.loan.customer.loan_details[0].loan_id
-              : null
-          }));
+          .map(partner => {
+            // Handle both single loan object and array of loans
+            const loans = Array.isArray(partner.loan) ? partner.loan : (partner.loan ? [partner.loan] : []);
+            
+            return {
+              id: partner.id,
+              type: 'bp',
+              display: `${partner.partner_code} - ${partner.partner_name}`,
+              partner_code: partner.partner_code,
+              partner_name: partner.partner_name,
+              bpId: partner.partner_type.id,
+              loans: loans.map(loan => ({
+                loan_number: loan.loan_number,
+                id: loan.id
+              })),
+              // For backward compatibility, keep single loan fields
+              bpLoanNumber: loans.length > 0 ? loans[0].loan_number : null,
+              loanId: loans.length > 0 ? loans[0].id : null
+            };
+          });
 
         setBpIds(fetchedBpIds);
-
-        if (fetchedBpIds.length > 0) {
-          setSelectedBpId(fetchedBpIds[0].id); // Set the first BP as selected for demo
-          onLoanIdsReceived(fetchedBpIds); // Pass the loan IDs
-        }
       } else {
         showToast('Failed to fetch Business Partner IDs.', {
           type: NotificationType.Error
@@ -107,6 +111,14 @@ const GLSelectModal: React.FC<GLSelectModalProps> = ({
     }
   }, [searchTerm, codeType]);
 
+  useEffect(() => {
+    // Reset selection, search, and lists when switching types
+    setSelectedBpId(null);
+    setSearchTerm('');
+    setGlIds([]);
+    setBpIds([]);
+  }, [codeType]);
+
   const handleClick = item => {
     if (isForTable) {
       const values = getValues('rows');
@@ -119,7 +131,13 @@ const GLSelectModal: React.FC<GLSelectModalProps> = ({
           partner_code: item.partner_code,
           partner_name: item.partner_name,
           account_name: item.display,
-          isCustomer: !!item.loanId
+          isCustomer: !!item.loanId,
+          // Store all loans for this BP
+          loans: item.loans || [],
+          // For backward compatibility, keep single loan fields
+          // Auto-select first loan if available
+          loanId: item.loans && item.loans.length > 0 ? item.loans[0].id : null,
+          loanNumber: item.loans && item.loans.length > 0 ? item.loans[0].loan_number : null
         };
         update(rowIndex, updatedRow);
       } else {
@@ -134,12 +152,6 @@ const GLSelectModal: React.FC<GLSelectModalProps> = ({
       setSelectedGl(item);
     }
     close();
-  };
-
-  const handleBpSelect = bp => {
-    setSelectedBpId(bp.id);
-    const selectedBpLoanNumber = bpIDs.filter(partner => partner.id === bp.id);
-    onLoanIdsReceived(selectedBpLoanNumber); // Pass the loan IDs of the selected BP
   };
 
   return (
@@ -168,7 +180,7 @@ const GLSelectModal: React.FC<GLSelectModalProps> = ({
               />
               <p>{'GL'}</p>
             </div>
-            {isForTable && (
+            {(isForTable || setSelectedGl) && (
               <div className="flex items-center gap-1">
                 <input
                   type="radio"
@@ -201,10 +213,7 @@ const GLSelectModal: React.FC<GLSelectModalProps> = ({
               {bpIDs.map(i => (
                 <div key={i.id}>
                   <p
-                    onClick={() => {
-                      handleClick(i);
-                      handleBpSelect(i);
-                    }}
+                    onClick={() => handleClick(i)}
                     className={`border-bottom-2 w-full cursor-pointer border p-2 hover:bg-gray-100 ${selectedBpId === i.id ? 'bg-gray-200' : ''}`} // Highlight selected BP
                   >
                     {i.display}

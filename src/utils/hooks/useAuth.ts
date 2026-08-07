@@ -105,6 +105,7 @@ function useAuth() {
         if (payload) {
           const data = await fetchLead();
           dispatch(setUser(data));
+          return { ...resp, role: data?.role || payload.role };
         }
         return resp;
       }

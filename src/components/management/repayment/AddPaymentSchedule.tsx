@@ -49,20 +49,42 @@ const AddPaymentSchedule = ({
     defaultValues: editingSchedule ? editingSchedule : {} // Initialize with editingSchedule if available
   });
 
+  // Safely parse a date value — treats null, undefined, or 1970 epoch (from backend null) as null.
+  const parseSafeDate = (val: unknown): Date | null => {
+    if (!val) return null;
+    const d = new Date(val as string | number | Date);
+    if (isNaN(d.getTime()) || d.getFullYear() <= 1970) return null;
+    return d;
+  };
+
   const {
     handleSubmit,
     // formState: { errors },
-    setValue // Destructure setValue from methods
+    setValue, // Destructure setValue from methods
+    setError: setFieldError
   } = dynamicPlanMethods;
 
   const onSubmit = data => {
+    // Hard guard: block submission if start_date is null/undefined/empty
+    if (!data.start_date) {
+      setFieldError('start_date', {
+        type: 'manual',
+        message: 'Date of Debit is required'
+      });
+      return;
+    }
     setIsLoading(true);
     const currentDynamicPlanFields =
       methods.getValues('adjustment_plans') || [];
+
     const lastAmount = editingSchedule
-      ? pendingAmount + editingSchedule.amount
-      : pendingAmount;
-    if (data.amount > lastAmount) {
+      ? parseFloat((pendingAmount + editingSchedule.amount).toFixed(2))
+      : parseFloat(pendingAmount.toFixed(2));
+    
+    const enteredAmount = parseFloat(parseFloat(data.amount).toFixed(2));
+    
+    // Use a small tolerance for floating-point comparison
+    if (enteredAmount > lastAmount + 0.01) {
       setError(
         'Exceeds pending amount, please check installments and amount entered !!'
       );
@@ -79,14 +101,15 @@ const AddPaymentSchedule = ({
     methods.setValue('adjustment_plans', updatedDynamicPlanFields, {
       shouldValidate: true
     });
+    
     setTimeout(() => {
       setIsLoading(false);
       toggleModal();
     }, 1000);
   };
 
-  const onError = error => {
-    console.log('error', error);
+  const onError = () => {
+    // Form validation error
   };
 
   useEffect(() => {
@@ -94,6 +117,8 @@ const AddPaymentSchedule = ({
       // Autofill form fields with editingSchedule data
       setValue('amount', editingSchedule.amount);
       setValue('day_of_debit', editingSchedule.day_of_debit);
+      // Sanitize start_date: don't pre-fill if null or epoch (1970) from backend
+      setValue('start_date', parseSafeDate(editingSchedule.start_date));
     }
   }, [editingSchedule, setValue]);
 
@@ -133,12 +158,28 @@ const AddPaymentSchedule = ({
   useEffect(() => {
     if (watchAmount) {
       const lastAmount = editingSchedule
-        ? pendingAmount + editingSchedule.amount - parseInt(watchAmount)
-        : pendingAmount - watchAmount;
+        ? pendingAmount + editingSchedule.amount - parseFloat(watchAmount)
+        : pendingAmount - parseFloat(watchAmount);
       setRemainingAmount(lastAmount);
       setError(null);
     }
   }, [watchAmount, pendingAmount]);
+
+  const getMinSelectableDate = (daysCount: number): Date => {
+    let result = new Date();
+    let addedDays = 0;
+    while (addedDays < daysCount) {
+      result.setDate(result.getDate() + 1);
+      const day = result.getDay();
+      if (day !== 0 && day !== 6) {
+        // Skip Sunday (0) and Saturday (6)
+        addedDays++;
+      }
+    }
+    return result;
+  };
+
+  const minDate = getMinSelectableDate(5);
 
   return (
     <FormProvider {...dynamicPlanMethods}>
@@ -167,7 +208,7 @@ const AddPaymentSchedule = ({
                 <div className="flex items-center gap-2">
                   <p className="text-sm">
                     {'Remaining amount to schedule : '}
-                    {remainingAmount}
+                    {typeof remainingAmount === 'number' ? remainingAmount.toFixed(2) : remainingAmount}
                   </p>
                 </div>
               </div>
@@ -185,21 +226,28 @@ const AddPaymentSchedule = ({
               <div className="grid grid-cols-1 gap-4 p-2">
                 {fieldRenderer.renderField('amount')}
               </div>
-              <div className="grid grid-cols-1 gap-4 p-2">
+              <div
+                className="ref-label-wrap grid grid-cols-1 gap-4 p-2"
+                style={{ fontSize: '14px' }}
+              >
                 <DateController
                   key="start_date"
                   metaData={{
                     fieldClass: loanFormCommonStyleConstant.date.fieldClass,
                     labelClass: loanFormCommonStyleConstant.date.labelClass,
-                    placeholder: 'Day of Debit',
-                    // isRequired: true,
+                    placeholder: 'Date of Debit',
                     name: `start_date`,
-                    label: 'Day of Debit',
+                    // label: 'Date of Debit',
                     type: 'date',
-                    filterDates: filterDates
+                    isRequired: true,
+                    filterDates: filterDates,
+                    min: minDate,
+                    dateFormat: 'dd/MM/yy'
                   }}
                 />
               </div>
+
+              {/* Show API errors but don't disable submit button */}
               <div>
                 {error ? (
                   <p className="text-[12px] text-[tomato]">{error}</p>
@@ -209,8 +257,7 @@ const AddPaymentSchedule = ({
                 <input
                   type="submit"
                   value="SUBMIT"
-                  disabled={error}
-                  className={`w-full rounded border ${error ? 'cursor-not-allowed border-gray-700 bg-gray-600' : 'cursor-pointer border-blue-700 bg-blue-900 hover:bg-blue-800'} px-4 py-2 text-[12px] font-medium text-white`}
+                  className="w-full cursor-pointer rounded border border-blue-700 bg-blue-900 px-4 py-2 text-[12px] font-medium text-white hover:bg-blue-800"
                 />
               </div>
             </form>

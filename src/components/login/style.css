@@ -14,3 +14,12 @@
   background-image: linear-gradient(#0e2cae 80%, #06173b 70%, #1652d3 70%, #06173b 100%, );
   
 }
+
+
+.dashboard-main, p { margin: 0px;}
+.sidebar  p { margin: 0px;}
+.dashboard-main h1, h2, h3, h4, h5, h6 {
+  margin: 0px;
+}
+
+a { color: unset;}

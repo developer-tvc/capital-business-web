@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { useMediaQuery } from 'react-responsive';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 import { listAndSortCustomerLoanApi } from '../../../api/loanServices';
 import threeDots from '../../../assets/svg/threeDots.svg';
@@ -30,10 +30,19 @@ import Pagination from '../common/Pagination';
 import ActionModal from '../common/ThreeDotAction';
 import usePagination from '../common/usePagination';
 import AddLead from '../customer/AddLead';
+import FinanceEntryModal from './modals/FinanceEntryModal';
 
 const Fundings = () => {
   const { user, unit } = useSelector(managementSliceSelector);
+  const { role } = useSelector(authSelector);
   const { showToast } = useToast();
+  const location = useLocation();
+
+  // Check if we're on the main funding page or customer funding form
+  const isMainFundingPage = location.pathname === '/funding';
+  const isCustomerFundingForm =
+    location.pathname.includes('/customer/') &&
+    location.pathname.includes('/funding-form');
 
   const {
     data,
@@ -67,6 +76,8 @@ const Fundings = () => {
     mode_of_application: [],
     current_status: []
   });
+  const [isFinanceEntryModalOpen, setIsFinanceEntryModalOpen] = useState(false);
+  const [financeEntryLoanId, setFinanceEntryLoanId] = useState(null);
 
   useEffect(() => {
     const checkEligibility = async user_id => {
@@ -122,10 +133,72 @@ const Fundings = () => {
 
   useEffect(() => {
     setIsLoading(true);
-    if (user.id) handleFilter({ customer_id: user.id });
-    else if (unit.id) handleFilter({ company_id: unit.id });
-    else callPaginate();
-  }, [user, unit]);
+    const filterFromState = location.state?.loan_status;
+    console.log('Current role:', role);
+    console.log('Filter from state:', filterFromState);
+
+    if (filterFromState && role === Roles.UnderWriter) {
+      // When clicking "view more" from dashboard as underwriter, fetch both statuses
+      const fetchBothStatuses = async () => {
+        try {
+          console.log(
+            'Fetching both statuses for underwriter from view more...'
+          );
+          const [submittedResponse, agentSubmittedResponse] = await Promise.all(
+            [
+              listAndSortCustomerLoanApi({
+                filter: {
+                  ...(user.id && { customer_id: user.id }),
+                  ...(unit.id && { company_id: unit.id }),
+                  loan_status: 'Submitted'
+                }
+              }),
+              listAndSortCustomerLoanApi({
+                filter: {
+                  ...(user.id && { customer_id: user.id }),
+                  ...(unit.id && { company_id: unit.id }),
+                  loan_status: 'Agent_Submitted'
+                }
+              })
+            ]
+          );
+
+          console.log('Submitted response:', submittedResponse);
+          console.log('Agent Submitted response:', agentSubmittedResponse);
+
+          const mergedData = [
+            ...(submittedResponse?.data || []),
+            ...(agentSubmittedResponse?.data || [])
+          ];
+          console.log('Merged data:', mergedData);
+          setLoans(mergedData);
+          setIsLoading(false);
+        } catch (error) {
+          console.error('Error fetching both statuses:', error);
+          setIsLoading(false);
+        }
+      };
+      fetchBothStatuses();
+    } else if (filterFromState) {
+      // For other roles with filter from state
+      setFiltered(prev => ({ ...prev, current_status: filterFromState }));
+      handleFilter({
+        ...(user.id && { customer_id: user.id }),
+        ...(unit.id && { company_id: unit.id }),
+        loan_status: filterFromState
+      });
+    } else {
+      // Direct navigation to funding page - show all statuses
+      console.log('Direct navigation - showing all statuses');
+      if (user.id) {
+        handleFilter({ customer_id: user.id });
+      } else if (unit.id) {
+        handleFilter({ company_id: unit.id });
+      } else {
+        callPaginate();
+      }
+    }
+  }, [user, unit, location.state, role]);
 
   // const closeModal = () => {
   //   setIsModalOpen(false);
@@ -176,7 +249,6 @@ const Fundings = () => {
       navigate(`/funding/${loanId}`);
     }
   }, [isModalOpen]);
-  const { role } = useSelector(authSelector);
 
   const handleFilterChange = newFilters => {
     setFiltered(newFilters);
@@ -340,17 +412,32 @@ const Fundings = () => {
                                 )}
                               </div>
                             ) : (
-                              <button
-                                type="button"
-                                className="mr-2 flex cursor-pointer bg-[#1A439A] px-8 py-2 text-white"
-                                onClick={() => {
-                                  setLoanId(id);
-                                  setActionLeadId(customer.id);
-                                  setIsModalOpen(true);
-                                }}
-                              >
-                                {'View'}
-                              </button>
+                              <div className="flex space-x-2">
+                                <button
+                                  type="button"
+                                  className="flex cursor-pointer bg-[#1A439A] px-6 py-2 text-sm text-white"
+                                  onClick={() => {
+                                    setLoanId(id);
+                                    setActionLeadId(customer.id);
+                                    setIsModalOpen(true);
+                                  }}
+                                >
+                                  {'View'}
+                                </button>
+                                {!isMainFundingPage &&
+                                  isCustomerFundingForm && (
+                                    <button
+                                      type="button"
+                                      className="flex cursor-pointer bg-[#10B981] px-4 py-2 text-sm text-white"
+                                      onClick={() => {
+                                        setFinanceEntryLoanId(id);
+                                        setIsFinanceEntryModalOpen(true);
+                                      }}
+                                    >
+                                      {'Add Finance Entry'}
+                                    </button>
+                                  )}
+                              </div>
                             )}
                           </td>
                         </tr>
@@ -465,6 +552,31 @@ const Fundings = () => {
                               />
                             </div>
                           )}
+                          <div className="mt-4 flex space-x-2">
+                            <button
+                              type="button"
+                              className="flex-1 cursor-pointer bg-[#1A439A] px-4 py-2 text-sm text-white"
+                              onClick={() => {
+                                setLoanId(id);
+                                setActionLeadId(customer.id);
+                                setIsModalOpen(true);
+                              }}
+                            >
+                              {'View'}
+                            </button>
+                            {!isMainFundingPage && isCustomerFundingForm && (
+                              <button
+                                type="button"
+                                className="flex-1 cursor-pointer bg-[#10B981] px-4 py-2 text-sm text-white"
+                                onClick={() => {
+                                  setFinanceEntryLoanId(id);
+                                  setIsFinanceEntryModalOpen(true);
+                                }}
+                              >
+                                {'Add Finance Entry'}
+                              </button>
+                            )}
+                          </div>
                         </div>
                       </div>
                     )
@@ -518,6 +630,14 @@ const Fundings = () => {
         <AssignFieldAgentModal
           onClose={handleAssignFieldAgent}
           actionLeadId={actionLeadId}
+        />
+      )}
+
+      {isFinanceEntryModalOpen && (
+        <FinanceEntryModal
+          isOpen={isFinanceEntryModalOpen}
+          onClose={() => setIsFinanceEntryModalOpen(false)}
+          loanId={financeEntryLoanId}
         />
       )}
     </>

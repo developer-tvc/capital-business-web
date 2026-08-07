@@ -331,7 +331,7 @@ export const loanFormPersonalInformation: FundingFormFieldType[] = [
     type: 'textarea',
     placeholder: 'Address',
     rows: 3,
-    isDisabled: true,
+    isDisabled: false,
     icon: () => {
       return (
         <div>
@@ -1994,7 +1994,7 @@ export const loanFormBusinessPremiseDetails: FundingFormFieldType[] = [
     name: 'trading_address.address_line',
     // label: "Address line 1",
     type: 'textarea',
-    isDisabled: true,
+    isDisabled: false,
     rows: 3,
     placeholder: 'Address line*',
     icon: () => {
@@ -2049,7 +2049,7 @@ export const loanFormBusinessPremiseDetails: FundingFormFieldType[] = [
   },
   {
     name: 'trading_address.start_date',
-    label: 'Start Date',
+    // label: 'Start Date',
     placeholder: 'Start Date',
     type: 'date',
     icon: () => {
@@ -2062,7 +2062,7 @@ export const loanFormBusinessPremiseDetails: FundingFormFieldType[] = [
   },
   {
     name: 'trading_address.end_date',
-    label: 'End Date',
+    // label: 'End Date',
     placeholder: 'End Date',
     type: 'date',
     icon: () => {
@@ -2074,10 +2074,24 @@ export const loanFormBusinessPremiseDetails: FundingFormFieldType[] = [
     }
   },
   {
-    name: 'trading_address.document',
+    name: 'trading_address.documents',
     // label: "Address File Upload",
     type: 'file',
-    isMultiple: false,
+    isMultiple: true,
+    isRequired: true,
+    memTypes:
+      'image/jpg, image/gif, image/png, image/jpeg, image/svg+xml, image/webp, application/pdf',
+    icon: () => {
+      return (
+        <CiPassport1 color="#929292" className="h-4 w-4 rtl:rotate-[270deg]" />
+      );
+    }
+  },
+  {
+    name: 'trading_address.trading_documents',
+    // label: "Trading Documents Upload",
+    type: 'file',
+    isMultiple: true,
     isRequired: true,
     memTypes:
       'image/jpg, image/gif, image/png, image/jpeg, image/svg+xml, image/webp, application/pdf',
@@ -2096,7 +2110,7 @@ export const loanFormBusinessPremiseDetails: FundingFormFieldType[] = [
     name: 'registered_address.address_line',
     // label: "Address line 1",
     type: 'textarea',
-    isDisabled: true,
+    isDisabled: false,
     rows: 3,
     placeholder: 'Address line*',
     icon: () => {
@@ -2296,7 +2310,7 @@ export const loanFormDocumentationUploads: FundingFormFieldType[] = [
     name: 'photo',
     label: 'Photo of owner in business premises',
     type: 'file',
-    isMultiple: false,
+    isMultiple: true,
     memTypes:
       'image/jpg, image/gif, image/png, image/jpeg, image/svg+xml, image/webp, application/pdf',
     icon: () => {
@@ -2307,7 +2321,7 @@ export const loanFormDocumentationUploads: FundingFormFieldType[] = [
     name: 'passport',
     label: 'Passport',
     type: 'file',
-    isMultiple: false,
+    isMultiple: true,
     memTypes:
       'image/jpg, image/gif, image/png, image/jpeg, image/svg+xml, image/webp, application/pdf',
     icon: () => {
@@ -2318,7 +2332,7 @@ export const loanFormDocumentationUploads: FundingFormFieldType[] = [
     name: 'driving_license',
     label: 'Driving License',
     type: 'file',
-    isMultiple: false,
+    isMultiple: true,
     memTypes:
       'image/jpg, image/gif, image/png, image/jpeg, image/svg+xml, image/webp, application/pdf',
     icon: () => {
@@ -2329,8 +2343,8 @@ export const loanFormDocumentationUploads: FundingFormFieldType[] = [
     name: 'council_tax',
     label: 'Council tax',
     type: 'file',
-    isMultiple: false,
-    memTypes: 'application/pdf',
+    isMultiple: true,
+    memTypes: 'image/jpg, image/gif, image/png, image/jpeg, image/svg+xml, image/webp, application/pdf',
     icon: () => {
       return <img src={bill} className="h-5 w-5 rtl:rotate-[270deg]" />;
     }
@@ -2339,8 +2353,8 @@ export const loanFormDocumentationUploads: FundingFormFieldType[] = [
     name: 'utility_bill',
     label: 'Latest Utility bill of Trading Business',
     type: 'file',
-    isMultiple: false,
-    memTypes: 'application/pdf',
+    isMultiple: true,
+    memTypes: 'image/jpg, image/gif, image/png, image/jpeg, image/svg+xml, image/webp, application/pdf',
     icon: () => {
       return <img src={bill} className="h-5 w-5 rtl:rotate-[270deg]" />;
     }
@@ -2349,8 +2363,8 @@ export const loanFormDocumentationUploads: FundingFormFieldType[] = [
     name: 'lease_deed',
     label: 'Business premises lease deed',
     type: 'file',
-    isMultiple: false,
-    memTypes: 'application/pdf',
+    isMultiple: true,
+    memTypes: 'image/jpg, image/gif, image/png, image/jpeg, image/svg+xml, image/webp, application/pdf',
     icon: () => {
       return <img src={user} />;
     }
@@ -2370,6 +2384,7 @@ export const loanFormDocumentationUploads: FundingFormFieldType[] = [
     name: 'other_files',
     label: 'Other Files',
     type: 'file',
+    isMultiple: true,
     memTypes:
       'image/jpg, image/gif, image/png, image/jpeg, image/svg+xml, image/webp, application/pdf, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
     icon: () => {
@@ -2499,7 +2514,7 @@ export const PermittedRoutes = {
     '/notification',
     '/funding-form/:id'
   ],
-  [Roles.Leads]: [],
+  [Roles.Leads]: ['/profile', '/funding', '/funding/:id'],
   [Roles.Customer]: [
     '/profile/',
     '/profile/funding-form',
@@ -3220,6 +3235,11 @@ export const roleTabs = {
       icon: GiCash
     },
     {
+      name: 'identityVerification',
+      label: 'Identity Verification',
+      icon: PiUserFocus
+    },
+    {
       name: 'notification',
       label: 'Notification',
       icon: TbBell
@@ -3227,11 +3247,6 @@ export const roleTabs = {
     {
       name: 'security',
       label: 'Security',
-      icon: IoMdLock
-    },
-    {
-      name: 'requestPending',
-      label: 'Request Pending',
       icon: IoMdLock
     }
   ],
@@ -3721,6 +3736,7 @@ export const loanFormBankDetails: FundingFormFieldType[] = [
     name: 'bank_name',
     // label: "Pincode",
     type: 'dropdown',
+    isEditable: true,
     placeholder: 'Bank Name',
     icon: () => {
       return (

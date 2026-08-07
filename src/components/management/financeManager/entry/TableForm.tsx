@@ -81,20 +81,6 @@ const TableForm: React.FC<TableFormProps> = ({
       }, 0) * 100 // Multiply by 100 to round up at two decimal places
     ) / 100 || 0;
 
-  const [loanIdsFromModal, setLoanIdsFromModal] = useState<
-    { loanNumber: string; id: string }[]
-  >([]);
-
-  const handleLoanIdsReceived = fetchedBpIds => {
-    setLoanIdsFromModal(
-      fetchedBpIds
-        .map(bp => ({
-          loanNumber: bp.bpLoanNumber || null,
-          id: bp.loanId || null
-        }))
-        .filter(id => id !== null)
-    );
-  };
 
   useEffect(() => {
     if (!isDetailsView) {
@@ -108,11 +94,19 @@ const TableForm: React.FC<TableFormProps> = ({
 
   useEffect(() => {
     if (isDetailsView) {
-      setLoanIdsFromModal([
-        { loanNumber: '123', id: 'ccc78800-8199-4de8-b211-93658905204d' }
-      ]);
+      // For details view, ensure each row with a BP has loans array populated
+      const values = getValues('rows');
+      values.forEach((row, index) => {
+        if (row.isCustomer && (!row.loans || row.loans.length === 0) && row.loanNumber) {
+          update(index, {
+            ...row,
+            loans: [{ id: row.loanId, loan_number: row.loanNumber }]
+          });
+        }
+      });
     }
-  }, [isDetailsView]);
+  }, [isDetailsView, getValues, update]);
+
 
   return (
     <>
@@ -193,12 +187,12 @@ const TableForm: React.FC<TableFormProps> = ({
                                   <option key={`rows.${index}.loanId`}>
                                     {'Select'}
                                   </option>
-                                  {loanIdsFromModal?.map(item => (
+                                  {getValues(`rows.${index}.loans`)?.map(loan => (
                                     <option
-                                      key={item.loanNumber}
-                                      value={item.id}
+                                      key={loan.id}
+                                      value={loan.id}
                                     >
-                                      {item.loanNumber}
+                                      {loan.loan_number}
                                     </option>
                                   ))}
                                 </select>
@@ -343,7 +337,6 @@ const TableForm: React.FC<TableFormProps> = ({
               setShowModal(false);
               setSelectedCell(null);
             }}
-            onLoanIdsReceived={handleLoanIdsReceived}
             clearErrors={clearErrors}
           />
         )}

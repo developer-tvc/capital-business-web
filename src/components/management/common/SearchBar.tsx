@@ -21,7 +21,7 @@ const SearchBar = ({ onSearch, placeholder }) => {
   return (
     <div className="relative">
       <input
-        className="focus:shadow-outline w-full appearance-none border-2 border-gray-300 px-4 py-3 pl-10 text-[12px] font-light leading-tight text-gray-800 transition-colors hover:border-gray-400 focus:border-blue-600 focus:outline-none focus:ring-blue-600"
+        className="focus:shadow-outline w-full appearance-none border-2 border-gray-300 px-4 py-3 pl-10 text-[12px] font-light leading-tight text-gray-800 transition-colors hover:border-gray-400 focus:border-blue-600 focus:outline-none focus:ring-blue-600 pl-40"
         type="text"
         placeholder={placeholder}
         value={searchTerm}

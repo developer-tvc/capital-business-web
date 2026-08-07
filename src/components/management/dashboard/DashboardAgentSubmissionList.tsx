@@ -42,7 +42,31 @@ const DashboardAgentSubmissionList = () => {
     } else if (role === Roles.FieldAgent) {
       loanStatus = 'Inprogress';
     } else if (role === Roles.UnderWriter) {
-      loanStatus = 'Submitted';
+      // For underwriters, fetch both statuses separately and merge results
+      const fetchBothStatuses = async () => {
+        try {
+          const [submittedResponse, agentSubmittedResponse] = await Promise.all([
+            listAndSortCustomerLoanApi({
+              filter: { loan_status: 'Submitted' }
+            }),
+            listAndSortCustomerLoanApi({
+              filter: { loan_status: 'Agent_Submitted' }
+            })
+          ]);
+          
+          const mergedData = [
+            ...(submittedResponse?.data || []),
+            ...(agentSubmittedResponse?.data || [])
+          ];
+          setFunding(mergedData);
+          setIsLoading(false);
+        } catch (error) {
+          console.error('Error fetching both statuses:', error);
+          setIsLoading(false);
+        }
+      };
+      fetchBothStatuses();
+      return;
     }
     setIsLoading(true);
     handleFilter({ loan_status: loanStatus });
@@ -107,7 +131,7 @@ const DashboardAgentSubmissionList = () => {
             <tbody className="divide-y divide-gray-200 bg-white">
               {funding?.length > 0 ? (
                 funding
-                  .slice(0, 3)
+                  .slice(0, 5)
                   .map(({ id, loan_number, customer, loan_status }, index) => (
                     <tr
                       key={index}
@@ -122,8 +146,8 @@ const DashboardAgentSubmissionList = () => {
                     >
                       <td className="px-6 py-4">{loan_number}</td>
                       <td className="px-6 py-4">
-                        {customer?.company_name.trim().length > 7
-                          ? `${customer.company_name.trim().substring(0, 15)}...`
+                        {customer?.company_name.trim().length > 40
+                          ? `${customer.company_name.trim().substring(0, 40)}...`
                           : customer?.company_name.trim()}
                       </td>
                       <td className="px-6 py-4">

@@ -85,6 +85,10 @@ const CustomerIdentityDocument = ({ userId, setIdentityUpdateToggle }) => {
       const response = await customerIdentityPostApi(formData, customerId);
       if (response.status_code >= 200 && response.status_code < 300) {
         showToast(response.status_message, { type: NotificationType.Success });
+        reset(); // reset form after successful submit
+        setTimeout(() => {
+          setIdentityUpdateToggle((PrevState: boolean) => !PrevState);
+        }, 1500);
       } else {
         showToast(response.status_message, { type: NotificationType.Error });
       }
@@ -92,10 +96,8 @@ const CustomerIdentityDocument = ({ userId, setIdentityUpdateToggle }) => {
       console.log('Exception', error);
       showToast('something wrong!', { type: NotificationType.Error });
     } finally {
-      reset(); // reset form after submit
       setTimeout(() => {
         setIsLoading(false); // Reset loading state when done submitting
-        setIdentityUpdateToggle((PrevState: boolean) => !PrevState);
       }, 1500);
     }
   };

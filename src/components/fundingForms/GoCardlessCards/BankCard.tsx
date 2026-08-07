@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { HiOutlineDotsHorizontal } from 'react-icons/hi';
 import { useSelector } from 'react-redux';
 
@@ -5,9 +6,10 @@ import { primaryBankAccountApi } from '../../../api/loanServices';
 import build from '../../../assets/svg/gocard_bank.svg';
 import { authSelector } from '../../../store/auth/userSlice';
 import { declarationCheckboxStyle } from '../../../utils/constants';
-import { Roles } from '../../../utils/enums';
+import { FundingFromCurrentStatus, Roles } from '../../../utils/enums';
 import { NotificationType } from '../../../utils/hooks/toastify/enums';
 import useToast from '../../../utils/hooks/toastify/useToast';
+import RevokedRequisitionModal from './RevokedRequisitionModal';
 
 const BankCard = ({
   statement,
@@ -16,10 +18,14 @@ const BankCard = ({
   isHigherAuthority,
   seuUpdatedPrimaryAccount,
   setIsGocardless,
-  isFundingInProgress
+  isFundingInProgress,
+  loanId,
+  onRevokeSuccess,
+  fundingFormStatus
 }) => {
   const { role } = useSelector(authSelector);
   const { showToast } = useToast();
+  const [showRevokedModal, setShowRevokedModal] = useState(false);
 
   const getStyle = () => {
     if (isHigherAuthority && !isFundingInProgress) {
@@ -65,6 +71,34 @@ const BankCard = ({
       showToast('Something went wrong!', { type: NotificationType.Error });
     }
   };
+console.log("BANK:", statement.bank_name, {
+  continue_with_gocardless: statement.continue_with_gocardless,
+  institution_id: statement.institution_id,
+  requisition_id: statement.requisition_id
+});
+// ---- TEST / SANDBOX BANK ----
+const isTestBank = Boolean(
+  statement?.institution_id?.includes("SANDBOX")
+);
+
+// ---- ROLES (ONLY THESE CAN SEE) ----
+const allowRoles = [
+  Roles.Admin,
+  Roles.UnderWriter,
+  Roles.Manager
+].includes(role);
+
+// Hide ONLY when status is Inprogress
+const isInProgress =
+  fundingFormStatus === FundingFromCurrentStatus.Inprogress;
+
+// ---- FINAL DECISION ----
+const showThreeDots =
+  allowRoles &&
+  !isTestBank &&
+  !isInProgress;
+
+
 
   return (
     <div
@@ -122,7 +156,8 @@ const BankCard = ({
           </label>
         </div>
 
-        {isHigherAuthority && !isFundingInProgress && (
+        {/* {isHigherAuthority && !isFundingInProgress && ( */}
+        {showThreeDots && (
           <div
             className="cursor-pointer"
             onClick={() => {
@@ -165,6 +200,36 @@ const BankCard = ({
           </span>
         )}
       </div>
+
+      {/* Revoked Requisition Button - Only for GoCardless statements */}
+      {statement.continue_with_gocardless && 
+       statement.institution_id && 
+       statement.requisition_id && 
+       isFundingInProgress &&
+       [Roles.Manager, Roles.Admin, Roles.UnderWriter].includes(role) && (
+        <div className="mt-4 flex justify-end">
+          <button
+            onClick={() => setShowRevokedModal(true)}
+            className="rounded bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700"
+          >
+            Revoke Requisition
+          </button>
+        </div>
+      )}
+
+      {/* Revoked Requisition Modal */}
+      {showRevokedModal && (
+        <RevokedRequisitionModal
+          onClose={() => setShowRevokedModal(false)}
+          statement={{
+            institution_id: statement.institution_id,
+            bank_name: statement.bank_name,
+            requisition_id: statement.requisition_id
+          }}
+          loanId={loanId}
+          onSuccess={onRevokeSuccess}
+        />
+      )}
     </div>
   );
 };

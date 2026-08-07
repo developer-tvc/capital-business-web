@@ -8,7 +8,8 @@ import { useDispatch, useSelector } from 'react-redux';
 import { baseUrl } from '../../api/axios';
 import {
   sendTrustIdGuestlinkApi,
-  trustIdStatusApi
+  trustIdStatusApi,
+  userSendTrustIdGuestlinkApi
 } from '../../api/loanServices';
 import eye from '../../assets/svg/eye.svg';
 import { authSelector } from '../../store/auth/userSlice';
@@ -89,6 +90,22 @@ const IdentityVerification: React.FC<LoanFromCommonProps> = ({
     }
     setIsLoading(false);
   };
+  const handleResendKyc = async (customerId: string | number) => {
+    setIsLoading(true);
+    try {
+      const response = await userSendTrustIdGuestlinkApi(customerId);
+      if (response.status_code >= 200 && response.status_code < 300) {
+        showToast(response.status_message, { type: NotificationType.Success });
+      } else {
+        showToast(response.status_message, { type: NotificationType.Error });
+      }
+    } catch (error) {
+      console.error('Resend KYC Error:', error);
+      showToast('Something went wrong!', { type: NotificationType.Error });
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const fetchKycApi = async loanId => {
     try {
@@ -154,7 +171,7 @@ const IdentityVerification: React.FC<LoanFromCommonProps> = ({
                           </div>
                         </div>
 
-                        <div>
+                        <div className="flex items-center">
                           <span className="text-sm font-medium text-gray-500">
                             {'KYC Status:'}
                           </span>
@@ -167,11 +184,20 @@ const IdentityVerification: React.FC<LoanFromCommonProps> = ({
                           >
                             {kyc?.kyc_status ? 'Completed' : 'Not Completed'}
                           </span>
+                          {!kyc?.kyc_status && (
+                            <button
+                              type="button"
+                              onClick={() => handleResendKyc(kyc?.customer?.id)}
+                              className="ml-4 text-sm font-semibold uppercase text-[#1A439A] hover:underline"
+                            >
+                              {'RESEND'}
+                            </button>
+                          )}
                         </div>
                         {/* View Certificate */}
                         {![Roles.Customer, Roles.Leads].includes(
                           role as Roles
-                        ) && (
+                        ) && kyc?.certificate && (
                           <a
                             href={`${baseUrl}${kyc?.certificate}`}
                             target="_blank"

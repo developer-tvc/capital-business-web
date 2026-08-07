@@ -27,7 +27,8 @@ const DateController: React.FC<{ metaData: DateControllerProps }> = ({
     max,
     excludeDateIntervals,
     icon,
-    filterDates
+    filterDates,
+    dateFormat
   } = metaData;
   const { showToast } = useToast();
 
@@ -57,8 +58,18 @@ const DateController: React.FC<{ metaData: DateControllerProps }> = ({
         name={name}
         control={control}
         defaultValue={defaultValue}
-        render={({ field }) => {
-          // field.value = field?.value ? new Date(field?.value) : field.value;
+        render={({ field }) =>
+          {
+          // Safely parse the field value — treats null, undefined, or
+          // invalid dates (e.g. 1970-01-01 from backend null) as null.
+          const parseFieldValue = (val: unknown): Date | null => {
+            if (!val) return null;
+            const d = new Date(val as string | number | Date);
+            // Reject the Unix epoch (1970-01-01) which is the result of new Date(null/0)
+            if (isNaN(d.getTime()) || d.getFullYear() <= 1970) return null;
+            return d;
+          };
+          const selectedDate = parseFieldValue(field.value);
           return (
             <div className="relative bg-inherit">
               {icon && (
@@ -69,7 +80,7 @@ const DateController: React.FC<{ metaData: DateControllerProps }> = ({
               {label}
               <DatePicker
                 {...field}
-                selected={field.value}
+                selected={selectedDate}
                 disabled={isDisabled}
                 className={`${fieldClass} border-2 focus:outline-0 ${!isDisabled && 'border-[#1a459a33]'} peer focus-within:border-[#1A449A] ${
                   fieldError && 'border-2 border-red-500'
@@ -83,6 +94,14 @@ const DateController: React.FC<{ metaData: DateControllerProps }> = ({
                 showYearDropdown
                 dropdownMode="select"
                 onChange={date => {
+                  if (!date) {
+                    // User cleared the picker or picker fired with null — store null
+                    // so the schema can reject it rather than converting to epoch date
+                    field.onChange(null);
+                    setValue(name, null);
+                    trigger(name);
+                    return;
+                  }
                   const selectedDate = new Date(date);
                   if (
                     name === 'start_trading_date' &&
@@ -100,6 +119,7 @@ const DateController: React.FC<{ metaData: DateControllerProps }> = ({
                   trigger(name);
                 }}
                 filterDate={filterDates}
+                dateFormat={dateFormat || 'dd/MM/yyyy'}
               />
               <label htmlFor={name} className={`${labelClass} `}>
                 {placeholder}
