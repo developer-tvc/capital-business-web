@@ -315,6 +315,10 @@ const ManagementFundingApplication = () => {
     const response = await submitLoanApi(loanId, payload);
     if (response.status_code >= 200 && response.status_code < 300) {
       setIsSubmitted(true);
+      // Auto-navigate to contract stage (14) for underwriters after stage 12 submission
+      if (role === Roles.UnderWriter && activeStage === 12) {
+        dispatch(updateCurrentStage(14));
+      }
     } else {
       showToast(response.status_message, { type: NotificationType.Error });
     }
