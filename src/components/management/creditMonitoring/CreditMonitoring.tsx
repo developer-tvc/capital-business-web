@@ -160,7 +160,8 @@ const CreditMonitoring = () => {
                     data?.map(
                       (
                         {
-                          id,
+                          // id,
+                          customer_loan,
                           loan_number,
                           created_on,
                           amount,
@@ -248,7 +249,7 @@ const CreditMonitoring = () => {
                               type="button"
                               className="mr-2 flex cursor-pointer bg-[#1A439A] px-8 py-2 text-white"
                               onClick={() => {
-                                setSelectedId(id);
+                                setSelectedId(customer_loan);
                                 // setActionLeadId(id)
                                 setIsModalOpen(true);
                               }}
@@ -279,7 +280,8 @@ const CreditMonitoring = () => {
                   data.map(
                     (
                       {
-                        id,
+                        // id,
+                        customer_loan,
                         loan_number,
                         created_on,
                         amount,
@@ -370,7 +372,7 @@ const CreditMonitoring = () => {
                               type="button"
                               className="rounded bg-[#1A439A] px-6 py-2 text-white transition-colors hover:bg-[#163c7e]"
                               onClick={() => {
-                                setSelectedId(id);
+                                setSelectedId(customer_loan);
                                 setIsModalOpen(true);
                               }}
                             >
