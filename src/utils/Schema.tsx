@@ -1867,6 +1867,8 @@ export const affordabilityGrossSchema = yup.object().shape({
     })
     .required('Final Release Amount is required'),
 
+  adjusted_loan: yup.string().required('Existing contract selection is required'),
+
   remarks: yup.string().required('Remarks are required')
 });
 
@@ -1936,7 +1938,9 @@ export const affordabilityApprovalSchema = yup.object().shape({
     .transform((value, originalValue) => {
       return originalValue === '' ? undefined : value;
     })
-    .required('Final Release Amount is required')
+    .required('Final Release Amount is required'),
+
+  adjusted_loan: yup.string().required('Bank selection is required')
 });
 
 export const underWriterFormVerifySchema = yup.object().shape({
