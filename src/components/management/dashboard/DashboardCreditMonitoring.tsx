@@ -24,7 +24,6 @@ const DashboardCreditMonitoring = () => {
   );
   const [funding, setFunding] = useState([]);
   const [activeLoanId] = useState(null);
-  const [mandateId, setMandateId] = useState(null);
   const [contractId, setContractId] = useState(null);
   const [isRecommendedForLegalAction, setIsRecommendedForLegalAction] =
     useState(false);
@@ -51,7 +50,7 @@ const DashboardCreditMonitoring = () => {
 
   useEffect(() => {
     if (isModalOpen) {
-      navigate(`/default/${mandateId}`, {
+      navigate(`/default/${contractId}`, {
         state: {
           loanId: contractId,
           isRecommendedForLegalAction: isRecommendedForLegalAction
@@ -125,7 +124,6 @@ const DashboardCreditMonitoring = () => {
                         }`}
                         onClick={() => {
                           setContractId(customer_loan);
-                          setMandateId(mandate.id);
                           setIsRecommendedForLegalAction(
                             loan_status.current_status === 'Moved_To_Legal'
                           );
