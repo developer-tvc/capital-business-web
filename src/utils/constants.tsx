@@ -3571,6 +3571,12 @@ export const affordabilityGrossAmountFields = [
     label: 'Final Release Amount',
     type: 'number',
     autoFilled: true
+  },
+  {
+    key: 'adjusted_loan',
+    label: 'Existing Contract',
+    type: 'dropdown',
+    isRequired: true
   }
 ];
 

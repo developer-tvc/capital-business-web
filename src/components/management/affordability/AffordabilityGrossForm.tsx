@@ -15,6 +15,7 @@ import useToast from '../../../utils/hooks/toastify/useToast';
 import { affordabilityGrossSchema } from '../../../utils/Schema';
 import { affordabilityGrossType } from '../../../utils/types';
 import InputController from '../../commonInputs/Input';
+import DropdownController from '../../commonInputs/Dropdown';
 
 const AffordabilityGrossForm = ({
   data,
@@ -84,6 +85,15 @@ const AffordabilityGrossForm = ({
   };
 
   const onSubmit = async data => {
+    // Map loan_number to loan_id
+    if (data.adjusted_loan && existingContracts.length > 0) {
+      const selectedContract = existingContracts.find(
+        c => String(c.loan_number) === data.adjusted_loan
+      );
+      if (selectedContract) {
+        data.adjusted_loan = selectedContract.loan_id;
+      }
+    }
     try {
       const response = await postAffordabilityApi(data, loanId);
       if (response?.status_code === 200) {
@@ -119,6 +129,15 @@ const AffordabilityGrossForm = ({
 
   const onUpdate = async () => {
     const payload = getValues();
+    // Map loan_number to loan_id
+    if (payload.adjusted_loan && existingContracts.length > 0) {
+      const selectedContract = existingContracts.find(
+        c => String(c.loan_number) === payload.adjusted_loan
+      );
+      if (selectedContract) {
+        payload.adjusted_loan = selectedContract.loan_id;
+      }
+    }
 
     try {
       const response = await postAffordabilityApi(payload, loanId);
@@ -249,37 +268,42 @@ const AffordabilityGrossForm = ({
           <div className="max-sm:cols-1 grid grid-cols-3 gap-4 p-[2%] max-lg:grid-cols-1 max-sm:justify-center">
             {affordabilityGrossAmountFields.map(
               (
-                i: {
-                  key: string;
-                  label: string;
-                  type:
-                    | 'number'
-                    | 'email'
-                    | 'text'
-                    | 'tel'
-                    | 'range'
-                    | 'password'
-                    | 'date';
-                  autoFilled: boolean;
-                },
+                i: any,
                 index
-              ) => (
-                <InputController
-                  key={index}
-                  metaData={{
-                    fieldClass: `${fieldClass} ${i.autoFilled && 'bg-gray-200 text-gray-500 cursor-not-allowed'}`,
-                    labelClass: labelClass,
-                    key: i.key,
-                    placeholder: i.label,
-                    isRequired: i.autoFilled ? false : true,
-                    name: i.key,
-                    label: i.label,
-                    type: i.type,
-                    isFractional: true,
-                    isDisabled: i.autoFilled
-                  }}
-                />
-              )
+              ) =>
+                i.type === 'dropdown' ? (
+                  <DropdownController
+                    key={index}
+                    metaData={{
+                      fieldClass: `${fieldClass} ${i.autoFilled && 'bg-gray-200 text-gray-500 cursor-not-allowed'}`,
+                      labelClass: labelClass,
+                      key: i.key,
+                      placeholder: i.label,
+                      isRequired: i.autoFilled ? false : i.isRequired !== undefined ? i.isRequired : true,
+                      name: i.key,
+                      label: i.label,
+                      type: i.type,
+                      isDisabled: i.autoFilled,
+                      options: existingContracts.map(c => String(c.loan_number))
+                    }}
+                  />
+                ) : (
+                  <InputController
+                    key={index}
+                    metaData={{
+                      fieldClass: `${fieldClass} ${i.autoFilled && 'bg-gray-200 text-gray-500 cursor-not-allowed'}`,
+                      labelClass: labelClass,
+                      key: i.key,
+                      placeholder: i.label,
+                      isRequired: i.autoFilled ? false : i.isRequired !== undefined ? i.isRequired : true,
+                      name: i.key,
+                      label: i.label,
+                      type: i.type,
+                      isFractional: true,
+                      isDisabled: i.autoFilled
+                    }}
+                  />
+                )
             )}
           </div>
           {/* <div className='flex w-full justify-end items-center gap-2'>
