@@ -10,6 +10,7 @@ import { FundingFromCurrentStatus, Roles } from '../../../utils/enums';
 import { NotificationType } from '../../../utils/hooks/toastify/enums';
 import useToast from '../../../utils/hooks/toastify/useToast';
 import RevokedRequisitionModal from './RevokedRequisitionModal';
+import BankDetails from '../../customerDocuments/BankDetails';
 
 const BankCard = ({
   statement,
@@ -26,6 +27,9 @@ const BankCard = ({
   const { role } = useSelector(authSelector);
   const { showToast } = useToast();
   const [showRevokedModal, setShowRevokedModal] = useState(false);
+  const [isDownloading, setIsDownloading] = useState(false);
+  const [downloadSuccess, setDownloadSuccess] = useState(false);
+  const [showBankDetailsModal, setShowBankDetailsModal] = useState(false);
 
   const getStyle = () => {
     if (isHigherAuthority && !isFundingInProgress) {
@@ -71,6 +75,49 @@ const BankCard = ({
       showToast('Something went wrong!', { type: NotificationType.Error });
     }
   };
+
+  const handleDownloadBankDetails = async () => {
+    setIsDownloading(true);
+    try {
+      // Dummy API delay
+      await new Promise(resolve => setTimeout(resolve, 1500));
+
+      const dummyResponse = {
+        bank_name: statement.bank_name || 'HSBC Business',
+        account_holder_name: statement.account_holder_name || 'DSIM DISTRIBUTION LTD',
+        account_number: statement.bank_account_number || '30263893',
+        statement_start_date: statement.start_date || '2026-05-18',
+        statement_end_date: statement.end_date || '2026-08-12'
+      };
+
+      const blob = new Blob([JSON.stringify(dummyResponse, null, 2)], {
+        type: 'application/json'
+      });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = 'bank-details.json';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+
+      setDownloadSuccess(true);
+      showToast('Bank details downloaded successfully', {
+        type: NotificationType.Success
+      });
+    } catch (error) {
+      showToast('Failed to download bank details', {
+        type: NotificationType.Error
+      });
+      setDownloadSuccess(false);
+    } finally {
+      setIsDownloading(false);
+    }
+  };
+
+
+
 console.log("BANK:", statement.bank_name, {
   continue_with_gocardless: statement.continue_with_gocardless,
   institution_id: statement.institution_id,
@@ -156,16 +203,8 @@ const showThreeDots =
           </label>
         </div>
 
-        {/* {isHigherAuthority && !isFundingInProgress && ( */}
         {showThreeDots && (
-          <div
-            className="cursor-pointer"
-            onClick={() => {
-              setSelectedStatement(statement);
-              setShowModal(true);
-              setIsGocardless(statement.continue_with_gocardless);
-            }}
-          >
+          <div className="cursor-not-allowed opacity-50">
             <HiOutlineDotsHorizontal size={32} color="#929292" />
           </div>
         )}
@@ -201,21 +240,41 @@ const showThreeDots =
         )}
       </div>
 
-      {/* Revoked Requisition Button - Only for GoCardless statements */}
-      {statement.continue_with_gocardless && 
-       statement.institution_id && 
-       statement.requisition_id && 
-       isFundingInProgress &&
-       [Roles.Manager, Roles.Admin, Roles.UnderWriter].includes(role) && (
-        <div className="mt-4 flex justify-end">
+      {/* Action Buttons */}
+      <div className="mt-4 flex flex-wrap gap-2 justify-end">
+        {statement.continue_with_gocardless && 
+         statement.institution_id && 
+         statement.requisition_id && 
+         isFundingInProgress &&
+         [Roles.Manager, Roles.Admin, Roles.UnderWriter].includes(role) && (
           <button
             onClick={() => setShowRevokedModal(true)}
             className="rounded bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700"
           >
             Revoke Requisition
           </button>
-        </div>
-      )}
+        )}
+        
+        <button
+          onClick={handleDownloadBankDetails}
+          disabled={isDownloading}
+          className="rounded bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {isDownloading ? 'Downloading...' : 'Download Bank Details'}
+        </button>
+
+        <button
+          onClick={() => {
+            setSelectedStatement(statement);
+            setShowModal(true);
+            setIsGocardless(statement.continue_with_gocardless);
+          }}
+          disabled={!downloadSuccess}
+          className="rounded bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          Add Sort Data
+        </button>
+      </div>
 
       {/* Revoked Requisition Modal */}
       {showRevokedModal && (
