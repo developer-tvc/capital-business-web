@@ -388,6 +388,8 @@ const PersonalInformation: React.FC<PersonalInformationProps> = ({
   // const watchDuration = watch("fund_request_duration_weeks", 0);
   const watchPhoneNumber = watch('phone_number', '');
   const watchEmail = watch('email', '');
+  const watchFirstName = watch('first_name', '');
+  const watchLastName = watch('last_name', '');
   const watchPinCode = watch('pincode', personalInfo?.pincode || '');
 
   // const { rePaymentAmount, weeklyInstallments } = useCalculator(watchFundRequest, watchDuration);
@@ -418,7 +420,9 @@ const PersonalInformation: React.FC<PersonalInformationProps> = ({
         try {
           const resp = await signUpAPI({
             phone_number: watchPhoneNumber,
-            email: watchEmail
+            email: watchEmail,
+            first_name: watchFirstName,
+            last_name: watchLastName
           });
 
           if (resp.status_code >= 200 && resp.status_code < 300) {
