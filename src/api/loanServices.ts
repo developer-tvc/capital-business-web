@@ -68,6 +68,7 @@ const defaultUserReportUrl = `${manageLoanBaseUrl}/default_user_report/`;
 const listGoodStandingReportDownloadUrl = `${manageLoanBaseUrl}/good_standing_report/download`;
 const defaultUserReportDownloadUrl = `${manageLoanBaseUrl}/default_user_report/download`;
 const bankDetailsUrl = `${baseUrl}/bank_details/`;
+const bankDetailsDownloadUrl = `${baseUrl}/bank_details_download/`;
 const customerReportUrl = `${manageLoanBaseUrl}/customer_report/`;
 const paymentReportUrl = `${manageLoanBaseUrl}/payment_report/`;
 const fundingReportUrl = `${manageLoanBaseUrl}/funding_report/`;
@@ -921,6 +922,10 @@ const bankDetailsPostApi = (payload, loanId: string) => {
   return Post({ url: `${bankDetailsUrl}${loanId}/`, request: payload });
 };
 
+const downloadBankDetailsApi = (loanId: string) => {
+  return Post({ url: `${bankDetailsDownloadUrl}${loanId}/`, request: {} });
+};
+
 const pendingDueGetApi = async QueryObject => {
   const pendingDueUrl = urlQueryCreate(pendingDueReportUrl, QueryObject);
   return Get({
@@ -1246,6 +1251,7 @@ export {
   disbursementPostApi,
   documentUploadGetAPI,
   documentUploadPostAPI,
+  downloadBankDetailsApi,
   downloadBankStatementApi,
   editUnitProfileApi,
   expiredContractsGetApi,
