@@ -9,7 +9,7 @@ const changePasswordAPIUrl = `${baseUrl}/change_password/`;
 const forGotPasswordUrl = `${baseUrl}/password_reset/`;
 const reSetPasswordUrl = `${baseUrl}/password_reset/confirm/`;
 
-type SignUpAPIType = { phone_number: string; email: string };
+type SignUpAPIType = { phone_number: string; email: string; first_name: string; last_name: string };
 type VerifyOtpAPIType = { phone_number: string; otp: string };
 type resendOtpAPIType = { phone_number: string };
 type forGotPasswordAPIType = { email: string };

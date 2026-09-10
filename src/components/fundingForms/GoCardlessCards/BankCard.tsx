@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { HiOutlineDotsHorizontal } from 'react-icons/hi';
 import { useSelector } from 'react-redux';
-
 import { primaryBankAccountApi } from '../../../api/loanServices';
 import build from '../../../assets/svg/gocard_bank.svg';
 import { authSelector } from '../../../store/auth/userSlice';
@@ -10,8 +9,6 @@ import { FundingFromCurrentStatus, Roles } from '../../../utils/enums';
 import { NotificationType } from '../../../utils/hooks/toastify/enums';
 import useToast from '../../../utils/hooks/toastify/useToast';
 import RevokedRequisitionModal from './RevokedRequisitionModal';
-import BankDetails from '../../customerDocuments/BankDetails';
-
 const BankCard = ({
   statement,
   setSelectedStatement,
@@ -29,7 +26,6 @@ const BankCard = ({
   const [showRevokedModal, setShowRevokedModal] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
   const [downloadSuccess, setDownloadSuccess] = useState(false);
-  const [showBankDetailsModal, setShowBankDetailsModal] = useState(false);
 
   const getStyle = () => {
     if (isHigherAuthority && !isFundingInProgress) {
