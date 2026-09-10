@@ -184,8 +184,14 @@ export const PersonalInformationSchema = yup.object().shape({
     .required('Postcode is required')
     .matches(pincodeValidationRegex, 'Valid UK Postcode is required.'),
   title: yup.string().required('Title required'),
-  first_name: yup.string().required('First name is required'),
-  last_name: yup.string().required('Last name is required'),
+  first_name: yup
+    .string()
+    .required('First name is required')
+    .matches(/^[a-zA-Z\s-]+$/, 'First name must contain only letters'),
+  last_name: yup
+    .string()
+    .required('Last name is required')
+    .matches(/^[a-zA-Z\s-]+$/, 'Last name must contain only letters'),
   // dob: yup
   //   .string()
   //   .required("Date of birth is required")
