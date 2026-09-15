@@ -1,6 +1,6 @@
 import { FundingFromCurrentStatus } from '../utils/enums';
 import { urlQueryCreate } from '../utils/helpers';
-import { Delete, Get, Patch, Post, Put } from './axios';
+import { CreateInstance, Delete, Get, Patch, Post, Put } from './axios';
 
 const baseUrl = '/loan';
 const manageLoanBaseUrl = '/manage_loan';
@@ -68,6 +68,7 @@ const defaultUserReportUrl = `${manageLoanBaseUrl}/default_user_report/`;
 const listGoodStandingReportDownloadUrl = `${manageLoanBaseUrl}/good_standing_report/download`;
 const defaultUserReportDownloadUrl = `${manageLoanBaseUrl}/default_user_report/download`;
 const bankDetailsUrl = `${baseUrl}/bank_details/`;
+const bankDetailsDownloadUrl = `${baseUrl}/bank_details_download/`;
 const customerReportUrl = `${manageLoanBaseUrl}/customer_report/`;
 const paymentReportUrl = `${manageLoanBaseUrl}/payment_report/`;
 const fundingReportUrl = `${manageLoanBaseUrl}/funding_report/`;
@@ -921,6 +922,10 @@ const bankDetailsPostApi = (payload, loanId: string) => {
   return Post({ url: `${bankDetailsUrl}${loanId}/`, request: payload });
 };
 
+const downloadBankDetailsApi = (loanId: string) => {
+  return Post({ url: `${bankDetailsDownloadUrl}${loanId}/`, request: {} });
+};
+
 const pendingDueGetApi = async QueryObject => {
   const pendingDueUrl = urlQueryCreate(pendingDueReportUrl, QueryObject);
   return Get({
@@ -1200,6 +1205,28 @@ const resentRequisitionAPI = (loanId: string, payload: {
   });
 };
 
+const getBankAccountsForDownloadApi = (loanId: string) => {
+  return Get({
+    url: `${bankDetailsDownloadUrl}${loanId}/`,
+    request: {}
+  });
+};
+
+const downloadBankDetailsFileApi = (accountId: string) => {
+  const instance = CreateInstance();
+  try {
+    return instance.post(`${bankDetailsDownloadUrl}${accountId}/`, {}, {
+      responseType: 'blob'
+    });
+  } catch (error) {
+    if (error?.response?.data) {
+      return error.response.data;
+    } else {
+      throw new Error();
+    }
+  }
+};
+
 export {
   addNewMandateSubscription,
   addNewPap,
@@ -1246,6 +1273,7 @@ export {
   disbursementPostApi,
   documentUploadGetAPI,
   documentUploadPostAPI,
+  downloadBankDetailsApi,
   downloadBankStatementApi,
   editUnitProfileApi,
   expiredContractsGetApi,
@@ -1361,5 +1389,7 @@ export {
   getLoanStatement,
   resentRequisitionAPI,
   skipPapContractApi,
-  listCompaniesApiNew
+  listCompaniesApiNew,
+  getBankAccountsForDownloadApi,
+  downloadBankDetailsFileApi
 };

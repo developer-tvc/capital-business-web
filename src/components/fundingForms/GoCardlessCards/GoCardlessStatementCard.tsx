@@ -79,17 +79,34 @@ const GoCardlessStatementCard = ({
               style={{ color: isDebit ? 'tomato' : '#22CB53' }}
             >
               {isGocardless ? (
-                data?.transactionAmount.amount
+                data?.transactionAmount?.amount
               ) : (
-                <input
-                  type="number"
-                  className="h-8 w-full rounded-md border bg-transparent px-3 text-black"
-                  value={data?.transactionAmount.amount}
-                  onChange={e => {
-                    data.transactionAmount.amount = e.target.value;
-                    onCategorySelect(data, isDebit ? 'debit' : 'credit');
-                  }}
-                />
+                <>
+                  {/* OLD IMPLEMENTATION - kept for reference */}
+                  {/* <input
+                    type="number"
+                    className="h-8 w-full rounded-md border bg-transparent px-3 text-black"
+                    value={data?.transactionAmount.amount}
+                    onChange={e => {
+                      data.transactionAmount.amount = e.target.value;
+                      onCategorySelect(data, isDebit ? 'debit' : 'credit');
+                    }}
+                  /> */}
+
+                  {/* NEW IMPLEMENTATION */}
+                  <input
+                    type="number"
+                    className="h-8 w-full rounded-md border bg-transparent px-3 text-black"
+                    value={data?.transactionAmount?.amount ?? ''}
+                    onChange={e => {
+                      if (!data.transactionAmount) {
+                        data.transactionAmount = { amount: '', currency: 'EUR' };
+                      }
+                      data.transactionAmount.amount = e.target.value;
+                      onCategorySelect(data, isDebit ? 'debit' : 'credit');
+                    }}
+                  />
+                </>
               )}
             </p>
           </div>

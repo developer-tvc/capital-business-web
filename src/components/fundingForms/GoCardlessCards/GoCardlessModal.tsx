@@ -40,7 +40,8 @@ const GoCardlessModal = ({
   selectedId,
   withoutGocardlessData,
   setWithoutGocardlessData,
-  sortTransactionCheckpoint
+  sortTransactionCheckpoint,
+  selectedStatement = null
 }) => {
   const [isDebitListing, setIsDebitListing] = useState(true);
   const [openStatements, setOpenStatements] = useState(false);
@@ -97,69 +98,151 @@ const GoCardlessModal = ({
   }, [onClose, sortTransactionCheckpoint]);
   const { showToast } = useToast();
 
-  const bankData = [...gocardlessData, ...withoutGocardlessData].find(
-    i => selectedId === i.id
-  );
+  // OLD IMPLEMENTATION - kept for reference
+  // const bankData = [...gocardlessData, ...withoutGocardlessData].find(
+  //   i => selectedId === i.id
+  // );
 
-  function sortBankData(data) {
-    return data.sort((a, b) => {
-      // Place items without a 'category' key at the top
-      if (!('category' in a) && 'category' in b) {
-        return -1;
-      }
-      if (!('category' in b) && 'category' in a) {
-        return 1;
-      }
-      // Place items with an empty category at the top
-      if (a.category === '' && b.category !== '') {
-        return -1;
-      }
-      if (b.category === '' && a.category !== '') {
-        return 1;
-      }
-      // Place items with "ignore_transaction" at the very end
-      if (
-        a.category === 'ignore_transaction' &&
-        b.category !== 'ignore_transaction'
-      ) {
-        return 1;
-      }
-      if (
-        b.category === 'ignore_transaction' &&
-        a.category !== 'ignore_transaction'
-      ) {
-        return -1;
-      }
-      // Sort by 'category' in ascending order if both items have categories
-      const categoryComparison = a?.category
-        ? a?.category?.localeCompare(b.category)
-        : 0;
-      if (categoryComparison !== 0) return categoryComparison;
+  // NEW IMPLEMENTATION
+  const bankData =
+    [...(gocardlessData || []), ...(withoutGocardlessData || [])].find(
+      i => selectedId && (i.id === selectedId || i.statement_id === selectedId)
+    ) ||
+    selectedStatement ||
+    {};
 
-      // If categories are the same, sort by 'entryReference' in ascending order
-      return a?.entryReference?.localeCompare(b.entryReference);
-    });
-  }
+  // OLD IMPLEMENTATION - kept for reference (used with old creditData/debitData)
+  // function sortBankData(data) {
+  //   return data.sort((a, b) => {
+  //     // Place items without a 'category' key at the top
+  //     if (!('category' in a) && 'category' in b) {
+  //       return -1;
+  //     }
+  //     if (!('category' in b) && 'category' in a) {
+  //       return 1;
+  //     }
+  //     // Place items with an empty category at the top
+  //     if (a.category === '' && b.category !== '') {
+  //       return -1;
+  //     }
+  //     if (b.category === '' && a.category !== '') {
+  //       return 1;
+  //     }
+  //     // Place items with "ignore_transaction" at the very end
+  //     if (
+  //       a.category === 'ignore_transaction' &&
+  //       b.category !== 'ignore_transaction'
+  //     ) {
+  //       return 1;
+  //     }
+  //     if (
+  //       b.category === 'ignore_transaction' &&
+  //       a.category !== 'ignore_transaction'
+  //     ) {
+  //       return 1;
+  //     }
+  //     // Sort by 'category' in ascending order if both items have categories
+  //     const categoryComparison = a?.category
+  //       ? a?.category?.localeCompare(b.category)
+  //       : 0;
+  //     if (categoryComparison !== 0) return categoryComparison;
+  //
+  //     // If categories are the same, sort by 'entryReference' in ascending order
+  //     return a?.entryReference?.localeCompare(b.entryReference);
+  //   });
+  // }
 
-  const creditData = bankData.credit ? sortBankData(bankData.credit) : [];
-  const debitData = bankData.debit ? sortBankData(bankData.debit) : [];
+  // OLD IMPLEMENTATION - kept for reference
+  // const creditData = bankData.credit ? sortBankData(bankData.credit) : [];
+  // const debitData = bankData.debit ? sortBankData(bankData.debit) : [];
+
+  // NEW IMPLEMENTATION
+  // Fresh/empty Manual Entry state - do NOT populate from existing transaction data
+  const [debitData, setDebitData] = useState([]);
+  const [creditData, setCreditData] = useState([]);
 
   const debitCategoryGrouped = useCategoryCount(debitData);
   const creditCategoryGrouped = useCategoryCount(creditData);
 
-  const onCategorySelect = (data, type) => {
-    const arr = type === 'debit' ? [...debitData] : [...creditData];
-    let parentArr = isGocardless
-      ? [...gocardlessData]
-      : [...withoutGocardlessData];
-    const modArr = arr.map(item => (item.id === data.id ? { ...data } : item));
-    parentArr = parentArr.map(item =>
-      item.id === selectedId ? { ...item, [type]: modArr } : item
+  const updateParentBankData = (
+    currentDebit,
+    currentCredit,
+    dateRange = currentDateRange
+  ) => {
+    const inWithout = withoutGocardlessData?.some(
+      item => item.id === selectedId || item.statement_id === selectedId
     );
-    if (isGocardless) {
-      setGocardlessData(parentArr);
+    if (inWithout) {
+      const updated = withoutGocardlessData.map(item => {
+        if (item.id === selectedId || item.statement_id === selectedId) {
+          return {
+            ...item,
+            debit: currentDebit,
+            credit: currentCredit,
+            start_date: dateRange.start_date || item.start_date,
+            end_date: dateRange.end_date || item.end_date
+          };
+        }
+        return item;
+      });
+      setWithoutGocardlessData(updated);
+      return updated;
+    }
+
+    const inGocardless = gocardlessData?.some(
+      item => item.id === selectedId || item.statement_id === selectedId
+    );
+    if (inGocardless) {
+      const updated = gocardlessData.map(item => {
+        if (item.id === selectedId || item.statement_id === selectedId) {
+          return {
+            ...item,
+            debit: currentDebit,
+            credit: currentCredit,
+            start_date: dateRange.start_date || item.start_date,
+            end_date: dateRange.end_date || item.end_date
+          };
+        }
+        return item;
+      });
+      setGocardlessData(updated);
+      return updated;
+    }
+
+    return null;
+  };
+
+  // OLD IMPLEMENTATION - kept for reference
+  // const onCategorySelect = (data, type) => {
+  //   const arr = type === 'debit' ? [...debitData] : [...creditData];
+  //   let parentArr = isGocardless
+  //     ? [...gocardlessData]
+  //     : [...withoutGocardlessData];
+  //   const modArr = arr.map(item => (item.id === data.id ? { ...data } : item));
+  //   parentArr = parentArr.map(item =>
+  //     item.id === selectedId ? { ...item, [type]: modArr } : item
+  //   );
+  //   if (isGocardless) {
+  //     setGocardlessData(parentArr);
+  //   } else {
+  //     setWithoutGocardlessData(parentArr);
+  //   }
+  // };
+
+  // NEW IMPLEMENTATION
+  const onCategorySelect = (data, type) => {
+    if (type === 'debit') {
+      const updated = debitData.map(item =>
+        item.id === data.id ? { ...data } : item
+      );
+      setDebitData(updated);
+      updateParentBankData(updated, creditData);
     } else {
-      setWithoutGocardlessData(parentArr);
+      const updated = creditData.map(item =>
+        item.id === data.id ? { ...data } : item
+      );
+      setCreditData(updated);
+      updateParentBankData(debitData, updated);
     }
   };
   // const autoSelect =()=>{
@@ -183,26 +266,87 @@ const GoCardlessModal = ({
     setType(isDebitListing ? 'payments' : 'card');
   }, [isDebitListing]);
 
-  useEffect(() => {
-    const parentArr = isGocardless
-      ? [...gocardlessData]
-      : [...withoutGocardlessData];
-    const setData = isGocardless ? setGocardlessData : setWithoutGocardlessData;
-    const accountObject = parentArr?.find(i => selectedId === i.id);
+  // OLD IMPLEMENTATION - kept for reference
+  // useEffect(() => {
+  //   const parentArr = isGocardless
+  //     ? [...gocardlessData]
+  //     : [...withoutGocardlessData];
+  //   const setData = isGocardless ? setGocardlessData : setWithoutGocardlessData;
+  //   const accountObject = parentArr?.find(i => selectedId === i.id);
+  //
+  //   accountObject.all_grouped =
+  //     debitCategoryGrouped === debitData?.length &&
+  //     creditCategoryGrouped === creditData?.length &&
+  //     debitData?.length >= 1 &&
+  //     creditData?.length >= 1;
+  //   setData(parentArr);
+  // }, [debitCategoryGrouped, creditCategoryGrouped]);
 
-    accountObject.all_grouped =
+  // NEW IMPLEMENTATION
+  useEffect(() => {
+    const isAllGrouped =
       debitCategoryGrouped === debitData?.length &&
       creditCategoryGrouped === creditData?.length &&
       debitData?.length >= 1 &&
       creditData?.length >= 1;
-    setData(parentArr);
-  }, [debitCategoryGrouped, creditCategoryGrouped]);
 
+    const inWithout = withoutGocardlessData?.some(
+      item => item.id === selectedId || item.statement_id === selectedId
+    );
+    if (inWithout) {
+      setWithoutGocardlessData(prev =>
+        prev.map(item =>
+          item.id === selectedId || item.statement_id === selectedId
+            ? { ...item, all_grouped: isAllGrouped }
+            : item
+        )
+      );
+    } else {
+      const inGocardless = gocardlessData?.some(
+        item => item.id === selectedId || item.statement_id === selectedId
+      );
+      if (inGocardless) {
+        setGocardlessData(prev =>
+          prev.map(item =>
+            item.id === selectedId || item.statement_id === selectedId
+              ? { ...item, all_grouped: isAllGrouped }
+              : item
+          )
+        );
+      }
+    }
+  }, [debitCategoryGrouped, creditCategoryGrouped, debitData?.length, creditData?.length]);
+
+  // OLD IMPLEMENTATION - kept for reference
+  // const onAdd = () => {
+  //   const type = isDebitListing ? 'debit' : 'credit';
+  //   const arr = type === 'debit' ? [...debitData] : [...creditData];
+  //   arr.push({
+  //     id: arr.length + 1,
+  //     debtorName: '',
+  //     transactionAmount: {
+  //       amount: '',
+  //       currency: 'EUR'
+  //     },
+  //     bankTransactionCode: '',
+  //     remittanceInformationUnstructured: ''
+  //   });
+  //
+  //   const parentArr = [...withoutGocardlessData];
+  //
+  //   const updatedParentArr = parentArr.map(item =>
+  //     item.id === selectedId ? { ...item, [type]: arr } : item
+  //   );
+  //
+  //   setWithoutGocardlessData(updatedParentArr);
+  // };
+
+  // NEW IMPLEMENTATION
   const onAdd = () => {
     const type = isDebitListing ? 'debit' : 'credit';
-    const arr = type === 'debit' ? [...debitData] : [...creditData];
-    arr.push({
-      id: arr.length + 1,
+    const currentList = type === 'debit' ? debitData : creditData;
+    const newItem = {
+      id: currentList.length + 1,
       debtorName: '',
       transactionAmount: {
         amount: '',
@@ -210,15 +354,18 @@ const GoCardlessModal = ({
       },
       bankTransactionCode: '',
       remittanceInformationUnstructured: ''
-    });
+    };
+    const updatedList = [...currentList, newItem];
+    const newDebitData = type === 'debit' ? updatedList : debitData;
+    const newCreditData = type === 'credit' ? updatedList : creditData;
 
-    const parentArr = [...withoutGocardlessData];
+    if (type === 'debit') {
+      setDebitData(updatedList);
+    } else {
+      setCreditData(updatedList);
+    }
 
-    const updatedParentArr = parentArr.map(item =>
-      item.id === selectedId ? { ...item, [type]: arr } : item
-    );
-
-    setWithoutGocardlessData(updatedParentArr);
+    updateParentBankData(newDebitData, newCreditData);
   };
 
   const handleViewLinkClick = (link: string) => {
@@ -256,36 +403,43 @@ const GoCardlessModal = ({
     }
   }, [bankData]);
 
-  useEffect(() => {
-    const parentArr = [...withoutGocardlessData, ...gocardlessData];
-    const accountObject = parentArr.find(i => selectedId === i.id);
+  // OLD IMPLEMENTATION - kept for reference
+  // useEffect(() => {
+  //   const parentArr = [...withoutGocardlessData, ...gocardlessData];
+  //   const accountObject = parentArr.find(i => selectedId === i.id);
+  //
+  //   if (accountObject) {
+  //     if (!accountObject.continue_with_gocardless) {
+  //       setShowDates(true);
+  //       if (accountObject.start_date && accountObject.end_date) {
+  //         setCurrentDateRange({
+  //           start_date: accountObject.start_date,
+  //           end_date: accountObject.end_date
+  //         });
+  //         setStartDateError(null);
+  //         setEndDateError(null);
+  //       }
+  //     } else {
+  //       setShowDates(false);
+  //     }
+  //   }
+  //   return () => {
+  //     const parentArr = [...withoutGocardlessData, ...gocardlessData];
+  //     const accountObject = parentArr.find(i => selectedId === i.id);
+  //     if (accountObject && !accountObject.continue_with_gocardless) {
+  //       if (currentDateRange.start_date && currentDateRange.end_date) {
+  //         accountObject.start_date = currentDateRange.start_date;
+  //         accountObject.end_date = currentDateRange.end_date;
+  //         sortTransactionCheckpoint();
+  //       }
+  //     }
+  //   };
+  // }, []);
 
-    if (accountObject) {
-      if (!accountObject.continue_with_gocardless) {
-        setShowDates(true);
-        if (accountObject.start_date && accountObject.end_date) {
-          setCurrentDateRange({
-            start_date: accountObject.start_date,
-            end_date: accountObject.end_date
-          });
-          setStartDateError(null);
-          setEndDateError(null);
-        }
-      } else {
-        setShowDates(false);
-      }
-    }
-    return () => {
-      const parentArr = [...withoutGocardlessData, ...gocardlessData];
-      const accountObject = parentArr.find(i => selectedId === i.id);
-      if (accountObject && !accountObject.continue_with_gocardless) {
-        if (currentDateRange.start_date && currentDateRange.end_date) {
-          accountObject.start_date = currentDateRange.start_date;
-          accountObject.end_date = currentDateRange.end_date;
-          sortTransactionCheckpoint();
-        }
-      }
-    };
+  // NEW IMPLEMENTATION
+  useEffect(() => {
+    // Fresh Manual Entry mode always displays Start Date, End Date, and Add button
+    setShowDates(true);
   }, []);
 
   const [chips, setChips] = useState(gocardlessSortingConstant);
@@ -305,59 +459,120 @@ const GoCardlessModal = ({
     fetchTransactionCategor();
   }, []);
 
+  // OLD IMPLEMENTATION - kept for reference
+  // useEffect(() => {
+  //   if (selectedId) {
+  //     downloadData();
+  //   }
+  // }, [selectedId]);
+
+  // NEW IMPLEMENTATION
   useEffect(() => {
-    if (selectedId) {
+    if (selectedId && isGocardless) {
       downloadData();
     }
-  }, [selectedId]);
+  }, [selectedId, isGocardless]);
 
+  // OLD IMPLEMENTATION - kept for reference
+  // const onBulkSort = () => {
+  //   setIsLoading(true);
+  //   try {
+  //     if (isDebitListing) {
+  //       const debarr = [...debitData];
+  //       const parentArr = [...gocardlessData];
+  //
+  //       debarr.forEach(item => {
+  //         const values = chips.debit[type];
+  //         for (const value of values) {
+  //           if (item.remittanceInformationUnstructured) {
+  //             const remittanceInfo =
+  //               item.remittanceInformationUnstructured.toLowerCase();
+  //
+  //             if (remittanceInfo.includes(value.toLowerCase())) {
+  //               item.category = type;
+  //               break;
+  //             }
+  //           }
+  //         }
+  //       });
+  //       const accountObject = parentArr.find(i => selectedId === i.id);
+  //
+  //       accountObject.debit = debarr;
+  //       setGocardlessData(parentArr);
+  //     } else {
+  //       const credarr = [...creditData];
+  //       const parentArr = [...gocardlessData];
+  //
+  //       credarr.forEach(item => {
+  //         const values = chips.credit[type];
+  //         for (const value of values) {
+  //           if (item.remittanceInformationUnstructured) {
+  //             const remittanceInfo =
+  //               item.remittanceInformationUnstructured.toLowerCase();
+  //
+  //             if (remittanceInfo.includes(value.toLowerCase())) {
+  //               item.category = type;
+  //               break;
+  //             }
+  //           }
+  //         }
+  //       });
+  //       const accountObject = parentArr.find(i => selectedId === i.id);
+  //
+  //       accountObject.credit = credarr;
+  //       setGocardlessData(parentArr);
+  //     }
+  //     setIsLoading(false);
+  //   } catch {
+  //     setIsLoading(false);
+  //   }
+  //   setOpenChipInput(false);
+  // };
+
+  // NEW IMPLEMENTATION
   const onBulkSort = () => {
     setIsLoading(true);
     try {
       if (isDebitListing) {
         const debarr = [...debitData];
-        const parentArr = [...gocardlessData];
-
         debarr.forEach(item => {
           const values = chips.debit[type];
-          for (const value of values) {
-            if (item.remittanceInformationUnstructured) {
-              const remittanceInfo =
-                item.remittanceInformationUnstructured.toLowerCase();
+          if (values) {
+            for (const value of values) {
+              if (item.remittanceInformationUnstructured) {
+                const remittanceInfo =
+                  item.remittanceInformationUnstructured.toLowerCase();
 
-              if (remittanceInfo.includes(value.toLowerCase())) {
-                item.category = type;
-                break;
+                if (remittanceInfo.includes(value.toLowerCase())) {
+                  item.category = type;
+                  break;
+                }
               }
             }
           }
         });
-        const accountObject = parentArr.find(i => selectedId === i.id);
-
-        accountObject.debit = debarr;
-        setGocardlessData(parentArr);
+        setDebitData(debarr);
+        updateParentBankData(debarr, creditData);
       } else {
         const credarr = [...creditData];
-        const parentArr = [...gocardlessData];
-
         credarr.forEach(item => {
           const values = chips.credit[type];
-          for (const value of values) {
-            if (item.remittanceInformationUnstructured) {
-              const remittanceInfo =
-                item.remittanceInformationUnstructured.toLowerCase();
+          if (values) {
+            for (const value of values) {
+              if (item.remittanceInformationUnstructured) {
+                const remittanceInfo =
+                  item.remittanceInformationUnstructured.toLowerCase();
 
-              if (remittanceInfo.includes(value.toLowerCase())) {
-                item.category = type;
-                break;
+                if (remittanceInfo.includes(value.toLowerCase())) {
+                  item.category = type;
+                  break;
+                }
               }
             }
           }
         });
-        const accountObject = parentArr.find(i => selectedId === i.id);
-
-        accountObject.credit = credarr;
-        setGocardlessData(parentArr);
+        setCreditData(credarr);
+        updateParentBankData(debitData, credarr);
       }
       setIsLoading(false);
     } catch {
@@ -406,7 +621,8 @@ const GoCardlessModal = ({
               <p className="font-semibold text-gray-700">{'Bank Name:'}</p>
               <p className="text-gray-900">{bankData?.bank_name}</p>
             </div>
-            <button
+            {/* OLD IMPLEMENTATION - kept for reference */}
+            {/* <button
               type="button"
               onClick={() => {
                 if (showDates) {
@@ -426,6 +642,30 @@ const GoCardlessModal = ({
                 } else {
                   sortTransactionCheckpoint(true);
                 }
+              }}
+              className="rounded-lg bg-[#1B4398] px-6 py-2 text-sm font-semibold text-white transition-all duration-200 hover:bg-[#3a5692] focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              {'Save Sort'}
+            </button> */}
+
+            {/* NEW IMPLEMENTATION */}
+            <button
+              type="button"
+              onClick={() => {
+                if (showDates) {
+                  if (!currentDateRange.start_date || !currentDateRange.end_date) {
+                    showToast('Start date and End date are mandatory', {
+                      type: NotificationType.Error
+                    });
+                    return;
+                  }
+                }
+                const updatedArr = updateParentBankData(
+                  debitData,
+                  creditData,
+                  currentDateRange
+                );
+                sortTransactionCheckpoint(true, updatedArr);
               }}
               className="rounded-lg bg-[#1B4398] px-6 py-2 text-sm font-semibold text-white transition-all duration-200 hover:bg-[#3a5692] focus:outline-none focus:ring-2 focus:ring-blue-500"
             >

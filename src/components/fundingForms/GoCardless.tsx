@@ -192,11 +192,41 @@ const GoCardLess: React.FC<LoanFromCommonProps> = ({
     }
   };
 
-  const sortTransactionCheckpoint = async (isToast = false) => {
+  // OLD IMPLEMENTATION - kept for reference
+  // const sortTransactionCheckpoint = async (isToast = false) => {
+  //   try {
+  //     setIsLoading(true);
+  //     const response = await gocardlessStatementGroupedApi(
+  //       isGocardless ? gocardlessData : withoutGocardlessData,
+  //       loanId
+  //     );
+  //     if (response?.status_code === 200) {
+  //       if (isToast) {
+  //         showToast('Statement sorting Saved Successfully', {
+  //           type: NotificationType.Success
+  //         });
+  //       }
+  //     } else {
+  //       showToast('Error while submitting grouped statements', {
+  //         type: NotificationType.Error
+  //       });
+  //     }
+  //   } catch {
+  //     showToast('Error while submitting grouped statements', {
+  //       type: NotificationType.Error
+  //     });
+  //   } finally {
+  //     setIsLoading(false);
+  //   }
+  // };
+
+  // NEW IMPLEMENTATION
+  const sortTransactionCheckpoint = async (isToast = false, customData = null) => {
     try {
       setIsLoading(true);
+      const dataToSubmit = customData || (isGocardless ? gocardlessData : withoutGocardlessData);
       const response = await gocardlessStatementGroupedApi(
-        isGocardless ? gocardlessData : withoutGocardlessData,
+        dataToSubmit,
         loanId
       );
       if (response?.status_code === 200) {
@@ -255,6 +285,23 @@ const GoCardLess: React.FC<LoanFromCommonProps> = ({
     );
   };
 
+  // OLD IMPLEMENTATION - kept for reference
+  // useEffect(() => {
+  //   if (authenticated && loanId) fetchGocardlessStatementApi(loanId);
+  //   if (setStatueUpdate) {
+  //     setStatueUpdate(prev => !prev);
+  //   }
+  // }, [
+  //   authenticated,
+  //   loanId,
+  //   isSendConsent,
+  //   isUpdatedPrimaryAccount,
+  //   isBankDetailsAdded,
+  //   showModal,
+  //   updateRequisitionLink
+  // ]);
+
+  // NEW IMPLEMENTATION
   useEffect(() => {
     if (authenticated && loanId) fetchGocardlessStatementApi(loanId);
     if (setStatueUpdate) {
@@ -266,7 +313,6 @@ const GoCardLess: React.FC<LoanFromCommonProps> = ({
     isSendConsent,
     isUpdatedPrimaryAccount,
     isBankDetailsAdded,
-    showModal,
     updateRequisitionLink
   ]);
 
@@ -354,13 +400,31 @@ const GoCardLess: React.FC<LoanFromCommonProps> = ({
         </>
       )}
 
-      {showModal && (
+      {/* OLD IMPLEMENTATION - kept for reference */}
+      {/* {showModal && (
         <GoCardlessModal
           isGocardless={isGocardless}
           onClose={() => {
             setShowModal(false);
           }}
           selectedId={selectedStatement?.id}
+          setGocardlessData={setGocardlessData}
+          gocardlessData={gocardlessData}
+          withoutGocardlessData={withoutGocardlessData}
+          setWithoutGocardlessData={setWithoutGocardlessData}
+          sortTransactionCheckpoint={sortTransactionCheckpoint}
+        />
+      )} */}
+
+      {/* NEW IMPLEMENTATION */}
+      {showModal && (
+        <GoCardlessModal
+          isGocardless={false}
+          selectedStatement={selectedStatement}
+          onClose={() => {
+            setShowModal(false);
+          }}
+          selectedId={selectedStatement?.id || selectedStatement?.statement_id}
           setGocardlessData={setGocardlessData}
           gocardlessData={gocardlessData}
           withoutGocardlessData={withoutGocardlessData}
