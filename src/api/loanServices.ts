@@ -1,6 +1,6 @@
 import { FundingFromCurrentStatus } from '../utils/enums';
 import { urlQueryCreate } from '../utils/helpers';
-import { Delete, Get, Patch, Post, Put } from './axios';
+import { CreateInstance, Delete, Get, Patch, Post, Put } from './axios';
 
 const baseUrl = '/loan';
 const manageLoanBaseUrl = '/manage_loan';
@@ -1205,6 +1205,28 @@ const resentRequisitionAPI = (loanId: string, payload: {
   });
 };
 
+const getBankAccountsForDownloadApi = (loanId: string) => {
+  return Get({
+    url: `${bankDetailsDownloadUrl}${loanId}/`,
+    request: {}
+  });
+};
+
+const downloadBankDetailsFileApi = (accountId: string) => {
+  const instance = CreateInstance();
+  try {
+    return instance.post(`${bankDetailsDownloadUrl}${accountId}/`, {}, {
+      responseType: 'blob'
+    });
+  } catch (error) {
+    if (error?.response?.data) {
+      return error.response.data;
+    } else {
+      throw new Error();
+    }
+  }
+};
+
 export {
   addNewMandateSubscription,
   addNewPap,
@@ -1367,5 +1389,7 @@ export {
   getLoanStatement,
   resentRequisitionAPI,
   skipPapContractApi,
-  listCompaniesApiNew
+  listCompaniesApiNew,
+  getBankAccountsForDownloadApi,
+  downloadBankDetailsFileApi
 };

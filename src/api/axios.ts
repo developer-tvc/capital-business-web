@@ -56,6 +56,8 @@ const CreateInstance = () => {
   return apiWithHeaders;
 };
 
+export { CreateInstance };
+
 export const Post = async ({ request, url }: ApiParamsType) => {
   const instance = CreateInstance();
   try {

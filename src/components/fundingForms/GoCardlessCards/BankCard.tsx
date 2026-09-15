@@ -3,7 +3,8 @@ import { HiOutlineDotsHorizontal } from 'react-icons/hi';
 import { useSelector } from 'react-redux';
 
 import {
-  downloadBankDetailsApi,
+  downloadBankDetailsFileApi,
+  getBankAccountsForDownloadApi,
   primaryBankAccountApi
 } from '../../../api/loanServices';
 import build from '../../../assets/svg/gocard_bank.svg';
@@ -13,8 +14,7 @@ import { FundingFromCurrentStatus, Roles } from '../../../utils/enums';
 import { NotificationType } from '../../../utils/hooks/toastify/enums';
 import useToast from '../../../utils/hooks/toastify/useToast';
 import RevokedRequisitionModal from './RevokedRequisitionModal';
-// OLD IMPLEMENTATION - kept for reference
-// import BankDetails from '../../customerDocuments/BankDetails';
+import BankAccountSelectionModal from './BankAccountSelectionModal';
 
 const BankCard = ({
   statement,
@@ -31,10 +31,10 @@ const BankCard = ({
   const { role } = useSelector(authSelector);
   const { showToast } = useToast();
   const [showRevokedModal, setShowRevokedModal] = useState(false);
-  const [isDownloading, setIsDownloading] = useState(false);
   const [downloadSuccess, setDownloadSuccess] = useState(false);
-  // OLD IMPLEMENTATION - kept for reference
-  // const [showBankDetailsModal, setShowBankDetailsModal] = useState(false);
+  const [showBankDetailsModal, setShowBankDetailsModal] = useState(false);
+  const [bankAccounts, setBankAccounts] = useState([]);
+  const [isFetchingBankAccounts, setIsFetchingBankAccounts] = useState(false);
 
   const getStyle = () => {
     if (isHigherAuthority && !isFundingInProgress) {
@@ -81,78 +81,52 @@ const BankCard = ({
     }
   };
 
-  // OLD IMPLEMENTATION - kept for reference (dummy data download)
-  // const handleDownloadBankDetails = async () => {
-  //   setIsDownloading(true);
-  //   try {
-  //     // Dummy API delay
-  //     await new Promise(resolve => setTimeout(resolve, 1500));
-  //
-  //     const dummyResponse = {
-  //       bank_name: statement.bank_name || 'HSBC Business',
-  //       account_holder_name: statement.account_holder_name || 'DSIM DISTRIBUTION LTD',
-  //       account_number: statement.bank_account_number || '30263893',
-  //       statement_start_date: statement.start_date || '2026-05-18',
-  //       statement_end_date: statement.end_date || '2026-08-12'
-  //     };
-  //
-  //     const blob = new Blob([JSON.stringify(dummyResponse, null, 2)], {
-  //       type: 'application/json'
-  //     });
-  //     const url = URL.createObjectURL(blob);
-  //     const link = document.createElement('a');
-  //     link.href = url;
-  //     link.download = 'bank-details.json';
-  //     document.body.appendChild(link);
-  //     link.click();
-  //     document.body.removeChild(link);
-  //     URL.revokeObjectURL(url);
-  //
-  //     setDownloadSuccess(true);
-  //     showToast('Bank details downloaded successfully', {
-  //       type: NotificationType.Success
-  //     });
-  //   } catch (error) {
-  //     showToast('Failed to download bank details', {
-  //       type: NotificationType.Error
-  //     });
-  //     setDownloadSuccess(false);
-  //   } finally {
-  //     setIsDownloading(false);
-  //   }
-  // };
-
-  // NEW IMPLEMENTATION - using real bank_details_download/<loan_id> API
   const handleDownloadBankDetails = async () => {
-    setIsDownloading(true);
+    setIsFetchingBankAccounts(true);
     try {
-      const response = await downloadBankDetailsApi(loanId);
-
-      if (response?.status_code && response.status_code >= 400) {
-        showToast(response.status_message || 'Failed to download bank details', {
+      const response = await getBankAccountsForDownloadApi(loanId);
+      if (response?.status_code >= 200 && response?.status_code < 300) {
+        if (response.data && response.data.length > 0) {
+          setBankAccounts(response.data);
+          setShowBankDetailsModal(true);
+        } else {
+          showToast('No bank accounts available for download.', {
+            type: NotificationType.Error
+          });
+        }
+      } else {
+        showToast(response.status_message || 'Error fetching bank accounts', {
           type: NotificationType.Error
         });
-        setDownloadSuccess(false);
-        return;
       }
+    } catch (error) {
+      showToast('Something went wrong!', { type: NotificationType.Error });
+    } finally {
+      setIsFetchingBankAccounts(false);
+    }
+  };
 
-      let blob: Blob;
-      if (response instanceof Blob) {
-        blob = response;
-      } else {
-        const downloadContent =
-          response?.data !== undefined ? response.data : response;
-        const fileData =
-          typeof downloadContent === 'string'
-            ? downloadContent
-            : JSON.stringify(downloadContent, null, 2);
-        blob = new Blob([fileData], { type: 'application/json' });
+  const handleDownloadFile = async (accountId: string) => {
+    try {
+      const response = await downloadBankDetailsFileApi(accountId);
+      
+      const blob = new Blob([response.data], {
+        type: 'application/json'
+      });
+      
+      const contentDisposition = response.headers['content-disposition'];
+      let filename = `bank_details_${accountId}.json`;
+      if (contentDisposition) {
+        const filenameMatch = contentDisposition.match(/filename="?([^";]+)"?/);
+        if (filenameMatch && filenameMatch[1]) {
+          filename = filenameMatch[1];
+        }
       }
-
+      
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
-      link.download = `bank-details-${statement.bank_name || loanId || 'download'}.json`;
+      link.download = filename;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -163,13 +137,10 @@ const BankCard = ({
         type: NotificationType.Success
       });
     } catch (error) {
-      console.error('Failed to download bank details', error);
       showToast('Failed to download bank details', {
         type: NotificationType.Error
       });
-      setDownloadSuccess(false);
-    } finally {
-      setIsDownloading(false);
+      throw error;
     }
   };
 
@@ -314,31 +285,17 @@ const showThreeDots =
         
         <button
           onClick={handleDownloadBankDetails}
-          disabled={isDownloading}
+          disabled={isFetchingBankAccounts}
           className="rounded bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          {isDownloading ? 'Downloading...' : 'Download Bank Details'}
+          {isFetchingBankAccounts ? 'Loading...' : 'Download Bank Details'}
         </button>
 
-        {/* OLD IMPLEMENTATION - kept for reference */}
-        {/* <button
-          onClick={() => {
-            setSelectedStatement(statement);
-            setShowModal(true);
-            setIsGocardless(statement.continue_with_gocardless);
-          }}
-          disabled={!downloadSuccess}
-          className="rounded bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          Add Sort Data
-        </button> */}
-
-        {/* NEW IMPLEMENTATION */}
         <button
           onClick={() => {
             setSelectedStatement(statement);
             setShowModal(true);
-            setIsGocardless(false);
+            setIsGocardless(statement.continue_with_gocardless);
           }}
           disabled={!downloadSuccess}
           className="rounded bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
@@ -358,6 +315,19 @@ const showThreeDots =
           }}
           loanId={loanId}
           onSuccess={onRevokeSuccess}
+        />
+      )}
+
+      {/* Bank Account Selection Modal */}
+      {showBankDetailsModal && (
+        <BankAccountSelectionModal
+          isOpen={showBankDetailsModal}
+          onClose={() => {
+            setShowBankDetailsModal(false);
+            setBankAccounts([]);
+          }}
+          bankAccounts={bankAccounts}
+          onDownload={handleDownloadFile}
         />
       )}
     </div>
