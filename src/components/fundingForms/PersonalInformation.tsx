@@ -16,6 +16,7 @@ import {
   personalInformationPostAPI
 } from '../../api/loanServices';
 import { userProfileApi } from '../../api/userServices';
+// userProfileEditApi - Commented out for future use (no longer needed with corrected flow)
 // OTP-related imports (commented out for future use)
 // import { resendOtpAPI, signUpAPI } from '../../api/userAuthServices';
 import quest from '../../assets/svg/ph_question.svg';
@@ -35,7 +36,7 @@ import {
 } from '../../utils/constants';
 import { ModeOfApplication, Roles } from '../../utils/enums';
 import {
-  chkCustNewLoan,
+  // OLD IMPLEMENTATION: chkCustNewLoan,
   fetchFilledForms,
   lookUpAddressFormatter,
   updateFilledForms
@@ -53,7 +54,7 @@ import FieldRenderer from '../commonInputs/FieldRenderer';
 import Loader from '../Loader';
 import AddressLookup from './AddressLookup';
 import NotEligibleModal from './modals/NotEligibleModal';
-import { authSelector, setUser } from '../../store/auth/userSlice';
+import { authSelector } from '../../store/auth/userSlice';
 
 interface PersonalInformationProps extends LoanFromCommonProps {
   // setLoan?: Dispatch<SetStateAction<Partial<LoanData>>>; - Commented out for future use
@@ -64,6 +65,7 @@ interface PersonalInformationProps extends LoanFromCommonProps {
   renewFundingCompanyName?: string | null;
   onLoanCreated?: (loanId: string) => void;
   onProfileReadyChange?: (isReady: boolean) => void;
+  onProfileLoadedChange?: (isLoaded: boolean) => void;
 }
 
 const PersonalInformation: React.FC<PersonalInformationProps> = ({
@@ -75,25 +77,27 @@ const PersonalInformation: React.FC<PersonalInformationProps> = ({
   renewFundingCompanyId = null,
   renewFundingCompanyName = null,
   onLoanCreated,
-  onProfileReadyChange
+  // onProfileReadyChange, - Commented out for future use
+  onProfileLoadedChange
 }) => {
-  const [isEligibleNewLoan, setIsEligibleNewLoan] = useState<{
-    isApplicableForNewLoan: boolean;
-    loanCount: number;
-  }>(null);
-
-  useEffect(() => {
-    const checkEligibility = async () => {
-      try {
-        const eligibility = await chkCustNewLoan();
-        setIsEligibleNewLoan(eligibility);
-      } catch (_error) {
-        setIsEligibleNewLoan(null); // or handle error state
-      }
-    };
-
-    checkEligibility();
-  }, []);
+  // OLD IMPLEMENTATION: Eligibility check for OTP / new loan logic
+  // const [isEligibleNewLoan, setIsEligibleNewLoan] = useState<{
+  //   isApplicableForNewLoan: boolean;
+  //   loanCount: number;
+  // }>(null);
+  //
+  // useEffect(() => {
+  //   const checkEligibility = async () => {
+  //     try {
+  //       const eligibility = await chkCustNewLoan();
+  //       setIsEligibleNewLoan(eligibility);
+  //     } catch (_error) {
+  //       setIsEligibleNewLoan(null); // or handle error state
+  //     }
+  //   };
+  //
+  //   checkEligibility();
+  // }, []);
 
   const formRef = useRef<HTMLFormElement>(null);
   setRef(formRef);
@@ -122,6 +126,18 @@ const PersonalInformation: React.FC<PersonalInformationProps> = ({
     useState<boolean>(false);
   const [isAssignedAgent, setIsAssignedAgent] = useState(false);
   const [isRepAssignedRemind, setIsRepAssignedRemind] = useState(false);
+  
+  // NEW IMPLEMENTATION: State for signup and profile loading
+  const [isSignupLoading, setIsSignupLoading] = useState(false);
+  const [isProfileLoaded, setIsProfileLoaded] = useState(false);
+  const [isProfileLoading, setIsProfileLoading] = useState(false);
+  const [profileCustomerId, setProfileCustomerId] = useState<string | null>(null);
+  const [signupLoanId, setSignupLoanId] = useState<string | null>(null);
+  
+  // NEW IMPLEMENTATION: Sync profile loaded state with parent component
+  useEffect(() => {
+    onProfileLoadedChange?.(isProfileLoaded);
+  }, [isProfileLoaded, onProfileLoadedChange]);
 
   // const { isSendOtp } = useSelector(loanFormSliceSelector);
 
@@ -172,6 +188,20 @@ const PersonalInformation: React.FC<PersonalInformationProps> = ({
     }
   }, [isRenewFundingMode, renewFundingCompanyName, loanId, authenticated, reset]);
 
+  // NEW IMPLEMENTATION: Reset profile loaded state when authentication changes or for new applications
+  useEffect(() => {
+    if (authenticated) {
+      // If already authenticated, profile should be considered loaded
+      setIsProfileLoaded(true);
+      onProfileLoadedChange?.(true);
+    } else if (!loanId) {
+      // For new applications without authentication, reset profile loaded state
+      setIsProfileLoaded(false);
+      onProfileLoadedChange?.(false);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [authenticated, loanId]);
+
   // Fetch user profile data and auto-fill personal details in renew funding mode or new loan application
   useEffect(() => {
     const fetchUserProfile = async () => {
@@ -203,6 +233,34 @@ const PersonalInformation: React.FC<PersonalInformationProps> = ({
             setValue('pincode', extractedPostcode || '');
             setValue('address', userData.address || '');
             setValue('is_major', userData.is_18_plus || userData.is_major || false);
+
+            // NEW IMPLEMENTATION: Populate additional form fields from user profile
+            setValue('mode_of_application', userData.mode_of_application || ModeOfApplication.Self);
+            setValue('company.company_name', userData.company_name || '');
+            setValue('company.business_type', userData.business_type || '');
+            setValue('company.funding_purpose', userData.funding_purpose || '');
+            setValue('fund_request_amount', userData.fund_request_amount || 0);
+            setValue('fund_request_duration_weeks', userData.fund_request_duration_weeks || 0);
+            setValue('repayment_day_of_week', userData.repayment_day_of_week || '');
+
+            // OLD IMPLEMENTATION: Stored numeric customer_id instead of UUID
+            // if (userData.customer_id) {
+            //   setProfileCustomerId(userData.customer_id);
+            // }
+            // NEW IMPLEMENTATION: Store the customer UUID (userData.id is UUID, userData.customer_id is numeric)
+            if (userData.id) {
+              setProfileCustomerId(userData.id);
+            } else if (userData.customer_id) {
+              setProfileCustomerId(String(userData.customer_id));
+            }
+            if (userData.loan_details?.[0]?.loan_id) {
+              setSignupLoanId(userData.loan_details[0].loan_id);
+              onLoanCreated?.(userData.loan_details[0].loan_id);
+            }
+
+            // NEW IMPLEMENTATION: Mark profile as loaded for authenticated users
+            setIsProfileLoaded(true);
+            onProfileLoadedChange?.(true);
           }
         } catch (_error) {
           // Silently handle profile fetch errors
@@ -279,125 +337,107 @@ const PersonalInformation: React.FC<PersonalInformationProps> = ({
     );
   };
 
-  const ensureSignupAuthentication = async (data: personalInformationType) => {
-    if (authenticated) {
-      return {
-        isAuthenticated: true,
-        customerId: customerId?.toString()
-      };
-    }
-
-    const signupResponse = await signUp({
-      phone_number: data.phone_number,
-      email: data.email,
-      first_name: data.first_name,
-      last_name: data.last_name
-    });
-    const statusCode = signupResponse?.status_code;
-
-    if (
-      statusCode &&
-      (Number(statusCode) < 200 || Number(statusCode) >= 300)
-    ) {
-      showToast(getResponseMessage(signupResponse), {
-        type: NotificationType.Error
-      });
-
-      return {
-        isAuthenticated: false,
-        customerId: undefined
-      };
-    }
-
-    if (!signupResponse?.authenticated) {
-      const message =
-        statusCode && Number(statusCode) >= 200 && Number(statusCode) < 300
-          ? 'Signup completed without an authentication token.'
-          : getResponseMessage(signupResponse);
-
-      showToast(message, { type: NotificationType.Error });
-
-      return {
-        isAuthenticated: false,
-        customerId: undefined
-      };
-    }
-
-    return {
-      isAuthenticated: true,
-      customerId: signupResponse?.user?.id?.toString()
-    };
-  };
+  // OLD IMPLEMENTATION: ensureSignupAuthentication function - no longer needed since signup happens via SEND button
+  // const ensureSignupAuthentication = async (data: personalInformationType) => {
+  //   if (authenticated) {
+  //     return {
+  //       isAuthenticated: true,
+  //       customerId: customerId?.toString()
+  //     };
+  //   }
+  //
+  //   const signupResponse = await signUp({
+  //     phone_number: data.phone_number,
+  //     email: data.email,
+  //     first_name: data.first_name,
+  //     last_name: data.last_name
+  //   });
+  //   const statusCode = signupResponse?.status_code;
+  //
+  //   if (
+  //     statusCode &&
+  //     (Number(statusCode) < 200 || Number(statusCode) >= 300)
+  //   ) {
+  //     showToast(getResponseMessage(signupResponse), {
+  //       type: NotificationType.Error
+  //     });
+  //
+  //     return {
+  //       isAuthenticated: false,
+  //       customerId: undefined
+  //     };
+  //   }
+  //
+  //   if (!signupResponse?.authenticated) {
+  //     const message =
+  //       statusCode && Number(statusCode) >= 200 && Number(statusCode) < 300
+  //         ? 'Signup completed without an authentication token.'
+  //         : getResponseMessage(signupResponse);
+  //
+  //     showToast(message, { type: NotificationType.Error });
+  //
+  //     return {
+  //       isAuthenticated: false,
+  //       customerId: undefined
+  //     };
+  //   }
+  //
+  //   return {
+  //     isAuthenticated: true,
+  //     customerId: signupResponse?.user?.id?.toString()
+  //   };
+  // };
 
   const onSubmit: SubmitHandler<personalInformationType> = async data => {
     setIsLoading(true);
     try {
-      // Create loan first if loanId is undefined (both for renew funding and normal new applications)
-      if (!loanId) {
+      // OLD IMPLEMENTATION: Create loan first only if loanId is undefined
+      // if (!loanId) {
+      //   try {
+      //     const response = await applyNewLoaApi(
+      //       profileCustomerId || customerId?.toString(),
+      //       renewFundingCompanyId
+      //     );
+      //     if (response?.status_code >= 200 && response?.status_code < 300) {
+      //       const newLoanId = response?.data?.id;
+      //       if (newLoanId) {
+      //         onLoanCreated?.(newLoanId);
+      //         const personalInformationPostAPIResponse =
+      //           await personalInformationPostAPI(data, newLoanId);
+      // ...
+      // NEW IMPLEMENTATION: Use targetLoanId from loanId prop, signupLoanId, or applyNewLoaApi
+      let targetLoanId = loanId || signupLoanId;
+      if (!targetLoanId) {
         try {
-          const signupAuth = await ensureSignupAuthentication(data);
-
-          if (!signupAuth.isAuthenticated) {
-            return;
-          }
-
           const response = await applyNewLoaApi(
-            signupAuth.customerId,
+            profileCustomerId || customerId?.toString(),
             renewFundingCompanyId
           );
           if (response?.status_code >= 200 && response?.status_code < 300) {
-            const newLoanId = response?.data?.id;
-            if (newLoanId) {
-              // Call the callback to update the loan ID in parent
-              onLoanCreated?.(newLoanId);
-              // Now submit the personal information with the new loan ID
-              const personalInformationPostAPIResponse =
-                await personalInformationPostAPI(data, newLoanId);
-              if (
-                personalInformationPostAPIResponse.status_code >= 200 &&
-                personalInformationPostAPIResponse.status_code < 300
-              ) {
-                showToast(personalInformationPostAPIResponse.status_message, {
-                  type: NotificationType.Success
-                });
-                const filledForms = await fetchFilledForms(newLoanId);
-                updateFilledForms(newLoanId, {
-                  complete_personal_detail: true
-                });
-                setTimeout(async () => {
-                  if (
-                    (data.mode_of_application === ModeOfApplication.Representative &&
-                      filledForms === 0) ||
-                    ([Roles.Customer, Roles.Leads].includes(role) &&
-                      personalInfo.mode_of_application === ModeOfApplication.Self &&
-                      data.mode_of_application === ModeOfApplication.Representative)
-                  ) {
-                    setIsRepAssignedRemind(true);
-                  } else {
-                    dispatch(updateCurrentStage(2));
-                  }
-                }, 1500);
-              } else {
-                showToast(personalInformationPostAPIResponse.status_message, {
-                  type: NotificationType.Error
-                });
-              }
-            } else {
-              showToast('Failed to create loan application - no loan ID returned', {
-                type: NotificationType.Error
-              });
+            targetLoanId = response?.data?.id;
+            if (targetLoanId) {
+              setSignupLoanId(targetLoanId);
+              onLoanCreated?.(targetLoanId);
             }
-          } else {
-            showToast('Failed to create loan application', {
-              type: NotificationType.Error
-            });
           }
         } catch (_error) {
           showToast('Failed to create loan application', {
             type: NotificationType.Error
           });
+          setIsLoading(false);
+          return;
         }
-      } else if (
+      }
+
+      if (!targetLoanId) {
+        showToast('Failed to create loan application - no loan ID returned', {
+          type: NotificationType.Error
+        });
+        setIsLoading(false);
+        return;
+      }
+
+      if (
         data.company.business_type === 'Limited Company' &&
         data.company.company_status === 'Dissolved'
       ) {
@@ -415,7 +455,7 @@ const PersonalInformation: React.FC<PersonalInformationProps> = ({
           delete data.company.other_funding_purpose;
         }
         const personalInformationPostAPIResponse =
-          await personalInformationPostAPI(data, loanId);
+          await personalInformationPostAPI(data, targetLoanId);
         if (
           personalInformationPostAPIResponse.status_code >= 200 &&
           personalInformationPostAPIResponse.status_code < 300
@@ -423,10 +463,10 @@ const PersonalInformation: React.FC<PersonalInformationProps> = ({
           showToast(personalInformationPostAPIResponse.status_message, {
             type: NotificationType.Success
           });
-          const filledForms = await fetchFilledForms(loanId);
-          updateFilledForms(loanId, {
+          const filledForms = await fetchFilledForms(targetLoanId);
+          updateFilledForms(targetLoanId, {
             complete_personal_detail: true
-          }); // update filled forms
+          });
           setTimeout(async () => {
             if (
               (data.mode_of_application === ModeOfApplication.Representative &&
@@ -469,6 +509,12 @@ const PersonalInformation: React.FC<PersonalInformationProps> = ({
   // const watchFirstName = watch('first_name', '');
   // const watchLastName = watch('last_name', '');
   const watchPinCode = watch('pincode', personalInfo?.pincode || '');
+  
+  // NEW IMPLEMENTATION: Watch variables for signup
+  const watchPhoneNumber = watch('phone_number', '');
+  const watchEmail = watch('email', '');
+  const watchFirstName = watch('first_name', '');
+  const watchLastName = watch('last_name', '');
 
   // const { rePaymentAmount, weeklyInstallments } = useCalculator(watchFundRequest, watchDuration);
 
@@ -614,6 +660,163 @@ const PersonalInformation: React.FC<PersonalInformationProps> = ({
   //   setShowPassword(!showPassword);
   // };
 
+  // NEW IMPLEMENTATION: Handle SEND button click for signup
+  const handleSendSignup = async () => {
+    // Validate required fields for signup
+    const isPhoneNumberValid = await trigger('phone_number');
+    const isEmailValid = await trigger('email');
+    const isFirstNameValid = await trigger('first_name');
+    const isLastNameValid = await trigger('last_name');
+
+    if (!isPhoneNumberValid || !isEmailValid || !isFirstNameValid || !isLastNameValid) {
+      showToast('Please fill in all required fields (Phone, Email, First Name, Last Name)', {
+        type: NotificationType.Error
+      });
+      return;
+    }
+
+    if (!watchPhoneNumber || !watchEmail || !watchFirstName || !watchLastName) {
+      showToast('Please fill in all required fields', {
+        type: NotificationType.Error
+      });
+      return;
+    }
+
+    // Prevent duplicate requests
+    if (isSignupLoading) {
+      return;
+    }
+
+    setIsSignupLoading(true);
+
+    try {
+      const signupResponse = await signUp({
+        phone_number: watchPhoneNumber,
+        email: watchEmail,
+        first_name: watchFirstName,
+        last_name: watchLastName
+      });
+
+      const statusCode = signupResponse?.status_code;
+
+      if (statusCode && (Number(statusCode) < 200 || Number(statusCode) >= 300)) {
+        showToast(getResponseMessage(signupResponse), {
+          type: NotificationType.Error
+        });
+        return;
+      }
+
+      if (!signupResponse?.authenticated) {
+        const message =
+          statusCode && Number(statusCode) >= 200 && Number(statusCode) < 300
+            ? 'Signup completed without an authentication token.'
+            : getResponseMessage(signupResponse);
+
+        showToast(message, { type: NotificationType.Error });
+        return;
+      }
+
+      // If backend returned a loan object during signup, save it
+      const newLoanId = signupResponse?.data?.loan?.id || signupResponse?.loan?.id;
+      if (newLoanId) {
+        setSignupLoanId(newLoanId);
+        onLoanCreated?.(newLoanId);
+      }
+
+      // Signup succeeded and authentication is established
+      showToast('Signup successful!', { type: NotificationType.Success });
+
+      // Now fetch user profile to populate form and enable Save & Continue
+      await fetchUserProfileAfterSignup();
+    } catch (error) {
+      showToast('Signup failed. Please try again.', {
+        type: NotificationType.Error
+      });
+    } finally {
+      setIsSignupLoading(false);
+    }
+  };
+
+  // NEW IMPLEMENTATION: Fetch user profile after successful signup
+  const fetchUserProfileAfterSignup = async () => {
+    setIsProfileLoading(true);
+
+    try {
+      const response = await userProfileApi();
+
+      if (response?.status_code === 200 && response?.data) {
+        const userData = response.data;
+
+        // Extract postcode from address (format: "address, postcode")
+        let extractedPostcode = '';
+        if (userData.address) {
+          const addressParts = userData.address.split(',').map(part => part.trim());
+          const lastPart = addressParts[addressParts.length - 1];
+          // UK postcode pattern: AA9A 9AA or A9A 9AA
+          const postcodeMatch = lastPart.match(/[A-Z]{1,2}[0-9][A-Z0-9]? [0-9][A-Z]{2}/i);
+          if (postcodeMatch) {
+            extractedPostcode = postcodeMatch[0].toUpperCase();
+          }
+        }
+
+        // Auto-fill personal details from user profile
+        setValue('title', userData.title || '');
+        setValue('first_name', userData.first_name || '');
+        setValue('last_name', userData.last_name || '');
+        setValue('email', userData.email || '');
+        setValue('phone_number', userData.phone_number || '');
+        setValue('pincode', extractedPostcode || '');
+        setValue('address', userData.address || '');
+        setValue('is_major', userData.is_18_plus || userData.is_major || false);
+
+        // NEW IMPLEMENTATION: Populate additional form fields from user profile
+        setValue('mode_of_application', userData.mode_of_application || ModeOfApplication.Self);
+        setValue('company.company_name', userData.company_name || '');
+        setValue('company.business_type', userData.business_type || '');
+        setValue('company.funding_purpose', userData.funding_purpose || '');
+        setValue('fund_request_amount', userData.fund_request_amount || 0);
+        setValue('fund_request_duration_weeks', userData.fund_request_duration_weeks || 0);
+        setValue('repayment_day_of_week', userData.repayment_day_of_week || '');
+
+        // OLD IMPLEMENTATION: Stored numeric customer_id instead of UUID
+        // if (userData.customer_id) {
+        //   setProfileCustomerId(userData.customer_id);
+        // }
+        // NEW IMPLEMENTATION: Store the customer UUID (userData.id is UUID, userData.customer_id is numeric)
+        if (userData.id) {
+          setProfileCustomerId(userData.id);
+        } else if (userData.customer_id) {
+          setProfileCustomerId(String(userData.customer_id));
+        }
+
+        // Store existing loan ID from user profile if available
+        const profileLoanId = userData?.loan_details?.[0]?.loan_id;
+        if (profileLoanId) {
+          setSignupLoanId(profileLoanId);
+          onLoanCreated?.(profileLoanId);
+        }
+
+        // Mark profile as loaded to enable Save & Continue
+        setIsProfileLoaded(true);
+        
+        // Notify parent component
+        onProfileLoadedChange?.(true);
+
+        showToast('Profile loaded successfully', { type: NotificationType.Success });
+      } else {
+        showToast('Failed to load profile data', {
+          type: NotificationType.Error
+        });
+      }
+    } catch (error) {
+      showToast('Error loading profile. Please try again.', {
+        type: NotificationType.Error
+      });
+    } finally {
+      setIsProfileLoading(false);
+    }
+  };
+
   const closeConfirmModal = () => {
     setNotEligibleModalOpen(false);
   };
@@ -739,9 +942,19 @@ const PersonalInformation: React.FC<PersonalInformationProps> = ({
               </div>
               <div className="grid gap-4 max-sm:grid-cols-1 md:grid-cols-1 lg:grid-cols-1 xl:grid-cols-2">
                 <div className="grid grid-cols-6">
+                  {/* OLD IMPLEMENTATION: Phone number column span based on isEligibleNewLoan
                   <div
                     className={
                       isEligibleNewLoan?.loanCount ? 'col-span-6' : 'col-span-5'
+                    }
+                  >
+                  */}
+                  {/* NEW IMPLEMENTATION: Full width when authenticated/renew mode; 5 cols when SEND button is present */}
+                  <div
+                    className={
+                      authenticated || isRenewFundingMode
+                        ? 'col-span-6'
+                        : 'col-span-5'
                     }
                   >
                     {fieldRenderer.renderField(
@@ -749,13 +962,18 @@ const PersonalInformation: React.FC<PersonalInformationProps> = ({
                       {
                         type: 'tel',
                         isDisabled: isRenewFundingMode,
-                        fieldClass: `peer bg-transparent h-12 w-full rounded-lg
+                        fieldClass:
+                          authenticated || isRenewFundingMode
+                            ? `peer bg-transparent h-12 w-full rounded-lg
+                                text-black  placeholder-transparent  px-8
+                                focus:outline-none focus:border-gray-500 border border-stone-300`
+                            : `peer bg-transparent h-12 w-full rounded-l-lg
                                 text-black  placeholder-transparent  px-8
                                 focus:outline-none focus:border-gray-500 border border-stone-300`
                       }
                     )}
                   </div>
-                  {/* OTP UI - Commented out for future use
+                  {/* OLD IMPLEMENTATION: OTP UI - Commented out for future use
                   {!isEligibleNewLoan && (
                     <div className="col-span-1">
                       {isSendOtp ? (
@@ -820,6 +1038,35 @@ const PersonalInformation: React.FC<PersonalInformationProps> = ({
                     </div>
                   )}
                   */}
+                  
+                  {/* OLD IMPLEMENTATION: Broken SEND button condition:
+                  {!isEligibleNewLoan && !authenticated && (
+                  */}
+                  {/* NEW IMPLEMENTATION: SEND button for signup without OTP */}
+                  {!authenticated && !isRenewFundingMode && (
+                    <div className="col-span-1">
+                      <div
+                        className={`h-[48px] rounded-r-lg py-3 text-center ${
+                          isSignupLoading || isProfileLoading
+                            ? 'cursor-not-allowed bg-[#D1D9EB]'
+                            : 'cursor-pointer bg-[#1A439A]'
+                        }`}
+                        onClick={!isSignupLoading && !isProfileLoading ? handleSendSignup : undefined}
+                      >
+                        <button
+                          type="button"
+                          className={`px-2 ${
+                            isSignupLoading || isProfileLoading
+                              ? 'cursor-not-allowed text-[#BABABA]'
+                              : 'cursor-pointer text-white'
+                          } text-[12px] uppercase`}
+                          disabled={isSignupLoading || isProfileLoading}
+                        >
+                          {isSignupLoading ? 'SENDING...' : isProfileLoading ? 'LOADING...' : 'SEND'}
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 {/* OTP Input Field - Commented out for future use

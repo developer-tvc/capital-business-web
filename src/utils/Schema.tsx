@@ -220,10 +220,16 @@ export const PersonalInformationSchema = yup.object().shape({
     .string()
     .required('Email is required.')
     .matches(emailValidationRegex, 'Invalid Email.'),
+  // OLD IMPLEMENTATION: Phone number validation strictly 10 digits
+  // phone_number: yup
+  //   .string()
+  //   .required('Phone number is required.')
+  //   .matches(/^[0-9]{10}$/, 'Phone number must be a valid 10-digit UK number'),
+  // NEW IMPLEMENTATION: Support 10 or 11 digit UK phone numbers
   phone_number: yup
     .string()
     .required('Phone number is required.')
-    .matches(/^[0-9]{10}$/, 'Phone number must be a valid 10-digit UK number'),
+    .matches(/^[0-9]{10,11}$/, 'Phone number must be a valid 10 or 11-digit UK number'),
   fund_request_amount: yup
     .number()
     .typeError('Fund request amount must be a number')

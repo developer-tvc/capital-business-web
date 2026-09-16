@@ -77,6 +77,9 @@ const CustomerFundingApplication: React.FC = ({
   const [personalInfo, setPersonalInfo] = useState<
     Partial<personalInformationType>
   >({});
+  
+  // NEW IMPLEMENTATION: Track profile loaded state for Save & Continue button
+  const [isProfileLoaded, setIsProfileLoaded] = useState(false);
 
   const isMobile = useMediaQuery({ query: '(max-width: 767px)' });
   const isTablet = useMediaQuery({
@@ -349,6 +352,9 @@ const CustomerFundingApplication: React.FC = ({
               // Update the loan ID after creation - don't navigate, let the modal handle redirect
               setLoan({ id: newLoanId });
             }}
+            onProfileLoadedChange={(loaded) => {
+              setIsProfileLoaded(loaded);
+            }}
           />
         );
       case 2:
@@ -541,19 +547,23 @@ const CustomerFundingApplication: React.FC = ({
               <div className="flex justify-end p-4 px-4">
                 <button
                   type="submit"
-                  // OTP check - Commented out for future use
+                  // OLD IMPLEMENTATION: OTP check - Commented out for future use
                   // disabled={
                   //   !personalInformation?.is_otp_verified && !authenticated
                   // }
                   // Changed to enable button without OTP - Commented out for future use
                   // disabled={!authenticated}
-                  disabled={false}
-                  className={`mt-1 cursor-pointer bg-[#1A439A] px-4 py-2 text-[12px] text-white ${
-                    // personalInformation?.is_otp_verified || authenticated
-                    // authenticated
-                    true
-                      ? 'cursor-pointer bg-[#1A439A]'
-                      : 'cursor-not-allowed bg-[#BABABA]'
+                  // NEW IMPLEMENTATION: Enable Save & Continue only after authentication is established and profile is loaded
+                  disabled={!authenticated || !isProfileLoaded}
+                  className={`mt-1 px-4 py-2 text-[12px] ${
+                    // OLD IMPLEMENTATION:
+                    // (personalInformation?.is_otp_verified || authenticated)
+                    //   ? 'cursor-pointer bg-[#1A439A]'
+                    //   : 'cursor-not-allowed bg-[#BABABA]'
+                    // NEW IMPLEMENTATION:
+                    (authenticated && isProfileLoaded)
+                      ? 'cursor-pointer bg-[#1A439A] text-white'
+                      : 'cursor-not-allowed bg-[#BABABA] text-[#666666]'
                   }`}
                   onClick={handleButtonClick}
                 >

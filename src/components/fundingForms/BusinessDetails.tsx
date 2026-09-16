@@ -96,6 +96,18 @@ const BusinessDetails: React.FC<LoanFromCommonProps> = ({
           businessDetailsData.average_monthly_turnover = 4000;
         }
 
+        if (businessDetailsData.business_type === 'Sole Trader') {
+          businessDetailsData.number_of_directors = 1;
+        } else if (
+          Array.isArray(businessDetailsData.directors) &&
+          businessDetailsData.directors.length > 0
+        ) {
+          businessDetailsData.number_of_directors = Math.max(
+            Number(businessDetailsData.number_of_directors) || 0,
+            businessDetailsData.directors.length
+          );
+        }
+
         setBusinessDetails(businessDetailsData);
         reset(businessDetailsData);
       } else {
@@ -136,6 +148,15 @@ const BusinessDetails: React.FC<LoanFromCommonProps> = ({
         setShowModal(true);
       } else {
         data.start_trading_date = convertDateString(data.start_trading_date);
+        if (data.business_type === 'Sole Trader') {
+          data.number_of_directors = 1;
+          data.directors = data.directors?.slice(0, 1);
+        } else {
+          const num =
+            Number(data.number_of_directors) || data.directors?.length || 1;
+          data.number_of_directors = num;
+          data.directors = data.directors?.slice(0, num);
+        }
         dispatch(updateBusinessDetails(data));
         const response = await businessDetailsPostAPI(data, loanId);
 
@@ -198,17 +219,23 @@ const BusinessDetails: React.FC<LoanFromCommonProps> = ({
   }, [businessDetails]);
 
   useEffect(() => {
+    const numDirectors = Number(watchNumDirectors) || 0;
     const currentDirectorsCount = fields.length;
-    if (watchNumDirectors > currentDirectorsCount) {
-      for (let i = currentDirectorsCount; i < watchNumDirectors; i++) {
-        append({ first_name: '', last_name: '', title: '' });
+    if (numDirectors > currentDirectorsCount) {
+      for (let i = currentDirectorsCount; i < numDirectors; i++) {
+        const existing = businessDetails?.directors?.[i];
+        append({
+          first_name: existing?.first_name || '',
+          last_name: existing?.last_name || '',
+          title: existing?.title || ''
+        });
       }
-    } else if (watchNumDirectors < currentDirectorsCount) {
-      for (let i = currentDirectorsCount; i > watchNumDirectors; i--) {
+    } else if (numDirectors < currentDirectorsCount) {
+      for (let i = currentDirectorsCount; i > numDirectors; i--) {
         remove(i - 1);
       }
     }
-  }, [watchNumDirectors, append, remove, fields.length]);
+  }, [watchNumDirectors, append, remove, fields.length, businessDetails]);
 
   const closeConfirmModal = () => {
     setNotEligibleModalOpen(false);
@@ -286,9 +313,7 @@ const BusinessDetails: React.FC<LoanFromCommonProps> = ({
                     name: `directors[${index}].title`,
 
                     defaultValue:
-                      index === 0
-                        ? businessDetails?.directors?.[0]?.title
-                        : undefined
+                      businessDetails?.directors?.[index]?.title || undefined
                   },
                   {
                     type: 'text',
@@ -306,9 +331,8 @@ const BusinessDetails: React.FC<LoanFromCommonProps> = ({
                     },
                     name: `directors[${index}].first_name`,
                     defaultValue:
-                      index === 0
-                        ? businessDetails?.directors?.[0]?.first_name
-                        : undefined
+                      businessDetails?.directors?.[index]?.first_name ||
+                      undefined
                   },
                   {
                     type: 'text',
@@ -326,9 +350,8 @@ const BusinessDetails: React.FC<LoanFromCommonProps> = ({
                       );
                     },
                     defaultValue:
-                      index === 0
-                        ? businessDetails?.directors?.[0]?.last_name
-                        : undefined
+                      businessDetails?.directors?.[index]?.last_name ||
+                      undefined
                   }
                 ];
                 fieldRenderer.updateConstant([
