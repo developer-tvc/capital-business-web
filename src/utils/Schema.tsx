@@ -240,13 +240,14 @@ export const PersonalInformationSchema = yup.object().shape({
     .integer('Duration must be an integer')
     .min(10, 'Duration must be minimum of 10 weeks')
     .max(30, 'Duration must be maximum of 30 weeks'),
-  is_otp_verified: yup
-    .boolean()
-    .when('modeOfApplication', ([modeOfApplication], sch) => {
-      return ['Self', 'Representative'].indexOf(modeOfApplication) > -1
-        ? sch.required('OTP verification is required')
-        : sch.notRequired();
-    }),
+  // OTP validation - Commented out for future use
+  // is_otp_verified: yup
+  //   .boolean()
+  //   .when('modeOfApplication', ([modeOfApplication], sch) => {
+  //     return ['Self', 'Representative'].indexOf(modeOfApplication) > -1
+  //       ? sch.required('OTP verification is required')
+  //       : sch.notRequired();
+  //   }),
   agree_terms_and_conditions: yup
     .boolean()
     .required('Required field')

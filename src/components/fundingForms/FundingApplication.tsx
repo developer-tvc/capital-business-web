@@ -14,7 +14,8 @@ import {
   fundingStateSliceSelector,
   updateCurrentStage
 } from '../../store/fundingStateReducer';
-import { loanFormSliceSelector } from '../../store/loanFormReducer';
+// OTP-related import - Commented out for future use
+// import { loanFormSliceSelector } from '../../store/loanFormReducer';
 import { LoanWizardStages } from '../../utils/constants';
 import { ApplicationStatusBadgeClasses } from '../../utils/data';
 import {
@@ -64,7 +65,7 @@ const CustomerFundingApplication: React.FC = ({
 
   const [formRef, setFormRef] = useState<HTMLFormElement | null>(null);
   const { currentStage } = useSelector(fundingStateSliceSelector);
-  const { personalInformation } = useSelector(loanFormSliceSelector);
+  // const { personalInformation } = useSelector(loanFormSliceSelector);
   const [isSubmitConfirmModal, setIsSubmitConfirmModal] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [loan, setLoan] = useState<Partial<LoanData>>(undefined);
@@ -339,7 +340,7 @@ const CustomerFundingApplication: React.FC = ({
           <PersonalInformation
             setRef={setFormRef}
             loanId={loanId}
-            setLoan={setLoan}
+            // setLoan={setLoan} - Commented out for future use
             setIsRepAssigned={setIsRepAssigned}
             isRenewFundingMode={isRenewFundingMode}
             renewFundingCompanyId={renewFundingCompanyId}
@@ -540,11 +541,17 @@ const CustomerFundingApplication: React.FC = ({
               <div className="flex justify-end p-4 px-4">
                 <button
                   type="submit"
-                  disabled={
-                    !personalInformation?.is_otp_verified && !authenticated
-                  }
+                  // OTP check - Commented out for future use
+                  // disabled={
+                  //   !personalInformation?.is_otp_verified && !authenticated
+                  // }
+                  // Changed to enable button without OTP - Commented out for future use
+                  // disabled={!authenticated}
+                  disabled={false}
                   className={`mt-1 cursor-pointer bg-[#1A439A] px-4 py-2 text-[12px] text-white ${
-                    personalInformation?.is_otp_verified || authenticated
+                    // personalInformation?.is_otp_verified || authenticated
+                    // authenticated
+                    true
                       ? 'cursor-pointer bg-[#1A439A]'
                       : 'cursor-not-allowed bg-[#BABABA]'
                   }`}

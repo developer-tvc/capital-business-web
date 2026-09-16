@@ -16,16 +16,17 @@ import {
   personalInformationPostAPI
 } from '../../api/loanServices';
 import { userProfileApi } from '../../api/userServices';
-import { resendOtpAPI, signUpAPI } from '../../api/userAuthServices';
-import eye from '../../assets/svg/eye.svg';
+// OTP-related imports (commented out for future use)
+// import { resendOtpAPI, signUpAPI } from '../../api/userAuthServices';
 import quest from '../../assets/svg/ph_question.svg';
-import otps from '../../assets/svg/teenyicons_otp-outline.svg';
+// import eye from '../../assets/svg/eye.svg';
+// import otps from '../../assets/svg/teenyicons_otp-outline.svg';
 import { updateCurrentStage } from '../../store/fundingStateReducer';
 import {
   loanFormSliceSelector,
   updateBusinessDetails,
-  updateIsSendOtp,
-  updatePersonalInformation
+  // updateIsSendOtp,
+  // updatePersonalInformation
 } from '../../store/loanFormReducer';
 import {
   declarationCheckboxStyle,
@@ -44,7 +45,7 @@ import useToast from '../../utils/hooks/toastify/useToast';
 import useAuth from '../../utils/hooks/useAuth';
 import { PersonalInformationSchema } from '../../utils/Schema';
 import {
-  LoanData,
+  // LoanData, - Commented out for future use
   LoanFromCommonProps,
   personalInformationType
 } from '../../utils/types';
@@ -52,27 +53,29 @@ import FieldRenderer from '../commonInputs/FieldRenderer';
 import Loader from '../Loader';
 import AddressLookup from './AddressLookup';
 import NotEligibleModal from './modals/NotEligibleModal';
-import { authSelector } from '../../store/auth/userSlice';
+import { authSelector, setUser } from '../../store/auth/userSlice';
 
 interface PersonalInformationProps extends LoanFromCommonProps {
-  setLoan?: Dispatch<SetStateAction<Partial<LoanData>>>;
+  // setLoan?: Dispatch<SetStateAction<Partial<LoanData>>>; - Commented out for future use
   setIsRepAssigned?: Dispatch<SetStateAction<Partial<boolean>>>;
   isRepAssigned?: boolean;
   isRenewFundingMode?: boolean;
   renewFundingCompanyId?: string | null;
   renewFundingCompanyName?: string | null;
   onLoanCreated?: (loanId: string) => void;
+  onProfileReadyChange?: (isReady: boolean) => void;
 }
 
 const PersonalInformation: React.FC<PersonalInformationProps> = ({
   setRef,
   loanId,
-  setLoan,
+  // setLoan, - Commented out for future use
   setIsRepAssigned,
   isRenewFundingMode = false,
   renewFundingCompanyId = null,
   renewFundingCompanyName = null,
-  onLoanCreated
+  onLoanCreated,
+  onProfileReadyChange
 }) => {
   const [isEligibleNewLoan, setIsEligibleNewLoan] = useState<{
     isApplicableForNewLoan: boolean;
@@ -94,27 +97,33 @@ const PersonalInformation: React.FC<PersonalInformationProps> = ({
 
   const formRef = useRef<HTMLFormElement>(null);
   setRef(formRef);
-  const { isSendOtp } = useSelector(loanFormSliceSelector);
   const fieldRenderer = new FieldRenderer(
     loanFormPersonalInformation,
     loanFormCommonStyleConstant,
     PersonalInformationSchema
   );
-
-  const [otpError, setOtpError] = useState(null);
-  const [otp, setOtp] = useState(null);
-  const [otpVerifyError, setOtpVerifyError] = useState(null);
+ // OTP-related state (commented out for future use)
+  // const [otpError, setOtpError] = useState(null);
+  // const [otp, setOtp] = useState(null);
+  // const [otpVerifyError, setOtpVerifyError] = useState(null);
   const [address, setAddress] = useState(undefined);
   const [personalInfo, setPersonalInfo] = useState<
     Partial<personalInformationType>
   >({});
-  const [timeLeft, setTimeLeft] = useState(undefined);
-  const timerDuration = 600; //10min
+  // OTP-related state (commented out for future use)
+  // const [otpError, setOtpError] = useState(null);
+  // const [otp, setOtp] = useState(null);
+  // const [otpVerifyError, setOtpVerifyError] = useState(null);
+  // const [timeLeft, setTimeLeft] = useState(undefined);
+  // const timerDuration = 600; //10min
+  // const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [notEligibleModalOpen, setNotEligibleModalOpen] =
     useState<boolean>(false);
   const [isAssignedAgent, setIsAssignedAgent] = useState(false);
   const [isRepAssignedRemind, setIsRepAssignedRemind] = useState(false);
+
+  // const { isSendOtp } = useSelector(loanFormSliceSelector);
 
 
   const methods = useForm({
@@ -124,9 +133,11 @@ const PersonalInformation: React.FC<PersonalInformationProps> = ({
   const { handleSubmit, watch, setValue, formState, trigger, reset } = methods;
 
   const { role, id: customerId } = useSelector(authSelector);
-  const { verifyOtp, authenticated } = useAuth();
+  const { authenticated, signUp } = useAuth();
+  // const { verifyOtp, authenticated } = useAuth();
   const dispatch = useDispatch();
   const { showToast } = useToast();
+  const navigate = useNavigate();
 
   // Clear form when in renew funding mode to start fresh, but keep company name
   // Also clear company details for new loan applications (no loanId)
@@ -201,25 +212,25 @@ const PersonalInformation: React.FC<PersonalInformationProps> = ({
 
     fetchUserProfile();
   }, [isRenewFundingMode, loanId, authenticated, setValue]);
+ // OTP-related state (commented out for future use)
+  // useEffect(() => {
+  //   if (timeLeft) {
+  //     const timer = setInterval(() => {
+  //       if (timeLeft === 0) {
+  //         clearInterval(timer);
+  //       } else {
+  //         setTimeLeft(timeLeft - 1);
+  //       }
+  //     }, 1000);
+  //     return () => clearInterval(timer);
+  //   }
+  // }, [timeLeft]);
 
-  useEffect(() => {
-    if (timeLeft) {
-      const timer = setInterval(() => {
-        if (timeLeft === 0) {
-          clearInterval(timer);
-        } else {
-          setTimeLeft(timeLeft - 1);
-        }
-      }, 1000);
-      return () => clearInterval(timer);
-    }
-  }, [timeLeft]);
-
-  const formatTime = time => {
-    const minutes = Math.floor(time / 60);
-    const seconds = time % 60;
-    return `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
-  };
+  // const formatTime = time => {
+  //   const minutes = Math.floor(time / 60);
+  //   const seconds = time % 60;
+  //   return `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+  // };
 
   const fetchDataFromApi = async (loanId: string) => {
     try {
@@ -244,11 +255,11 @@ const PersonalInformation: React.FC<PersonalInformationProps> = ({
 
   useEffect(() => {
     if (Object.keys(personalInfo).length > 0 && !isRenewFundingMode) {
-      if (!otp) {
+      // if (!otp) {
         reset(personalInfo);
-      }
+      // }
     }
-  }, [personalInfo, isRenewFundingMode]);
+  }, [personalInfo, isRenewFundingMode, reset]);
 
   useEffect(() => {
     if (address) {
@@ -259,7 +270,64 @@ const PersonalInformation: React.FC<PersonalInformationProps> = ({
     }
   }, [address]);
 
-  const navigate = useNavigate();
+  const getResponseMessage = response => {
+    return (
+      response?.status_message ||
+      response?.message ||
+      response?.detail ||
+      'something wrong!'
+    );
+  };
+
+  const ensureSignupAuthentication = async (data: personalInformationType) => {
+    if (authenticated) {
+      return {
+        isAuthenticated: true,
+        customerId: customerId?.toString()
+      };
+    }
+
+    const signupResponse = await signUp({
+      phone_number: data.phone_number,
+      email: data.email,
+      first_name: data.first_name,
+      last_name: data.last_name
+    });
+    const statusCode = signupResponse?.status_code;
+
+    if (
+      statusCode &&
+      (Number(statusCode) < 200 || Number(statusCode) >= 300)
+    ) {
+      showToast(getResponseMessage(signupResponse), {
+        type: NotificationType.Error
+      });
+
+      return {
+        isAuthenticated: false,
+        customerId: undefined
+      };
+    }
+
+    if (!signupResponse?.authenticated) {
+      const message =
+        statusCode && Number(statusCode) >= 200 && Number(statusCode) < 300
+          ? 'Signup completed without an authentication token.'
+          : getResponseMessage(signupResponse);
+
+      showToast(message, { type: NotificationType.Error });
+
+      return {
+        isAuthenticated: false,
+        customerId: undefined
+      };
+    }
+
+    return {
+      isAuthenticated: true,
+      customerId: signupResponse?.user?.id?.toString()
+    };
+  };
 
   const onSubmit: SubmitHandler<personalInformationType> = async data => {
     setIsLoading(true);
@@ -267,7 +335,16 @@ const PersonalInformation: React.FC<PersonalInformationProps> = ({
       // Create loan first if loanId is undefined (both for renew funding and normal new applications)
       if (!loanId) {
         try {
-          const response = await applyNewLoaApi(customerId?.toString(), renewFundingCompanyId);
+          const signupAuth = await ensureSignupAuthentication(data);
+
+          if (!signupAuth.isAuthenticated) {
+            return;
+          }
+
+          const response = await applyNewLoaApi(
+            signupAuth.customerId,
+            renewFundingCompanyId
+          );
           if (response?.status_code >= 200 && response?.status_code < 300) {
             const newLoanId = response?.data?.id;
             if (newLoanId) {
@@ -386,130 +463,156 @@ const PersonalInformation: React.FC<PersonalInformationProps> = ({
 
   // const watchFundRequest = watch("fund_request_amount", 0);
   // const watchDuration = watch("fund_request_duration_weeks", 0);
-  const watchPhoneNumber = watch('phone_number', '');
-  const watchEmail = watch('email', '');
-  const watchFirstName = watch('first_name', '');
-  const watchLastName = watch('last_name', '');
+  // OTP-related watch variables (commented out for future use)
+  // const watchPhoneNumber = watch('phone_number', '');
+  // const watchEmail = watch('email', '');
+  // const watchFirstName = watch('first_name', '');
+  // const watchLastName = watch('last_name', '');
   const watchPinCode = watch('pincode', personalInfo?.pincode || '');
 
   // const { rePaymentAmount, weeklyInstallments } = useCalculator(watchFundRequest, watchDuration);
 
-  useEffect(() => {
-    setOtpError(null);
-    if (watchPhoneNumber) {
-      dispatch(updateIsSendOtp(false));
-    }
-    if (otpError) {
-      setOtpError(null);
-    }
-  }, [watchPhoneNumber, watchEmail]);
+  // OTP-related useEffect hooks (commented out for future use)
+  // useEffect(() => {
+  //   setOtpError(null);
+  //   if (watchPhoneNumber) {
+  //     dispatch(updateIsSendOtp(false));
+  //   }
+  //   if (otpError) {
+  //     setOtpError(null);
+  //   }
+  // }, [watchPhoneNumber, watchEmail]);
 
-  const handleOtp = async () => {
-    trigger('phone_number');
-    trigger('email');
+  // useEffect(() => {
+  //   if (timeLeft) {
+  //     const timer = setInterval(() => {
+  //       if (timeLeft === 0) {
+  //         clearInterval(timer);
+  //       } else {
+  //         setTimeLeft(timeLeft - 1);
+  //       }
+  //     }, 1000);
+  //     return () => clearInterval(timer);
+  //   }
+  // }, [timeLeft]);
 
-    setTimeout(async () => {
-      if (
-        !Object.keys(formState.errors).includes('email') &&
-        !Object.keys(formState.errors).includes('phone_number') &&
-        watchPhoneNumber &&
-        watchEmail
-      ) {
-        setIsLoading(true);
-        setTimeLeft(timerDuration);
-        try {
-          const resp = await signUpAPI({
-            phone_number: watchPhoneNumber,
-            email: watchEmail,
-            first_name: watchFirstName,
-            last_name: watchLastName
-          });
+  // OTP-related handlers (commented out for future use)
+  // const formatTime = time => {
+  //   const minutes = Math.floor(time / 60);
+  //   const seconds = time % 60;
+  //   return `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+  // };
 
-          if (resp.status_code >= 200 && resp.status_code < 300) {
-            showToast(resp.status_message, { type: NotificationType.Success });
-            dispatch(updateIsSendOtp(true));
-            dispatch(
-              updatePersonalInformation({
-                email: watchEmail,
-                phone_number: watchPhoneNumber
-              })
-            );
-          } else {
-            showToast(resp.status_message, { type: NotificationType.Error });
-          }
-        } catch (_error) {
-          showToast('something wrong!', { type: NotificationType.Error });
-        } finally {
-          setIsLoading(false);
-        }
-      }
-    }, 10);
-  };
+  // const handleOtp = async () => {
+  //   trigger('phone_number');
+  //   trigger('email');
 
-  const handleVerifyClick = async () => {
-    try {
-      if (otp) {
-        setIsLoading(true);
-        const resp = await verifyOtp({
-          phone_number: watchPhoneNumber,
-          otp: otp
-        });
+  //   setTimeout(async () => {
+  //     if (
+  //       !Object.keys(formState.errors).includes('email') &&
+  //       !Object.keys(formState.errors).includes('phone_number') &&
+  //       watchPhoneNumber &&
+  //       watchEmail
+  //     ) {
+  //       setIsLoading(true);
+  //       setTimeLeft(timerDuration);
+  //       try {
+  //         const resp = await signUpAPI({
+  //           phone_number: watchPhoneNumber,
+  //           email: watchEmail,
+  //           first_name: watchFirstName,
+  //           last_name: watchLastName
+  //         });
 
-        if (resp.status_code >= 200 && resp.status_code < 300) {
-          dispatch(updateIsSendOtp(false));
-          showToast(resp.status_message, { type: NotificationType.Success });
-          setLoan(resp?.loan);
-          setValue('is_otp_verified', true);
-          dispatch(
-            updatePersonalInformation({
-              email: watchEmail,
-              phone_number: watchPhoneNumber,
-              is_otp_verified: true
-            })
-          );
-        } else {
-          showToast(resp.status_message, { type: NotificationType.Error });
-        }
-      } else {
-        setOtpVerifyError("verify otp can't be empty ");
-      }
-    } catch (_error) {
-      showToast('something wrong!', { type: NotificationType.Error });
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  //         if (resp.status_code >= 200 && resp.status_code < 300) {
+  //           showToast(resp.status_message, { type: NotificationType.Success });
+  //           dispatch(updateIsSendOtp(true));
+  //           dispatch(
+  //             updatePersonalInformation({
+  //               email: watchEmail,
+  //               phone_number: watchPhoneNumber
+  //             })
+  //           );
+  //         } else {
+  //           showToast(resp.status_message, { type: NotificationType.Error });
+  //         }
+  //       } catch (_error) {
+  //         showToast('something wrong!', { type: NotificationType.Error });
+  //       } finally {
+  //         setIsLoading(false);
+  //       }
+  //     }
+  //   }, 10);
+  // };
 
-  const handleResendOtp = async () => {
-    if (
-      !Object.keys(formState.errors).includes('email') &&
-      !Object.keys(formState.errors).includes('phone_number') &&
-      watchPhoneNumber &&
-      watchEmail
-    ) {
-      setIsLoading(true);
-      setTimeLeft(timerDuration);
+  // const handleVerifyClick = async () => {
+  //   try {
+  //     if (otp) {
+  //       setIsLoading(true);
+  //       const resp = await verifyOtp({
+  //         phone_number: watchPhoneNumber,
+  //         otp: otp
+  //       });
 
-      const resp = await resendOtpAPI({
-        phone_number: watchPhoneNumber
-      });
+  //       if (resp.status_code >= 200 && resp.status_code < 300) {
+  //         dispatch(updateIsSendOtp(false));
+  //         showToast(resp.status_message, { type: NotificationType.Success });
+  //         setLoan(resp?.loan);
+  //         setValue('is_otp_verified', true);
+  //         dispatch(
+  //           updatePersonalInformation({
+  //             email: watchEmail,
+  //             phone_number: watchPhoneNumber,
+  //             is_otp_verified: true
+  //           })
+  //         );
+  //       } else {
+  //         showToast(resp.status_message, { type: NotificationType.Error });
+  //       }
+  //     } else {
+  //       setOtpVerifyError("verify otp can't be empty ");
+  //     }
+  //   } catch (_error) {
+  //     showToast('something wrong!', { type: NotificationType.Error });
+  //   } finally {
+  //     setIsLoading(false);
+  //   }
+  // };
 
-      switch (resp.status_code) {
-        case 200:
-        case 201:
-          dispatch(updateIsSendOtp(true));
-          showToast(resp.status_message, { type: NotificationType.Success });
-          break;
-        case 422:
-          showToast(resp.status_message, { type: NotificationType.Error });
-          // setOtpError(resp.status_message);
-          break;
-        default:
-          break;
-      }
-      setIsLoading(false);
-    }
-  };
+  // const handleResendOtp = async () => {
+  //   if (
+  //     !Object.keys(formState.errors).includes('email') &&
+  //     !Object.keys(formState.errors).includes('phone_number') &&
+  //     watchPhoneNumber &&
+  //     watchEmail
+  //   ) {
+  //     setIsLoading(true);
+  //     setTimeLeft(timerDuration);
+
+  //     const resp = await resendOtpAPI({
+  //       phone_number: watchPhoneNumber
+  //     });
+
+  //     switch (resp.status_code) {
+  //       case 200:
+  //       case 201:
+  //         dispatch(updateIsSendOtp(true));
+  //         showToast(resp.status_message, { type: NotificationType.Success });
+  //         break;
+  //       case 422:
+  //         showToast(resp.status_message, { type: NotificationType.Error });
+  //         // setOtpError(resp.status_message);
+  //         break;
+  //       default:
+  //         break;
+  //     }
+  //     setIsLoading(false);
+  //   }
+  // };
+
+  // const togglePasswordVisibility = () => {
+  //   setShowPassword(!showPassword);
+  // };
 
   const closeConfirmModal = () => {
     setNotEligibleModalOpen(false);
@@ -559,11 +662,12 @@ const PersonalInformation: React.FC<PersonalInformationProps> = ({
     }
   }, [companyName]);
 
-  const [showPassword, setShowPassword] = useState(false);
+   // OTP-related state (commented out for future use)
+  // const [showPassword, setShowPassword] = useState(false);
 
-  const togglePasswordVisibility = () => {
-    setShowPassword(!showPassword);
-  };
+  // const togglePasswordVisibility = () => {
+  //   setShowPassword(!showPassword);
+  // };
 
   useEffect(() => {
     if (setIsRepAssigned) {
@@ -619,9 +723,11 @@ const PersonalInformation: React.FC<PersonalInformationProps> = ({
                   <div className="relative">
                     {fieldRenderer.renderField(
                       ['email'],
-                      personalInfo.is_otp_verified || authenticated
-                        ? { type: 'email', isDisabled: false }
-                        : {}
+                      // OTP-dependent styling - Commented out for future use
+                      // personalInfo.is_otp_verified || authenticated
+                      //   ? { type: 'email', isDisabled: false }
+                      //   : {}
+                      { type: 'email', isDisabled: false }
                     )}
                   </div>
                 </div>
@@ -640,42 +746,18 @@ const PersonalInformation: React.FC<PersonalInformationProps> = ({
                   >
                     {fieldRenderer.renderField(
                       ['phone_number'],
-                      personalInfo.is_otp_verified || authenticated
-                        ? isEligibleNewLoan?.loanCount
-                          ? {
-                              type: 'tel',
-                              isDisabled: isRenewFundingMode,
-                              fieldClass: `peer bg-transparent h-12 w-full rounded-lg 
-                                      text-black  placeholder-transparent  px-8 
-                                      focus:outline-none focus:border-gray-500 border border-stone-300`
-                            }
-                          : {
-                              type: 'tel',
-                              isDisabled: isRenewFundingMode,
-                              fieldClass: `peer bg-transparent h-12 w-full rounded-l-lg 
-                                      text-black  placeholder-transparent  px-8 
-                                      focus:outline-none focus:border-gray-500 border border-stone-300`
-                            }
-                        : {
-                            isDisabled: isRenewFundingMode,
-                            fieldClass: `peer bg-transparent h-12 w-full rounded-l-lg 
-                                      text-black  placeholder-transparent  px-8 
-                                      focus:outline-none focus:border-gray-500 border border-stone-300`
-                          }
+                      {
+                        type: 'tel',
+                        isDisabled: isRenewFundingMode,
+                        fieldClass: `peer bg-transparent h-12 w-full rounded-lg
+                                text-black  placeholder-transparent  px-8
+                                focus:outline-none focus:border-gray-500 border border-stone-300`
+                      }
                     )}
-                    <p className="text-[10px] text-red-500">
-                      {otpError && otpError}
-                    </p>
                   </div>
+                  {/* OTP UI - Commented out for future use
                   {!isEligibleNewLoan && (
                     <div className="col-span-1">
-                      {/* <div
-                      className={`h-[48px] text-center  py-3 rounded-r-lg $   ${
-                        personalInfo?.is_otp_verified || authenticated
-                          ? " cursor-not-allowed bg-[#D1D9EB]"
-                          : "cursor-pointer bg-[#1A439A]"
-                      }`}
-                    > */}
                       {isSendOtp ? (
                         timeLeft && timeLeft >= 0 ? (
                           <div
@@ -735,11 +817,12 @@ const PersonalInformation: React.FC<PersonalInformationProps> = ({
                           </button>
                         </div>
                       )}
-                      {/* </div> */}
                     </div>
                   )}
+                  */}
                 </div>
 
+                {/* OTP Input Field - Commented out for future use
                 {!isEligibleNewLoan && (
                   <div className="grid grid-cols-6">
                     <div className="col-span-5 rounded-lg bg-white">
@@ -836,6 +919,7 @@ const PersonalInformation: React.FC<PersonalInformationProps> = ({
                     </div>
                   </div>
                 )}
+                */}
               </div>
 
               <div className="grid gap-4 md:grid-cols-1 xl:grid-cols-6 xl:gap-6">

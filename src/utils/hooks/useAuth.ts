@@ -6,6 +6,7 @@ import { useNavigate } from 'react-router-dom';
 import {
   changePasswordAPI,
   loginAPI,
+  signUpAPI,
   verifyOtpAPI
 } from '../../api/userAuthServices';
 import { userProfileApi } from '../../api/userServices';
@@ -62,6 +63,109 @@ function useAuth() {
     }
   };
 
+  const getAuthTokens = response => {
+    const data = response?.data || {};
+    const dataToken =
+      data?.token && typeof data.token === 'object' ? data.token : {};
+    const tokens = response?.tokens || data?.tokens || {};
+
+    return {
+      accessToken:
+        response?.access ||
+        response?.access_token ||
+        response?.accessToken ||
+        data?.access ||
+        data?.access_token ||
+        data?.accessToken ||
+        (typeof response?.token === 'string' ? response.token : undefined) ||
+        (typeof data?.token === 'string' ? data.token : undefined) ||
+        dataToken?.access ||
+        dataToken?.access_token ||
+        tokens?.access ||
+        tokens?.access_token,
+      refreshToken:
+        response?.refresh ||
+        response?.refresh_token ||
+        response?.refreshToken ||
+        data?.refresh ||
+        data?.refresh_token ||
+        data?.refreshToken ||
+        dataToken?.refresh ||
+        dataToken?.refresh_token ||
+        tokens?.refresh ||
+        tokens?.refresh_token ||
+        ''
+    };
+  };
+
+  // OLD IMPLEMENTATION: Signup auth also fetched the user profile here. The
+  // funding form now performs the profile GET after auth so SAVE & CONTINUE can
+  // be enabled only when that explicit GET succeeds.
+  // const setAuthenticatedSession = async response => {
+  //   const { accessToken, refreshToken } = getAuthTokens(response);
+  //
+  //   if (!accessToken) {
+  //     return {
+  //       authenticated: false,
+  //       user: undefined,
+  //       role: undefined
+  //     };
+  //   }
+  //
+  //   dispatch(onSignInSuccess({ accessToken, refreshToken }));
+  //
+  //   const payload = decodeJwt(accessToken);
+  //   const profile = await fetchLead();
+  //   const responseUser = response?.user || response?.data?.user || {};
+  //   const user = {
+  //     ...responseUser,
+  //     ...profile,
+  //     id: profile?.id || responseUser?.id || payload?.user_id || payload?.id,
+  //     email: profile?.email || responseUser?.email || payload?.email,
+  //     role: profile?.role || responseUser?.role || payload?.role || Roles.Leads
+  //   };
+  //
+  //   dispatch(setUser(user));
+  //
+  //   return {
+  //     authenticated: true,
+  //     user,
+  //     role: user.role
+  //   };
+  // };
+
+  // NEW IMPLEMENTATION: Signup only establishes the existing auth session.
+  const setSignupAuthenticatedSession = response => {
+    const { accessToken, refreshToken } = getAuthTokens(response);
+
+    if (!accessToken) {
+      return {
+        authenticated: false,
+        user: undefined,
+        role: undefined
+      };
+    }
+
+    dispatch(onSignInSuccess({ accessToken, refreshToken }));
+
+    const payload = decodeJwt(accessToken);
+    const responseUser = response?.user || response?.data?.user || {};
+    const user = {
+      ...responseUser,
+      id: responseUser?.id || payload?.user_id || payload?.id,
+      email: responseUser?.email || payload?.email,
+      role: responseUser?.role || payload?.role || Roles.Leads
+    };
+
+    dispatch(setUser(user));
+
+    return {
+      authenticated: true,
+      user,
+      role: user.role
+    };
+  };
+
   const verifyOtp = async values => {
     const resp = await verifyOtpAPI(values);
     try {
@@ -110,6 +214,37 @@ function useAuth() {
         return resp;
       }
       return resp;
+    } catch (error) {
+      return error;
+    }
+  };
+
+  // OLD IMPLEMENTATION: This called setAuthenticatedSession(), which also made
+  // the profile GET inside the auth hook.
+  // const signUp = async values => {
+  //   try {
+  //     const resp = await signUpAPI(values);
+  //     const session = await setAuthenticatedSession(resp);
+  //
+  //     return {
+  //       ...resp,
+  //       ...session
+  //     };
+  //   } catch (error) {
+  //     return error;
+  //   }
+  // };
+
+  // NEW IMPLEMENTATION: SEND calls this to perform Signup POST and set tokens.
+  const signUp = async values => {
+    try {
+      const resp = await signUpAPI(values);
+      const session = setSignupAuthenticatedSession(resp);
+
+      return {
+        ...resp,
+        ...session
+      };
     } catch (error) {
       return error;
     }
@@ -226,7 +361,7 @@ function useAuth() {
       !isRefreshTokenExpired,
     verifyOtp,
     signIn,
-    // signUp,
+    signUp,
     signOut,
     changePassword
   };
