@@ -1062,7 +1062,7 @@ const PersonalInformation: React.FC<PersonalInformationProps> = ({
                           } text-[12px] uppercase`}
                           disabled={isSignupLoading || isProfileLoading}
                         >
-                          {isSignupLoading ? 'SENDING...' : isProfileLoading ? 'LOADING...' : 'SEND'}
+                          {isSignupLoading ? 'Saving...' : isProfileLoading ? 'Loading...' : 'Save'}
                         </button>
                       </div>
                     </div>
