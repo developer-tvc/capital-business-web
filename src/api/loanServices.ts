@@ -259,6 +259,13 @@ const corporateGuarantorPropertyGetAPI = (loanId: string) => {
   });
 };
 
+const listPropertyUsersAPI = (loanId: string) => {
+  return Get({
+    url: `${baseUrl}/list_property_users/${loanId}/`,
+    request: {}
+  });
+};
+
 const trustIdStatusApi = (loanId: string) => {
   return Get({
     url: `${trustIdStatusUrl}${loanId}`,
@@ -1386,6 +1393,7 @@ export {
   corporateGuarantorPostAPI,
   corporateGuarantorPropertyPostAPI,
   corporateGuarantorPropertyGetAPI,
+  listPropertyUsersAPI,
   getLoanStatement,
   resentRequisitionAPI,
   skipPapContractApi,

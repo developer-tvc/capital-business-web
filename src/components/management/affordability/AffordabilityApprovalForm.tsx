@@ -37,7 +37,13 @@ const AffordabilityApprovalForm = ({
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
   const formRef = useRef<HTMLFormElement>(null);
-  setRef(formRef);
+
+  // Move setRef to useEffect to avoid setState during render
+  useEffect(() => {
+    if (setRef) {
+      setRef(formRef);
+    }
+  }, [setRef]);
 
   const methods = useForm<FormData>({
     resolver: yupResolver(affordabilityApprovalSchema)

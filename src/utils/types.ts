@@ -187,17 +187,37 @@ export type CorporateGuarantorType = {
   guaranteed_property: GuaranteedPropertyType;
 };
 
+export type PropertyOwnerType = {
+  id?: string;
+  owner_name: string;
+  owner_email: string;
+};
+
+export type PropertyDetailsType = {
+  id?: string;
+  pincode: string;
+  address: string;
+  title_no?: string;
+  owners: PropertyOwnerType[];
+};
+
 export type GuaranteedPropertyType = {
   owns_other_property: 'Yes' | 'No';
   owned_property_count?: number;
-  owned_property?: {
-    id:string
+  properties?: PropertyDetailsType[];
+  title_no?: string;
+  // API response structure (flat owners format)
+  owners?: Array<{
+    id?: string;
     owner_name: string;
     owner_email: string;
-    pincode: string;
-    address: string;
-  }[];
+    owned_property: Array<{
+      pincode: string;
+      address: string;
+    }>;
+  }>;
 };
+
 
 declare module "jspdf" {
   interface jsPDF {

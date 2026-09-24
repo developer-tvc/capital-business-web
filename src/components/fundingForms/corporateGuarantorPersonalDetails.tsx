@@ -1,5 +1,5 @@
 import 'react-datepicker/dist/react-datepicker.css';
-import { useContext, useEffect, useState } from 'react';
+import { useContext, useEffect, useRef, useState } from 'react';
 import { useFieldArray } from 'react-hook-form';
 import { CiMail, CiMobile3 } from 'react-icons/ci';
 import city from '../../assets/svg/la_city.svg';
@@ -27,6 +27,9 @@ const CorporateGuarantorPersonalDetails = ({
   // const state = store.getState();
   // const role = state.auth.user.role;
   const { showToast } = useToast();
+
+  const fieldsRegisteredRef = useRef(false);
+  const directorFieldsRegisteredRef = useRef(new Set<string>());
 
   useEffect(() => {
     if (PartnerError) {
@@ -151,10 +154,17 @@ const CorporateGuarantorPersonalDetails = ({
     }
   ];
 
-  fieldRenderer.updateConstant([
-    ...fieldRenderer.getConstant(),
-    ...directorConst
-  ]);
+  // Register company-level fields once per component instance to prevent
+  // duplicate field accumulation on every re-render.
+  useEffect(() => {
+    if (fieldsRegisteredRef.current) return;
+    fieldsRegisteredRef.current = true;
+    fieldRenderer.updateConstant([
+      ...fieldRenderer.getConstant(),
+      ...directorConst
+    ]);
+  }, []);
+
   useEffect(() => {
     if (currentDirector?.directors?.length > 0 && directors.length === 0) {
       currentDirector.directors.forEach((director, index) => {
@@ -344,10 +354,14 @@ const CorporateGuarantorPersonalDetails = ({
               }
             ];
 
-            fieldRenderer.updateConstant([
-              ...fieldRenderer.getConstant(),
-              ...directorConst
-            ]);
+            // Register director-level fields once per director index
+            if (!directorFieldsRegisteredRef.current.has(basePath)) {
+              directorFieldsRegisteredRef.current.add(basePath);
+              fieldRenderer.updateConstant([
+                ...fieldRenderer.getConstant(),
+                ...directorConst
+              ]);
+            }
 
             return (
               <div
