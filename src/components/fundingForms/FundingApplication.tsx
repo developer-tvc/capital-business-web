@@ -32,7 +32,6 @@ import { LoanData, personalInformationType } from '../../utils/types';
 import FormTestinomial from '../login/FormTestinomial';
 import BusinessDetails from './BusinessDetails';
 import BusinessPremiseDetails from './BusinessPremiseDetails';
-import CorporateGuarantor from './corporateGuarantor';
 import DirectorOrProprietorDetails from './DirectorOrProprietorDetails';
 import DocumentationUploads from './DocumentationUploads';
 import Gocardless from './GoCardless';
