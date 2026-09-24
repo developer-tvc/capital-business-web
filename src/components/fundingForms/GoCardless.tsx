@@ -4,6 +4,7 @@ import { useDispatch, useSelector } from 'react-redux';
 
 import {
   fetchgocardlessStatementGroupedApi,
+  gocardlessStatementApi,
   gocardlessStatementGroupedApi,
   uwVerifyGetApi
   // updateContinueWithGocardlessApi
@@ -36,15 +37,18 @@ const GoCardLess: React.FC<LoanFromCommonProps> = ({
   const { authenticated } = useAuth();
   const dispatch = useDispatch();
   const formRef = useRef<HTMLFormElement>(null);
-  if (setRef) {
-    setRef(formRef);
-  }
+  useEffect(() => {
+    if (setRef) {
+      setRef(formRef);
+    }
+  }, [setRef]);
   const { role } = useSelector(authSelector);
   const { showToast } = useToast();
 
   const [gocardlessData, setGocardlessData] = useState([]);
   const [withoutGocardlessData, setWithoutGocardlessData] = useState([]);
   const [revokedCardIds, setRevokedCardIds] = useState(new Set()); // Track revoked card IDs
+  const [sortDataMap, setSortDataMap] = useState({}); // Store sort data for each statement
 
   const [isSendConsent, setIsSendConsent] = useState(false);
   const [selectedStatement, setSelectedStatement] = useState(null);
@@ -110,6 +114,64 @@ const GoCardLess: React.FC<LoanFromCommonProps> = ({
     }
   };
 
+  const fetchGocardlessStatementSortData = async loanId => {
+    try {
+      const response = await gocardlessStatementApi(loanId);
+      
+      if (response?.status_code >= 200 && response?.status_code < 300) {
+        // Build sort data map and all_grouped updates in one pass, then batch
+        // state updates so we don't trigger N * 2 re-renders inside the loop.
+        const sortData = {};
+        let newGocardlessData = null;
+        let newWithoutGocardlessData = null;
+
+        if (response.data && Array.isArray(response.data)) {
+          for (const item of response.data) {
+            const debitExists = item.debit && item.debit.length > 0;
+            const creditExists = item.credit && item.credit.length > 0;
+            let isFullySorted = false;
+
+            if (!debitExists && !creditExists) {
+              isFullySorted = true;
+            } else {
+              const allDebitCategorized = debitExists && item.debit.every(t => t.category);
+              const allCreditCategorized = creditExists && item.credit.every(t => t.category);
+              isFullySorted = debitExists && creditExists && allDebitCategorized && allCreditCategorized;
+            }
+
+            sortData[item.id] = isFullySorted;
+            if (item.statement_id) {
+              sortData[item.statement_id] = isFullySorted;
+            }
+
+            const updateItem = dataArray => dataArray.map(dataItem => {
+              if (dataItem.id === item.id || dataItem.statement_id === item.id) {
+                return { ...dataItem, all_grouped: isFullySorted };
+              }
+              return dataItem;
+            });
+
+            newGocardlessData = newGocardlessData ? updateItem(newGocardlessData) : updateItem(gocardlessData);
+            newWithoutGocardlessData = newWithoutGocardlessData
+              ? updateItem(newWithoutGocardlessData)
+              : updateItem(withoutGocardlessData);
+          }
+        }
+
+        setSortDataMap(sortData);
+        if (newGocardlessData) setGocardlessData(newGocardlessData);
+        if (newWithoutGocardlessData) setWithoutGocardlessData(newWithoutGocardlessData);
+      } else {
+        showToast(response.status_message || 'Error fetching statement sort data', {
+          type: NotificationType.Error
+        });
+      }
+    } catch (error) {
+      console.error('Error fetching statement sort data:', error);
+      showToast('Something went wrong!', { type: NotificationType.Error });
+    }
+  };
+
   const fetchUwVerify = async () => {
     try {
       const response = await uwVerifyGetApi(loanId);
@@ -141,6 +203,12 @@ const GoCardLess: React.FC<LoanFromCommonProps> = ({
         // Skip sorting validation for test banks
         if (item.institution_id === 'SANDBOXFINANCE_SFIN0000') {
           return true; // Consider test banks as already sorted
+        }
+        // Skip validation for statements with no transactions
+        const hasNoTransactions = (!item.debit || item.debit.length === 0) && 
+                                  (!item.credit || item.credit.length === 0);
+        if (hasNoTransactions) {
+          return true;
         }
         return item?.all_grouped;
       });
@@ -268,10 +336,14 @@ const GoCardLess: React.FC<LoanFromCommonProps> = ({
               isFundingInProgress={isFundingInProgress}
               loanId={loanId}
               fundingFormStatus={fundingFormStatus}
+              hasSortData={
+                sortDataMap[statement.statement_id || statement.id] || false
+              }
               onRevokeSuccess={() => {
                 // Add to revoked cards and refresh data
                 setRevokedCardIds(prev => new Set([...prev, statement.statement_id]));
                 fetchGocardlessStatementApi(loanId);
+                fetchGocardlessStatementSortData(loanId);
               }}
             />
           ))
@@ -303,7 +375,10 @@ const GoCardLess: React.FC<LoanFromCommonProps> = ({
 
   // NEW IMPLEMENTATION
   useEffect(() => {
-    if (authenticated && loanId) fetchGocardlessStatementApi(loanId);
+    if (authenticated && loanId) {
+      fetchGocardlessStatementApi(loanId);
+      fetchGocardlessStatementSortData(loanId);
+    }
     if (setStatueUpdate) {
       setStatueUpdate(prev => !prev);
     }

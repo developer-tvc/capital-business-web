@@ -26,7 +26,8 @@ const BankCard = ({
   isFundingInProgress,
   loanId,
   onRevokeSuccess,
-  fundingFormStatus
+  fundingFormStatus,
+  hasSortData
 }) => {
   const { role } = useSelector(authSelector);
   const { showToast } = useToast();
@@ -297,10 +298,10 @@ const showThreeDots =
             setShowModal(true);
             setIsGocardless(statement.continue_with_gocardless);
           }}
-          disabled={!downloadSuccess}
+          disabled={!downloadSuccess || !hasSortData}
           className="rounded bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          Add Sort Data
+          {hasSortData ? 'See Sort Data' : 'Add Sort Data'}
         </button>
       </div>
 

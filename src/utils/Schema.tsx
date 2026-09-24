@@ -1079,7 +1079,8 @@ export const CorporateGuarantorSchema = yup.object().shape({
     })
   ),
   guaranteed_property: yup.object().shape({
-    owns_other_property: yup.string().oneOf(['Yes', 'No'], 'Must be Yes or No'),
+    owns_other_property: yup.string().required('Please select Yes or No').oneOf(['Yes', 'No'], 'Must be Yes or No'),
+    title_no: yup.string().notRequired(),
     owned_property_count: yup
       .number()
       .typeError('Owned Property Count must be a number')
@@ -1089,41 +1090,40 @@ export const CorporateGuarantorSchema = yup.object().shape({
           sch.required('Owned Property Count is required').positive().min(1),
         otherwise: sch => sch.notRequired()
       }),
-    owners: yup.array().when('owns_other_property', {
+    properties: yup.array().when('owns_other_property', {
       is: 'Yes',
       then: schema =>
-        schema.min(1, 'At least one owner is required').of(
+        schema.min(1, 'At least one property is required').of(
           yup.object().shape({
-            owner_name: yup
+            pincode: yup
               .string()
-              .required('Owner name is required')
-              .min(2, 'Owner name must be at least 2 characters'),
-            owner_email: yup
-              .string()
-              .required('Owner email is required')
-              .email('Invalid email'),
-            owned_property: yup
+              .required('Postcode is required')
+              .matches(
+                /^([Gg][Ii][Rr] 0[Aa]{2})|((([A-Za-z][0-9]{1,2})|(([A-Za-z][A-Ha-hJ-Yj-y][0-9]{1,2})|(([A-Za-z][0-9][A-Za-z])|([A-Za-z][A-Ha-hJ-Yj-y][0-9][A-Za-z]?))))\s?[0-9][A-Za-z]{2})$/,
+                'Valid UK Postcode is required.'
+              ),
+            address: yup.string().required('Address is required'),
+            title_no: yup.string().notRequired(),
+            owners: yup
               .array()
-              .min(1, 'At least one owned property is required')
+              .min(1, 'At least one owner is required')
               .of(
                 yup.object().shape({
-                  pincode: yup
+                  owner_name: yup
                     .string()
-                    .required('Pincode is required')
-                    .matches(
-                      /^([Gg][Ii][Rr] 0[Aa]{2})|((([A-Za-z][0-9]{1,2})|(([A-Za-z][A-Ha-hJ-Yj-y][0-9]{1,2})|(([A-Za-z][0-9][A-Za-z])|([A-Za-z][A-Ha-hJ-Yj-y][0-9][A-Za-z]?))))\s?[0-9][A-Za-z]{2})$/,
-                      'Valid UK Postcode is required.'
-                    ),
-                  address: yup
+                    .required('Owner name is required')
+                    .min(2, 'Owner name must be at least 2 characters'),
+                  owner_email: yup
                     .string()
-                    .required('Address is required')
-                    .min(1, 'Address must be at least 1 character')
+                    .required('Owner email is required')
+                    .email('Invalid email')
                 })
               )
           })
         ),
       otherwise: schema => schema.notRequired()
-    })
+    }),
+    owners: yup.array().notRequired()
   })
 });
 

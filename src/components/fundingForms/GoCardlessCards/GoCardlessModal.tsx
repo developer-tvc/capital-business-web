@@ -161,6 +161,24 @@ const GoCardlessModal = ({
   const [debitData, setDebitData] = useState([]);
   const [creditData, setCreditData] = useState([]);
 
+  // Populate debit/credit data from existing bankData when available
+  useEffect(() => {
+    if (bankData && (bankData.debit || bankData.credit)) {
+      setDebitData(bankData.debit || []);
+      setCreditData(bankData.credit || []);
+      
+      // Set date range if available
+      if (bankData.start_date && bankData.end_date) {
+        setCurrentDateRange({
+          start_date: new Date(bankData.start_date),
+          end_date: new Date(bankData.end_date)
+        });
+        setStartDateError(null);
+        setEndDateError(null);
+      }
+    }
+  }, [bankData]);
+
   const debitCategoryGrouped = useCategoryCount(debitData);
   const creditCategoryGrouped = useCategoryCount(creditData);
 
