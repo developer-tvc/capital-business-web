@@ -273,10 +273,10 @@ const trustIdStatusApi = (loanId: string) => {
   });
 };
 
-const sendTrustIdGuestlinkApi = (loanId: string) => {
+const sendTrustIdGuestlinkApi = (loanId: string, payload?: { resend?: boolean }) => {
   return Post({
     url: `${sendTrustIdGuestLinkUrl}${loanId}/`,
-    request: {}
+    request: payload || {}
   });
 };
 

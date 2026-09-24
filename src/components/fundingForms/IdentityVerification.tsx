@@ -75,7 +75,12 @@ const IdentityVerification: React.FC<LoanFromCommonProps> = ({
 
     try {
       event.preventDefault();
-      const response = await sendTrustIdGuestlinkApi(loanId);
+      const response = await sendTrustIdGuestlinkApi(
+        loanId,
+        kycStatus || isIdentityVerificationMailSend
+          ? { resend: true }
+          : undefined
+      );
       if (response.status_code >= 200 && response.status_code < 300) {
         // setIsIdentityModalOpen(true);
         setIsIdentityVerificationMailSend(response?.data[0].send_kyc_mail);
