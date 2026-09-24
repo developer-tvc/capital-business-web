@@ -32,7 +32,6 @@ const BankCard = ({
   const { role } = useSelector(authSelector);
   const { showToast } = useToast();
   const [showRevokedModal, setShowRevokedModal] = useState(false);
-  const [downloadSuccess, setDownloadSuccess] = useState(false);
   const [showBankDetailsModal, setShowBankDetailsModal] = useState(false);
   const [bankAccounts, setBankAccounts] = useState([]);
   const [isFetchingBankAccounts, setIsFetchingBankAccounts] = useState(false);
@@ -133,7 +132,6 @@ const BankCard = ({
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
 
-      setDownloadSuccess(true);
       showToast('Bank details downloaded successfully', {
         type: NotificationType.Success
       });
@@ -284,13 +282,15 @@ const showThreeDots =
           </button>
         )}
         
-        <button
-          onClick={handleDownloadBankDetails}
-          disabled={isFetchingBankAccounts}
-          className="rounded bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          {isFetchingBankAccounts ? 'Loading...' : 'Download Bank Details'}
-        </button>
+        {statement.continue_with_gocardless && (
+          <button
+            onClick={handleDownloadBankDetails}
+            disabled={isFetchingBankAccounts}
+            className="rounded bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {isFetchingBankAccounts ? 'Loading...' : 'Download Bank Details'}
+          </button>
+        )}
 
         <button
           onClick={() => {
@@ -298,10 +298,21 @@ const showThreeDots =
             setShowModal(true);
             setIsGocardless(statement.continue_with_gocardless);
           }}
-          disabled={!downloadSuccess || !hasSortData}
+          disabled={
+            statement.continue_with_gocardless
+              ? !(
+                  (statement.debit && statement.debit.length > 0) ||
+                  (statement.credit && statement.credit.length > 0)
+                )
+              : false
+          }
           className="rounded bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          {hasSortData ? 'See Sort Data' : 'Add Sort Data'}
+          {hasSortData &&
+          ((statement.debit && statement.debit.length > 0) ||
+            (statement.credit && statement.credit.length > 0))
+            ? 'See Sort Data'
+            : 'Add Sort Data'}
         </button>
       </div>
 
