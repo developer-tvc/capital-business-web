@@ -71,8 +71,6 @@ const GoCardlessModal = ({
       setStartDateError('Start date is required.');
     } else {
       setStartDateError(null);
-      // console.log('date', date);
-
       setCurrentDateRange(prev => ({ ...prev, start_date: date }));
     }
   };
@@ -84,6 +82,14 @@ const GoCardlessModal = ({
       setEndDateError(null);
       setCurrentDateRange(prev => ({ ...prev, end_date: date }));
     }
+  };
+
+  const getFormattedDateRange = () => {
+    if (!currentDateRange.start_date || !currentDateRange.end_date) return null;
+    return {
+      start_date: currentDateRange.start_date.toISOString().split('T')[0],
+      end_date: currentDateRange.end_date.toISOString().split('T')[0]
+    };
   };
 
   useEffect(() => {
@@ -678,10 +684,11 @@ const GoCardlessModal = ({
                     return;
                   }
                 }
+                const dateRange = getFormattedDateRange();
                 const updatedArr = updateParentBankData(
                   debitData,
                   creditData,
-                  currentDateRange
+                  dateRange
                 );
                 sortTransactionCheckpoint(true, updatedArr);
               }}
@@ -988,10 +995,7 @@ const GoCardlessModal = ({
                         selected={currentDateRange.start_date}
                         selectsStart
                         onChange={date => {
-                          const formattedDate = date
-                            ? date.toISOString().split('T')[0]
-                            : null;
-                          setCurrentStayStartDate(formattedDate);
+                          setCurrentStayStartDate(date);
                         }}
                         peekNextMonth
                         showMonthDropdown
@@ -1036,10 +1040,7 @@ const GoCardlessModal = ({
                         selected={currentDateRange.end_date}
                         selectsEnd
                         onChange={date => {
-                          const formattedDate = date
-                            ? date.toISOString().split('T')[0]
-                            : null;
-                          setCurrentStayEndDate(formattedDate);
+                          setCurrentStayEndDate(date);
                         }}
                         peekNextMonth
                         showMonthDropdown
