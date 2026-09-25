@@ -268,53 +268,54 @@ const showThreeDots =
       </div>
 
       {/* Action Buttons */}
-      <div className="mt-4 flex flex-wrap gap-2 justify-end">
-        {statement.continue_with_gocardless && 
-         statement.institution_id && 
-         statement.requisition_id && 
-         isFundingInProgress &&
-         [Roles.Manager, Roles.Admin, Roles.UnderWriter].includes(role) && (
-          <button
-            onClick={() => setShowRevokedModal(true)}
-            className="rounded bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700"
-          >
-            Revoke Requisition
-          </button>
-        )}
-        
-        {statement.continue_with_gocardless && (
-          <button
-            onClick={handleDownloadBankDetails}
-            disabled={isFetchingBankAccounts}
-            className="rounded bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {isFetchingBankAccounts ? 'Loading...' : 'Download Bank Details'}
-          </button>
-        )}
+      {allowRoles && (
+        <div className="mt-4 flex flex-wrap gap-2 justify-end">
+          {statement.continue_with_gocardless && 
+           statement.institution_id && 
+           statement.requisition_id && 
+           isFundingInProgress && (
+            <button
+              onClick={() => setShowRevokedModal(true)}
+              className="rounded bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700"
+            >
+              Revoke Requisition
+            </button>
+          )}
+          
+          {statement.continue_with_gocardless && (
+            <button
+              onClick={handleDownloadBankDetails}
+              disabled={isFetchingBankAccounts}
+              className="rounded bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isFetchingBankAccounts ? 'Loading...' : 'Download Bank Details'}
+            </button>
+          )}
 
-        <button
-          onClick={() => {
-            setSelectedStatement(statement);
-            setShowModal(true);
-            setIsGocardless(statement.continue_with_gocardless);
-          }}
-          disabled={
-            statement.continue_with_gocardless
-              ? !(
-                  (statement.debit && statement.debit.length > 0) ||
-                  (statement.credit && statement.credit.length > 0)
-                )
-              : false
-          }
-          className="rounded bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          {hasSortData &&
-          ((statement.debit && statement.debit.length > 0) ||
-            (statement.credit && statement.credit.length > 0))
-            ? 'See Sort Data'
-            : 'Add Sort Data'}
-        </button>
-      </div>
+          <button
+            onClick={() => {
+              setSelectedStatement(statement);
+              setShowModal(true);
+              setIsGocardless(statement.continue_with_gocardless);
+            }}
+            disabled={
+              statement.continue_with_gocardless
+                ? !(
+                    (statement.debit && statement.debit.length > 0) ||
+                    (statement.credit && statement.credit.length > 0)
+                  )
+                : false
+            }
+            className="rounded bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {hasSortData &&
+            ((statement.debit && statement.debit.length > 0) ||
+              (statement.credit && statement.credit.length > 0))
+              ? 'See Sort Data'
+              : 'Add Sort Data'}
+          </button>
+        </div>
+      )}
 
       {/* Revoked Requisition Modal */}
       {showRevokedModal && (

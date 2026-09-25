@@ -135,7 +135,7 @@ const CorporateGuarantor: React.FC<LoanFromCommonProps> = ({
           pincode: '',
           address: '',
           title_no: currentTitleNo,
-          owners: [{ owner_name: '', owner_email: '' }]
+          owners: []
         }]);
         setValue('guaranteed_property.owned_property_count', 1);
       }
@@ -221,14 +221,14 @@ const CorporateGuarantor: React.FC<LoanFromCommonProps> = ({
         }
       }
 
-      // Default to 1 property with 1 owner ONLY if owns_other_property is Yes and no data exists
+      // Default to 1 property with 0 owners ONLY if owns_other_property is Yes and no data exists
       if (ownsOtherProperty === 'Yes' && properties.length === 0) {
         properties = [
           {
             pincode: '',
             address: '',
             title_no: titleNo || '',
-            owners: [{ id: undefined, owner_name: '', owner_email: '' }]
+            owners: []
           }
         ];
       }
@@ -383,7 +383,7 @@ const CorporateGuarantor: React.FC<LoanFromCommonProps> = ({
       pincode: '',
       address: '',
       title_no: '',
-      owners: [{ owner_name: '', owner_email: '' }]
+      owners: []
     });
   };
 
@@ -402,7 +402,7 @@ const CorporateGuarantor: React.FC<LoanFromCommonProps> = ({
           pincode: '',
           address: '',
           title_no: '',
-          owners: [{ owner_name: '', owner_email: '' }]
+          owners: []
         });
       }
     } else if (count < currentCount) {
@@ -643,7 +643,7 @@ const CorporateGuarantor: React.FC<LoanFromCommonProps> = ({
                   return (
                     <div
                       key={propertyItem.id}
-                      className="mb-6 rounded-xl border border-gray-200 bg-white p-5 shadow-sm md:p-6"
+                      className="mb-6 rounded-xl border border-gray-200 bg-white p-5 shadow-sm md:p-6 overflow-visible"
                     >
                       {/* Property Card Header */}
                       <div className="flex items-center justify-between border-b border-gray-100 pb-4">
@@ -681,8 +681,8 @@ const CorporateGuarantor: React.FC<LoanFromCommonProps> = ({
                       </div>
 
                       {/* Property Inputs: Postcode & Address */}
-                      <div className="my-5 grid grid-cols-1 gap-4 md:grid-cols-12">
-                        <div className="md:col-span-4">
+                      <div className="my-5 grid grid-cols-1 gap-4 md:grid-cols-12 relative z-50">
+                        <div className="md:col-span-4 relative z-50">
                           <PropertyPostcodeInput
                             propertyIndex={propertyIndex}
                             register={register}
@@ -833,10 +833,17 @@ const PropertyOwnersList: React.FC<{
       </div>
 
       {ownerFields.length === 0 ? (
-        <p className="py-2 text-xs italic text-gray-400">
-          No owners added for this property. Click &quot;+ Add Owner&quot;
-          above.
-        </p>
+        <div>
+          <p className="py-2 text-xs italic text-gray-400">
+            No owners added for this property. Click &quot;+ Add Owner&quot;
+            above.
+          </p>
+          {(errors?.guaranteed_property?.properties?.[propertyIndex]?.owners as any)?.message && (
+            <p className="mt-1 text-xs text-red-500">
+              {(errors?.guaranteed_property?.properties?.[propertyIndex]?.owners as any)?.message}
+            </p>
+          )}
+        </div>
       ) : (
         ownerFields.map((ownerItem, ownerIndex) => {
           const ownerErrors =
@@ -1003,7 +1010,13 @@ const PropertyPostcodeInput: React.FC<{
       setIsSearching(true);
       if (item.Sid) {
         const result = await addressSidLookupAPI({ address_sid: item.Sid });
-        if (result?.status_code === 200 && result.data?.Results?.Items?.[0]) {
+        if (result?.status_code === 200 && result.data?.Results?.Items?.length > 0) {
+          if (result.data.Results.NumItems > 1) {
+            setAddressList(result.data.Results.Items);
+            setShowDropdown(true);
+            setIsSearching(false);
+            return;
+          }
           const rawAddress = result.data.Results.Items[0];
           const formatted = lookUpAddressFormatter(rawAddress);
 
@@ -1023,30 +1036,34 @@ const PropertyPostcodeInput: React.FC<{
             `guaranteed_property.properties.${propertyIndex}.pincode`,
             `guaranteed_property.properties.${propertyIndex}.address`
           ]);
+          setShowDropdown(false);
+        } else {
+          setShowDropdown(false);
         }
-      } else if (item.Postcode || item.Text) {
+      } else if (item.Postcode || item.Text || item.ItemText || item.Description) {
         if (item.Postcode) {
           setValue(
             `guaranteed_property.properties.${propertyIndex}.pincode`,
             item.Postcode.toUpperCase()
           );
         }
-        if (item.Description || item.Text) {
+        if (item.ItemText || item.Description || item.Text) {
           setValue(
             `guaranteed_property.properties.${propertyIndex}.address`,
-            item.Description || item.Text
+            item.ItemText || item.Description || item.Text
           );
         }
         trigger([
           `guaranteed_property.properties.${propertyIndex}.pincode`,
           `guaranteed_property.properties.${propertyIndex}.address`
         ]);
+        setShowDropdown(false);
       }
     } catch (err) {
       console.error('SID lookup error:', err);
+      setShowDropdown(false);
     } finally {
       setIsSearching(false);
-      setShowDropdown(false);
     }
   };
 
@@ -1079,14 +1096,15 @@ const PropertyPostcodeInput: React.FC<{
       {error && <p className="mt-1 text-xs text-red-500">{error}</p>}
 
       {showDropdown && addressList.length > 0 && (
-        <ul className="absolute z-[9999] mt-1 max-h-56 w-full overflow-auto rounded-lg border border-gray-200 bg-white py-1 text-xs shadow-lg">
+        <ul className="absolute z-[99999] mt-1 max-h-56 w-full overflow-auto rounded-lg border border-gray-200 bg-white py-1 text-xs shadow-lg">
           {addressList.map((item, idx) => (
             <li
               key={idx}
               onClick={() => handleSelectAddress(item)}
               className="cursor-pointer border-b border-gray-100 px-3 py-2 text-gray-800 transition-colors last:border-b-0 hover:bg-blue-50"
             >
-              {item.Text ||
+              {item.ItemText ||
+                item.Text ||
                 item.Description ||
                 item.Street ||
                 item.AddressLine1 ||

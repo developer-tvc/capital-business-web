@@ -193,6 +193,12 @@ const GoCardlessModal = ({
     currentCredit,
     dateRange = currentDateRange
   ) => {
+    const formatDate = d => {
+      if (!d) return null;
+      if (d instanceof Date) return d.toISOString().split('T')[0];
+      return d;
+    };
+
     const inWithout = withoutGocardlessData?.some(
       item => item.id === selectedId || item.statement_id === selectedId
     );
@@ -203,8 +209,8 @@ const GoCardlessModal = ({
             ...item,
             debit: currentDebit,
             credit: currentCredit,
-            start_date: dateRange.start_date || item.start_date,
-            end_date: dateRange.end_date || item.end_date
+            start_date: formatDate(dateRange.start_date) || item.start_date,
+            end_date: formatDate(dateRange.end_date) || item.end_date
           };
         }
         return item;
@@ -223,8 +229,8 @@ const GoCardlessModal = ({
             ...item,
             debit: currentDebit,
             credit: currentCredit,
-            start_date: dateRange.start_date || item.start_date,
-            end_date: dateRange.end_date || item.end_date
+            start_date: formatDate(dateRange.start_date) || item.start_date,
+            end_date: formatDate(dateRange.end_date) || item.end_date
           };
         }
         return item;
