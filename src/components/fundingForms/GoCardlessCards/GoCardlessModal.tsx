@@ -71,8 +71,6 @@ const GoCardlessModal = ({
       setStartDateError('Start date is required.');
     } else {
       setStartDateError(null);
-      // console.log('date', date);
-
       setCurrentDateRange(prev => ({ ...prev, start_date: date }));
     }
   };
@@ -84,6 +82,14 @@ const GoCardlessModal = ({
       setEndDateError(null);
       setCurrentDateRange(prev => ({ ...prev, end_date: date }));
     }
+  };
+
+  const getFormattedDateRange = () => {
+    if (!currentDateRange.start_date || !currentDateRange.end_date) return null;
+    return {
+      start_date: currentDateRange.start_date.toISOString().split('T')[0],
+      end_date: currentDateRange.end_date.toISOString().split('T')[0]
+    };
   };
 
   useEffect(() => {
@@ -187,6 +193,12 @@ const GoCardlessModal = ({
     currentCredit,
     dateRange = currentDateRange
   ) => {
+    const formatDate = d => {
+      if (!d) return null;
+      if (d instanceof Date) return d.toISOString().split('T')[0];
+      return d;
+    };
+
     const inWithout = withoutGocardlessData?.some(
       item => item.id === selectedId || item.statement_id === selectedId
     );
@@ -197,8 +209,8 @@ const GoCardlessModal = ({
             ...item,
             debit: currentDebit,
             credit: currentCredit,
-            start_date: dateRange.start_date || item.start_date,
-            end_date: dateRange.end_date || item.end_date
+            start_date: formatDate(dateRange.start_date) || item.start_date,
+            end_date: formatDate(dateRange.end_date) || item.end_date
           };
         }
         return item;
@@ -217,8 +229,8 @@ const GoCardlessModal = ({
             ...item,
             debit: currentDebit,
             credit: currentCredit,
-            start_date: dateRange.start_date || item.start_date,
-            end_date: dateRange.end_date || item.end_date
+            start_date: formatDate(dateRange.start_date) || item.start_date,
+            end_date: formatDate(dateRange.end_date) || item.end_date
           };
         }
         return item;
@@ -678,10 +690,11 @@ const GoCardlessModal = ({
                     return;
                   }
                 }
+                const dateRange = getFormattedDateRange();
                 const updatedArr = updateParentBankData(
                   debitData,
                   creditData,
-                  currentDateRange
+                  dateRange
                 );
                 sortTransactionCheckpoint(true, updatedArr);
               }}
@@ -988,10 +1001,7 @@ const GoCardlessModal = ({
                         selected={currentDateRange.start_date}
                         selectsStart
                         onChange={date => {
-                          const formattedDate = date
-                            ? date.toISOString().split('T')[0]
-                            : null;
-                          setCurrentStayStartDate(formattedDate);
+                          setCurrentStayStartDate(date);
                         }}
                         peekNextMonth
                         showMonthDropdown
@@ -1036,10 +1046,7 @@ const GoCardlessModal = ({
                         selected={currentDateRange.end_date}
                         selectsEnd
                         onChange={date => {
-                          const formattedDate = date
-                            ? date.toISOString().split('T')[0]
-                            : null;
-                          setCurrentStayEndDate(formattedDate);
+                          setCurrentStayEndDate(date);
                         }}
                         peekNextMonth
                         showMonthDropdown
